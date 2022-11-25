@@ -48,7 +48,7 @@ def loginuser(request):
     return render(request, 'login.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def dashboard(request):
     cur = connection.cursor()
     cur.execute('''SELECT COUNT(DISTINCT (`emp_id`)) FROM `call_report_master` WHERE `date` = CURRENT_DATE ;''')
@@ -80,7 +80,7 @@ def logout_user(request):
     return redirect('loginuser')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def register(request):
     result = []
     for branch in list(CallReportMaster.objects.values('branch').distinct()):
@@ -153,7 +153,7 @@ def register(request):
     return render(request, 'Employee/register.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def search_emp(request):
     # print(request.GET, request.POST)
     if 'term' in request.GET:
@@ -168,23 +168,23 @@ def search_emp(request):
         return JsonResponse(result, safe=False)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def emp_list(request):
     return render(request, 'emp_list.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def update_activity(request):
     return render(request, 'update_act.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def ref_dashboard(request):
     return render(request, 'ref_dashboard.html')
     #     # print(PatientData.objects.filter(~Q(branch='Test') & Q(cluster_approval='Approved') & ~Q(utr_no='') & ~Q(utr_no='NEFT Return') & ~Q(utr_no='Wrong Bank Details')).select_related('invoice_no'))
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def pending_payment(request):
     status = PatientData.objects.filter(referralstatus='Yes', chapproval="approved")
     cash = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='cash')
@@ -222,7 +222,7 @@ def pending_payment(request):
     return render(request, 'pending_payment.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def doctor_agent_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -254,7 +254,7 @@ def doctor_agent_list(request):
 
 
 @csrf_exempt
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def doctor_agent_list_dt(request):
     # print(request.POST)
     draw = int(request.POST.get('draw'))
@@ -313,7 +313,7 @@ def doctor_agent_list_dt(request):
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data}, safe=False)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def call_report(request):
     context = {
         'report': CallReportMaster.objects.all(),
@@ -328,7 +328,7 @@ def call_report(request):
 
 
 @csrf_exempt
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def call_reports(request):
     # print(request.POST)
     draw = int(request.POST.get('draw'))
@@ -386,7 +386,7 @@ def call_reports(request):
          "iTotalDisplayRecords": records_total, "aaData": data}, safe=False)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def call_search(request):
     if 'term' in request.GET:
         result = []
@@ -401,7 +401,7 @@ def call_search(request):
         return JsonResponse(result, safe=False)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def save_transfer(request):
     status = False
     if request.is_ajax() and request.method == "POST" and 'from_empid' not in request.POST:
@@ -416,7 +416,7 @@ def save_transfer(request):
         status = True
         return JsonResponse({'res': status})
 
-
+@login_required(login_url="/")
 def call_report_csv(request):
     # empid = request.GET.get('i')
     # print(empid)
@@ -453,7 +453,7 @@ def call_report_csv(request):
 
     return res
 
-
+@login_required(login_url="/")
 def total_referral_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -509,7 +509,7 @@ def total_referral_list(request):
     return render(request, 'referral/total_referral_list.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def referral_details(request):
     context = {}
 
@@ -535,7 +535,7 @@ def referral_details(request):
     return render(request, 'referral/referral_details.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def new_referral_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -563,7 +563,7 @@ def new_referral_list(request):
     return render(request, 'referral/new_referral_list.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def search_referral(request):
     context = {
         'agent': DoctorAgentList.objects.all()
@@ -610,7 +610,7 @@ def search_referral(request):
     return render(request, 'referral/search_referral.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def search_reff(request):
     draw = int(request.POST.get('draw'))
     length = int(request.POST.get('length'))
@@ -653,7 +653,7 @@ def search_reff(request):
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data}, safe=False)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def patient_referral(request):
     context = {}
     if request.method == 'POST':
@@ -670,7 +670,7 @@ def patient_referral(request):
     return render(request, 'referral/patient_referral.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def abc_report(request):
     context = {
         'abcreport': AbcReport.objects.all(),
@@ -690,7 +690,7 @@ def abc_report(request):
     return render(request, 'referral/abc_report.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def abc_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="ABC_report_Sheet.csv"'
@@ -723,7 +723,7 @@ def abc_csv(request):
     return response
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def allowance_report(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -756,7 +756,7 @@ def allowance_report(request):
 # SELECT (SELECT `emp_id`) AS empid,(SELECT `name`) AS empname,IFNULL((SELECT COUNT(DISTINCT `date`) FROM `call_report_master` WHERE (`emp_id` =  `Emp_ID` AND `date` BETWEEN '2021-01-01' AND '2022-04-08' AND `camp` != 'Hospital Visit') AND (`emp_id` = `Emp_ID` AND `date` BETWEEN  '2020-01-01' AND '2022-04-08' AND `camp` != 'Office Work') AND (`emp_id` =  `emp_id` AND `date` BETWEEN  '2019-01-01' AND '2022-04-08' AND `camp` != 'Meeting') GROUP BY `emp_id`),0) AS TOTALDAYS,IFNULL((SELECT COUNT(`date`) FROM `call_report_master` WHERE (`emp_id` = `Emp_ID` AND `date` BETWEEN  '2021-01-01' AND '2022-04-08' AND `camp` != 'Hospital Visit' ) AND (`emp_id` =  `emp_id` AND `date` BETWEEN  '2021-01-01' AND '2022-04-08' AND `camp` != 'Office Work') AND (`emp_id` =  `emp_id` AND `date` BETWEEN  '2021-01-01' AND '2022-04-08' AND `camp` != 'Meeting') GROUP BY `emp_id`),0) AS TOTALCALLS,(SELECT (`logins`.`allow`) FROM `call_report_master` INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE `logins`.`Emp_ID` = `Emp_ID` LIMIT 1) AS ALLOWANCE,(SELECT ROUND((`logins`.`allow`/12),2) FROM `call_report_master` INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE `logins`.`Emp_ID` = `Emp_ID` LIMIT 1) AS PERDAYALLOWNACE,(SELECT IF(TOTALCALLS != '',ROUND(PERDAYALLOWNACE*TOTALCALLS,2),0)) AS TOTALALLOWANCE;
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def inactive_allowance_report(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -792,7 +792,7 @@ def inactive_allowance_report(request):
     return render(request, 'referral/inactive_allowance_report.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 # def bill_list(request):
 #     context = {
 #         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -882,6 +882,7 @@ def inactive_allowance_report(request):
 #
 #     return render(request, 'bills_list.html', context)
 
+@login_required(login_url="/")
 def bill_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -974,7 +975,7 @@ def bill_list(request):
 
     return render(request, 'bills_list.html', context)
 
-
+@login_required(login_url="/")
 def admission_list_filter(request):
     branch = request.GET.get('branch')
     # first_date = request.POST.get('date_input')
@@ -1036,7 +1037,7 @@ def admission_list_filter(request):
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data},
         safe=False)
 
-
+@login_required(login_url="/")
 @csrf_exempt
 def admission(request):
     draw = int(request.POST.get('draw'))
@@ -1112,7 +1113,7 @@ def admission(request):
 #         return JsonResponse(result, safe=False)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def recent_updates(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -1162,7 +1163,7 @@ def recent_updates(request):
     return render(request, 'referral/recent_updates.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def bifurcation_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -1191,7 +1192,7 @@ def bifurcation_list(request):
 
     return render(request, 'referral/bifurcation_list.html', context)
 
-
+@login_required(login_url="/")
 def employee_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -1237,7 +1238,7 @@ def employee_list(request):
     return render(request, 'Employee/employee_list.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def attendance_list(request):
     context = {
         'attendance': CallReportMaster.objects.all()
@@ -1247,7 +1248,7 @@ def attendance_list(request):
     return render(request, 'Employee/attendance_list.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def employee_leave_list(request):
     context = {
         'daily_call': CallReportMaster.objects.all()
@@ -1262,7 +1263,7 @@ def employee_leave_list(request):
     return render(request, 'Employee/employee_leave_list.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def daily_call_report(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -1309,7 +1310,7 @@ def daily_call_report(request):
     return render(request, 'call/daily_call_report.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def day_report(request):
     context = {
         'report': Logins.objects.all()
@@ -1337,7 +1338,7 @@ def day_report(request):
     return render(request, 'call/day_report.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def n_day_report(request):
     if request.method == 'POST':
         date = request.POST.get('date')
@@ -1349,12 +1350,12 @@ def n_day_report(request):
     return render(request, 'call/ndy.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def champion(request):
     return render(request, 'call/champion.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def admission_breakup(request):
     if request.method == 'POST':
         date = request.POST.get('date')
@@ -1362,7 +1363,7 @@ def admission_breakup(request):
     return render(request, 'call/admission_breakup.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def camp_report(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -1393,7 +1394,7 @@ def camp_report(request):
     return render(request, 'call/camp_report.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def processed_ref(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -1441,7 +1442,7 @@ def processed_ref(request):
     return render(request, 'processed_ref.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def wrong_bank_details(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -1492,7 +1493,7 @@ def wrong_bank_details(request):
     return render(request, 'wrong_bank_details.html', context)
 
 
-# # @login_required(login_url="/")
+@login_required(login_url="/")
 def bank_details(request):
     context = {}
     if 'search' in request.POST:
@@ -1537,7 +1538,7 @@ def bank_details(request):
     return render(request, 'bank_details.html', context)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def search_id(request):
     if 'term' in request.GET:
         result = []
@@ -1554,7 +1555,7 @@ def search_id(request):
 
         return JsonResponse(result, safe=False)
 
-
+@login_required(login_url="/")
 def search_uid(request):
     if 'term' in request.GET:
         result = []
@@ -1578,7 +1579,7 @@ def search_uid(request):
         return JsonResponse(result, safe=False)
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def utr_update(request):
     if request.method == 'POST':
         form = Upload(request.POST, request.FILES)
@@ -1592,7 +1593,7 @@ def utr_update(request):
     return render(request, 'utr.html')
 
 
-# @login_required(login_url="/")
+@login_required(login_url="/")
 def utr_csv(request):
     res = HttpResponse(content_type='text/csv')
     res['Content-Disposition'] = 'attachment; filename="Utr_Updated_file.csv"'
@@ -1613,7 +1614,7 @@ def utr_csv(request):
 
     return res
 
-
+@login_required(login_url="/")
 def day_reports(request):
     context = {}
 
@@ -1623,7 +1624,7 @@ def day_reports(request):
 
     return render(request, 'call/report.html', context)
 
-
+@login_required(login_url="/")
 def incomplete_referral(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -1672,7 +1673,7 @@ def incomplete_referral(request):
             ]
     return render(request, 'referral/incomplete_referral.html', context)
 
-
+@login_required(login_url="/")
 def reject(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -1688,7 +1689,7 @@ def reject(request):
 
     return render(request, 'reject.html', context)
 
-
+@login_required(login_url="/")
 def neft_return_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -1795,7 +1796,7 @@ def pdf(request):
     filepath = os.path.join('svs.pdf')
     return FileResponse(open(filepath, 'rb'))
 
-
+@login_required(login_url="/")
 def cash_payment(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -1894,7 +1895,7 @@ def functional_approval_list(request):
 
     return render(request, 'fucntional_aprroval_list.html', context)
 
-
+@login_required(login_url="/")
 def s_id(request):
     if 'term' in request.GET:
         result = []
@@ -1908,7 +1909,7 @@ def s_id(request):
 
         return JsonResponse(result, safe=False)
 
-
+@login_required(login_url="/")
 @csrf_exempt
 def daily_call(request):
     draw = int(request.POST.get('draw'))
@@ -1959,7 +1960,7 @@ def daily_call(request):
 def delete_data(request):
     return None
 
-
+@login_required(login_url="/")
 def edit_list(request):
     if request.method == "POST":
         data_list = request.POST.get('transfer_id')
@@ -1971,7 +1972,7 @@ def edit_list(request):
         #     print(i)
     return redirect('functional_approval_list')
 
-
+@login_required(login_url="/")
 def payment_list(request):
     context = {
         'branch_name': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -1989,7 +1990,7 @@ def payment_list(request):
 
     return render(request, 'payment_list.html', context)
 
-
+@login_required(login_url="/")
 def pending_payment_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="pending_payment.csv"'
