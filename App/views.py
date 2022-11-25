@@ -241,17 +241,15 @@ def doctor_agent_list(request):
 
     if request.method == "POST":
         empid = request.POST.get('empid')
-        # print(empid)
         branch = request.POST.get('branch')
-        if empid and branch:
+        if branch == "All":
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter()
+        elif empid and branch:
             context["doctor_agent_list"] = DoctorAgentList.objects.filter(emp_id=empid, branch=branch)
-            # print(empid, branch)
         elif empid:
             context["doctor_agent_list"] = DoctorAgentList.objects.filter(emp_id=empid)
-            # print(empid)
         elif branch:
             context["doctor_agent_list"] = DoctorAgentList.objects.filter(branch=branch)
-            # print(branch)
     return render(request, 'doctor_agent_list.html', context)
 
 
@@ -1010,19 +1008,11 @@ def admission_list_filter(request):
                          start:length + start]
             records_total = agent_data.count()
             records_filtered = records_total
-    # paginator = Paginator(agent_data, length)
-    #
-    # try:
-    #     object_list = paginator.page(draw).object_list
-    # except PageNotAnInteger:
-    #     object_list = paginator.page(draw).object_list
-    # except EmptyPage:
-    #     object_list = paginator.page(paginator.num_pages).object_list
+
     data = [
         {
             'sno': emp['sno'],
             'edit': '',
-            # 'edit': '<a href="#"  onclick="editAdmission('+str(emp['sno'])+')" class="icon-pencil mr-2 text-info" data-toggle="modal" data-target="#admissionModal" ></a><a href="/admission_list/?delete='+str(emp['sno'])+'" class="btn btn-sm btn-danger"><i class="icon-trash" aria-hidden="true"></i></a>',
             'invoice_no': emp['invoice_no'],
             'branch': emp['branch'],
             'patient_name': emp['patient_name'],
