@@ -1,0 +1,159 @@
+{% extends 'base.html'%}
+{%  block content_heading %} Employee List {% endblock %}
+{%  block content_subheading %} Employee List {% endblock %}
+{% block title %} Employee List {% endblock %}
+
+
+
+{#{% block script %}#}
+{#<script>#}
+{##}
+{##}
+{#    let delete_value;#}
+{#    $(".delete-unit").on('click', function () {#}
+{#        delete_value = $(this).data('unit');#}
+{#        swal({#}
+{#              title: "Are you sure?",#}
+{#              text: `Do you want to Deactivate Unit with ${delete_value} code`,#}
+{#              type: "warning",#}
+{#              showCancelButton: true,#}
+{#              confirmButtonClass: "btn-danger",#}
+{#              confirmButtonText: "Yes, Deactivate it!",#}
+{#              closeOnConfirm: false,#}
+{#            },#}
+{#            function(){#}
+{#                $.ajax({#}
+{#                    url: '',#}
+{#                    data: {del_unit_id: delete_value},#}
+{#                    success: function (response) {#}
+{#                        if (response.success) {#}
+{#                            swal("Deactivated!", `Unit with code ${delete_value} has Deactivated`, "success");#}
+{#                        }else swal("Failed!", `Unit with code ${delete_value} has failed to Deactivate`, "warning");#}
+{#                    },#}
+{#                    error: function () {#}
+{#                        alert('Oops something went wrong!')#}
+{#                    }#}
+{#                });#}
+{#            }#}
+{#        );#}
+{#    });#}
+{##}
+{#</script>#}
+{#{% endblock %}#}
+{% block body %}
+    <form action=""method="post">
+    {% csrf_token %}
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <select class="form-control" name="branch">
+                        <option value="All" selected>All</option>
+                        {% for list in branch %}
+                            <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" name="Submit" class="btn btn-lg btn-success btn-gradient btn-shadow">Submit</button>
+            </div>
+
+        </div>
+    </form>
+
+
+{#     <div class="modal fade" id="admissionModal">#}
+{#        <div class="modal-dialog modal-lg">#}
+{#            <div class="modal-content">#}
+{##}
+{#                <div class="modal-header">#}
+{#                    <h4 class="modal-title" id="largeModalLabel">Update Details</h4>#}
+{#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>#}
+{#                </div>#}
+{#                                <div class="modal-body">#}
+{#                                  <form id=add_form" action="" method="post">#}
+{#                                     {% csrf_token %}#}
+{##}
+{#                                        <div class="form-group row">#}
+{#                                            <div class="col-10"> Emp ID* :#}
+{#                                                <input type="text" class="form-control" id="emp_id "   name="emp_id " required readonly>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                        <div class="form-group row">#}
+{#                                            <div class="col-10">Emp Name* :#}
+{#                                                <input type="text" class="form-control" id="emp_name"  name="emp_name" required readonly>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                       <div class="form-group row">#}
+{#                                            <div class="col-10">Designation :#}
+{#                                                <input type="text" class="form-control" id="orginal_design"  name="orginal_design" required readonly>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                       <div class="form-group row">#}
+{#                                            <div class="col-10">Department :#}
+{#                                                <input type="text" class="form-control" id="original_type" name="original_type" required >#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                         <div class="form-group row">#}
+{#                                            <div class="col-10"> Mobile :#}
+{#                                                <input type="text" class="form-control" id="office_number" name="office_number" required>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                        <div class="form-group row">#}
+{#                                            <div class="col-10">Branch:#}
+{#                                                <input type="text" class="form-control" id="branch" name="branch" required>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                       <div class="submit-section">#}
+{#                                           <button type="submit" class="btn btn-success">Update</button>#}
+{#                                       </div>#}
+{#                                    </form>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#         </div>#}
+
+    <div class="row pb-3">
+        <div class="col-md-12">
+                    <div class="card card-body">
+                        <div class="table-responsive">
+                            <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                                <thead>
+                                <tr role="row" style="background: #3F51B5; color: #fff;">
+                                    <th class="py-2" data-orderable="false">#</th>
+                                    <th class="py-2" data-orderable="false">Action</th>
+                                    <th class="py-2" data-orderable="false">Emp ID</th>
+                                    <th class="py-2" data-orderable="false">Name</th>
+                                    <th class="py-2" data-orderable="false"> Designation</th>
+                                    <th class="py-2" data-orderable="false">Department</th>
+                                    <th class="py-2" data-orderable="false">Office Number</th>
+                                    <th class="py-2" data-orderable="false">Branch</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for emp in emp_list %}
+                                   <tr>
+                                         <td class="py-1 text-right">{{ forloop.counter }}</td>
+                                         <td class="py-1">
+{#                                             <a href="#"  data-ref="{{ emp.emp_name}}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>#}
+                                           <a href="{% url 'referral_details' %}?edit={{ emp.emp_id }}" class=" "><i class="icon-pencil mr-2 text-info"></i></a>
+                                             <a href="{% url 'employee_list' %}?delete={{ emp.emp_id}}" class=" "><i class="icon-trash mr-2 text-danger"></i></a>
+{#                                        <a class="dropdown-item delete-unit" href="#" data-toggle="modal" data-unit={{ emp.emp_id}} data-target="#delete_unit"><i class="fa fa-trash-o m-r-5"></i> Deactive</a>#}
+                                         </td>
+                                        <td class="py-1">{{ emp.emp_id }}</td>
+                                        <td class="py-1">{{ emp.emp_name}}</td>
+                                        <td class="py-1">{{ emp.orginal_design}}</td>
+                                        <td class="py-1">{{ emp.original_type}}</td>
+                                        <td class="py-1">{{ emp.office_number}}</td>
+                                        <td class="py-1">{{ emp.branch}}</td>
+                                   </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+    </div>
+
+
+{% endblock %}

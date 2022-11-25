@@ -1,0 +1,176 @@
+{% extends 'base.html'%}
+{%  block content_heading %} Total Doctor List {% endblock %}
+{%  block content_subheading %} Total Doctor List {% endblock %}
+{% block title %} Recent Updates {% endblock %}
+
+
+
+{% block script %}
+<script>
+
+    $(".edit-admission").on('click', function () {
+        let edit_value = $(this).data('ref');
+        console.log(edit_value);
+        $.ajax({
+            url: '{% url 'recent_updates' %}',
+            data: {unique_id: edit_value},
+            success: function (response) {
+                $('#emp_id').val(response.emp_id );
+                $('#unique_id').val(response.unique_id );
+                $('#agent_name').val(response.agent_name);
+                $('#mobile').val(response.mobile );
+                $('#company').val(response.company );
+                $('#area').val(response.area );
+            },
+            error: function () {
+                alert('Oops something went wrong!')
+            }
+        })
+    });
+
+
+</script>
+{% endblock %}
+{% block body %}
+    <style>
+
+    </style>
+    <form action="" method="post">
+        {% csrf_token %}
+         <div class="row">
+                 <div class="col-md-3">
+                 <div class="form-group">
+                     <select class="form-control" name="branch">
+                         <option value="">-- Select Branch --</option>
+                        <option value="All" selected>All</option>
+                         {% for list in branch %}
+                             <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                         {% endfor %}
+                     </select>
+                 </div>
+             </div>
+             <div class="col-md-2">
+                 <button type="submit" name="Submit" class="btn btn-lg btn-success btn-gradient btn-shadow">Submit</button>
+             </div>
+         </div>
+    </form>
+
+
+     <div class="modal fade" id="admissionModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h4 class="modal-title" id="largeModalLabel">Update Details</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                                <div class="modal-body">
+                                  <form id=add_form" action="" method="post">
+                                     {% csrf_token %}
+
+                                        <div class="form-group row">
+                                            <div class="col-10">Unique ID* :
+                                                <input type="text" class="form-control" id="unique_id"   name="unique_id" required readonly>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-10">Emp ID* :
+                                                <input type="text" class="form-control" id="emp_id"  name="emp_id" required readonly>
+                                            </div>
+                                        </div>
+                                       <div class="form-group row">
+                                            <div class="col-10">Agent Name* :
+                                                <input type="text" class="form-control" id="agent_name"  name="agent_name" required readonly>
+                                            </div>
+                                        </div>
+                                       <div class="form-group row">
+                                            <div class="col-10">Mobile :
+                                                <input type="text" class="form-control" id="mobile" name="mobile" required >
+                                            </div>
+                                        </div>
+                                         <div class="form-group row">
+                                            <div class="col-10"> Company :
+                                                <input type="text" class="form-control" id="company" name="company" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="col-10"> Area :
+                                                <input type="text" class="form-control" id="area" name="area" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="col-10">Type:
+                                             <select class="form-control" name="agent_type">
+                                                 <option value="all">All Types</option>
+                                                   {% for list in agent_type %}
+                                                       <option value="{{ list.agent_type }}">{{ list.agent_type }}</option>
+                                                   {% endfor %}
+                                               </select>
+                                            </div>
+                                        </div>
+                                       <div class="submit-section">
+                                           <button type="submit" class="btn btn-success">Update</button>
+                                       </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+         </div>
+
+        <div class="row pb-4">
+            <div class="col-md-12">
+                <div class="card card-body">
+                    <div class="table-responsive">
+                        <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                            <thead>
+                            <tr role="row" style="background: #3F51B5; color: #fff;">
+                                <th class="py-2" data-orderable="false">#</th>
+                                <th class="py-2" data-orderable="false">Edit</th>
+                                <th class="py-2" data-orderable="false">Emp ID</th>
+                                <th class="py-2" data-orderable="false">Unique ID</th>
+                                <th class="py-2" data-orderable="false">Referral Type</th>
+                                <th class="py-2" data-orderable="false">Name</th>
+                                <th class="py-2" data-orderable="false">Qualification/Designation</th>
+                                <th class="py-2" data-orderable="false">Mobile</th>
+                                <th class="py-2" data-orderable="false">Clinic/Company</th>
+                                <th class="py-2" data-orderable="false">Area</th>
+                                <th class="py-2" data-orderable="false">Branch</th>
+                                <th class="py-2" data-orderable="false">Url</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for upl in update %}
+                                <tr>
+                                    <td class="py-2">{{ forloop.counter }}</td>
+                                    <td>
+                                         <a href="#"  data-ref="{{ upl.unique_id }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>
+{#                                       <a href="{% url 'referral_details' %}?edit={{ upl.unique_id }}" class=""><i class="icon-pencil text-info"></i></a>#}
+
+                                    <a href="{% url 'recent_updates' %}?delete={{ upl.unique_id }}" class=" "><i class="icon-trash mr-2 text-danger"></i></a>
+
+{#                                        <button id="sweetalert-4" name="delete" class="icon-trash text-danger"></button>#}
+                                   <label for="upload">
+                                       <i class="icon-picture text-danger"></i>
+                                        <input type="file" id="upload" style="display:none" accept="image/png, image/gif, image/jpeg" />
+                                   </label>
+                                    </td>
+                                    <td class="py-2">{{ upl.emp_id }}</td>
+                                    <td class="py-2">{{ upl.unique_id }}</td>
+                                    <td class="py-2">{{ upl.agent_type }}</td>
+                                    <td class="py-2">{{ upl.agent_name }}</td>
+                                    <td class="py-2">{{ upl.designation }}</td>
+                                    <td class="py-2">{{ upl.mobile }}</td>
+                                    <td class="py-2">{{ upl.company }}</td>
+                                    <td class="py-2">{{ upl.area }}</td>
+                                    <td class="py-2">{{ upl.branch }}</td>
+                                    <td class="py-2">{{ upl.url }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}

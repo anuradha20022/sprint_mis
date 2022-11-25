@@ -1,0 +1,102 @@
+{% extends 'base.html'%}
+{%  block content_heading %} ABC Report {% endblock %}
+{%  block content_subheading %} ABC report {% endblock %}
+{% block title %} ABC Report {% endblock %}
+
+
+{% block body %}
+    <form action="" method="post">
+    {% csrf_token %}
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <select class="form-control" name="branch">
+                        <option value="">-- Select Branch --</option>
+                        {% for list in branch %}
+                            <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="input-group">
+                    <input type="text" name="datee" class="form-control mb-2 daterange-shawCalRanges">
+                    <div class="input-group-append">
+                        <input class="btn btn-primary btn-sm form-control " type="submit" name="submit" value="Go">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <form id="transfer_form" method="post">
+        {% csrf_token %}
+        <div class="row pb-4">
+            <div class="col-md-12">
+                <div class="card card-body">
+                <div class="text-right">
+                    <button type="submit" name="Submit" class="btn btn-success btn-gradient btn-shadow">Export Excel</button>
+                    </div><hr>
+                    <div class="table-responsive">
+                        <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                            <thead>
+                            <tr role="row" style="background: #3F51B5; color: #fff;">
+                                <th class="py-2" data-orderable="false">#</th>
+                                <th class="py-2" data-orderable="false">Emp ID</th>
+                                <th class="py-2" data-orderable="false">Emp Name</th>
+                                <th class="py-2" data-orderable="false">Total_refer_count</th>
+                                <th class="py-2" data-orderable="false">Atotal</th>
+                                <th class="py-2" data-orderable="false">Btotal</th>
+                                <th class="py-2" data-orderable="false">Ctotal</th>
+                                <th class="py-2" data-orderable="false">av1</th>
+                                <th class="py-2" data-orderable="false">av2</th>
+                                <th class="py-2" data-orderable="false">av3</th>
+                                <th class="py-2" data-orderable="false">bv1</th>
+                                <th class="py-2" data-orderable="false">bv2</th>
+                                <th class="py-2" data-orderable="false">bv3</th>
+                                <th class="py-2" data-orderable="false">cv1</th>
+                                <th class="py-2" data-orderable="false">cv2</th>
+                                <th class="py-2" data-orderable="false">cv3</th>
+                                <th class="py-2" data-orderable="false">anv</th>
+                                <th class="py-2" data-orderable="false">bnv</th>
+                                <th class="py-2" data-orderable="false">cnv</th>
+                                <th class="py-2" data-orderable="false">Date</th>
+                                <th class="py-2" data-orderable="false">Date_Time</th>
+                                <th class="py-2" data-orderable="false">Branch</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {%  for abc in abcreport %}
+                                     <tr>
+                                        <td class="py-2 text-right">{{ forloop.counter }}</td>
+                                        <td class="py-2">{{ abc.emp_id }}</td>
+                                        <td class="py-2">{{ abc.emp_name }}</td>
+                                        <td class="py-2">{{ abc.totalrefer_count }}</td>
+                                        <td class="py-2">{{ abc.atotal }}</td>
+                                        <td class="py-2">{{ abc.btotal }}</td>
+                                        <td class="py-2">{{ abc.ctotal }}</td>
+                                        <td class="py-2">{{ abc.av1 }}</td>
+                                        <td class="py-2">{{ abc.av2 }}</td>
+                                        <td class="py-2">{{ abc.av3 }}</td>
+                                        <td class="py-2">{{ abc.bv1 }}</td>
+                                        <td class="py-2">{{ abc.bv2 }}</td>
+                                        <td class="py-2">{{ abc.bv3 }}</td>
+                                        <td class="py-2">{{ abc.cv1 }}</td>
+                                        <td class="py-2">{{ abc.cv2 }}</td>
+                                        <td class="py-2">{{ abc.cv3 }}</td>
+                                        <td class="py-2">{{ abc.anv }}</td>
+                                        <td class="py-2">{{ abc.bnv }}</td>
+                                        <td class="py-2">{{ abc.cnv }}</td>
+                                        <td class="py-2">{{ abc.date }}</td>
+                                        <td class="py-2">{{ abc.date_time}}</td>
+                                        <td class="py-2">{{ abc.branch}}</td>
+                                     </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

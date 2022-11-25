@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+   {%  block content_heading %} Change Password{% endblock %}
+
+{% block body %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow p-4">
+        <form action="" method="post">
+            {% csrf_token %}
+            <input class="form-control mb-3" type="password" name="old_password" placeholder="Old password*" autofocus="" required="">
+            <input class="form-control mb-3" type="password" name="new_password" placeholder="New password*" required="">
+            <hr>
+
+            <button class=" btn-lg btn-primary" type="submit">Submit</button>
+        </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

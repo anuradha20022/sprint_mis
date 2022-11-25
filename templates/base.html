@@ -1,0 +1,914 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %} {% endblock %} | MIS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'logo.png' %}" >
+    <!-- Switcher CSS -->
+    <link rel="stylesheet" href="{% static 'assets/plugin/switchery/switchery.min.css' %}" />
+    <!-- Morris CSS -->
+    <link rel="stylesheet" href="{% static 'assets/plugin/morris/morris.css' %}" />
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{% static 'dist/css/style.css' %}" />
+
+    <!-- Pick A Date CSS -->
+    <link rel="stylesheet" href="{% static 'assets/plugin/pickadate/default.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/plugin/pickadate/default.date.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/plugin/pickadate/default.time.css' %}" />
+    <!-- Daterangepicker CSS -->
+    <link rel="stylesheet" href="{% static 'assets/plugin/daterangepicker/daterangepicker.css' %}" />
+
+    <!-- datatables CSS -->
+    <link rel="stylesheet" href="{% static 'assets/plugin/datatable/datatables.min.css' %}" />
+
+    <!-- Sweetalerts CSS -->
+    <link rel="stylesheet" href="{% static 'sweetalert.css' %}">
+    <script src="{% static 'sweetalert.js' %}"></script>
+
+
+    <!-- Sweet alerts CSS -->
+    <link rel="stylesheet" href="{% static 'sweetalerts/sweetalert.css' %}">
+    <script src="{% static 'sweetalerts/sweetalert.min.js' %}"></script>
+ <link
+      href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css"
+      rel="stylesheet"
+    />
+</head>
+<body>
+
+    <style>
+        *{
+            {#font-family: 'Nunito', sans-serif;!important;#}
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+        }
+
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+        .text-gradient-info{
+            color: #1e9fc4;
+        }
+        .menu-title{
+            color: #999 !important;
+        }
+        .small-input{
+            border: 1px solid #d4d4d4;
+            padding: 3px;
+        }
+        .blue-b-btn{
+            border: 1px solid #5eb4ff;
+            background: #e4f3ff;
+            {#color: #5490d4!important;#}
+            color: #1a5bba!important;
+            height: 30px;
+            padding-right: 12px;
+            padding-left: 12px;
+            {#margin-left: 5px;#}
+            cursor: pointer;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+        .blue-s-btn{
+            border: 1px solid #5eb4ff;
+            background: #e4f3ff;
+            {#color: #5490d4!important;#}
+            color: #1a5bba!important;
+            padding: 0 8px;
+            font-size: 12px;
+            height: 25px;
+            line-height: 25px;
+            cursor: pointer;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+        .orange-b-btn{
+            border: 1px solid #b7a36e;
+            background: #f5f2ea;
+            height: 30px;
+            padding-right: 12px;
+            padding-left: 12px;
+            {#margin-left: 5px;#}
+            cursor: pointer;
+            border-radius: 2px;
+            color: #9c8963!important;
+            font-weight: bold;
+        }
+        .orange-s-btn{
+            border: 1px solid #b7a36e;
+            background: #f5f2ea;
+            padding: 0 8px;
+            font-size: 12px;
+            height: 25px;
+            line-height: 25px;
+            cursor: pointer;
+            border-radius: 2px;
+            font-weight: bold;
+            color: #9c8963!important;
+        }
+
+        .blue-card-bg {
+            background: #f5fafd;
+            border: 1px solid #d0deea;
+        }
+
+        .blue-border {
+            border: 1px solid #d0deea;
+        }
+
+        .red-border {
+            border: 1px solid #d87373;
+        }
+
+        .orange-card-bg {
+            border: 1px solid #b7a36e;
+            background: #f5f2ea;
+        }
+        .dblue-card-bg {
+            {#border: 1px solid #b7a36e;#}
+            background: #5490d4;
+            color: white;
+        }
+        .dblue-trans-bg {
+            {#border: 1px solid #b7a36e;#}
+            background: rgba(98, 179, 255, 0.77);
+            color: white;
+        }
+
+        .bg-brinjal{
+            background: #ae81b3;
+        }
+
+        .text-dblue{
+            color: #5490d4;
+        }
+        .text-brinjal{
+            color: #ae81b3;
+        }
+        .text-orange{
+            color: #b7a36e;
+        }
+
+        .orange-border {
+            border: 1px solid #b7a36e;
+        }
+
+        /* Neumorphism Shadow */
+        .btn-c-s{
+            box-shadow:
+               -7px -7px 20px 0px #fff9,
+               -4px -4px 5px 0px #fff9,
+               7px 7px 20px 0px #0002,
+               4px 4px 5px 0px #0001;
+        }
+        .ui-autocomplete{
+            max-height: 300px!important;
+            overflow: scroll;
+        }
+
+        .ui-autocomplete .ui-menu-item{
+            padding: 2px !important;
+        }
+        .ui-autocomplete .ui-menu-item > div{
+            {#margin: 2px;#}
+            padding: 5px;
+            {#background: #f5fafd;#}
+            border: 1px solid #d0deea;
+            {#color: gray!important;#}
+        }
+        .ui-autocomplete .ui-menu-item > div:hover{
+            {#background: #5490d4!important;#}
+            border: 1px solid #d0deea!important;
+            {#color: white!important;#}
+        }
+
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+          background: #888;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+.table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive > .table-bordered {
+  border: 0;
+}
+
+    </style>
+
+    <div class="loader-wrapper">
+        <div class="loader spinner-3">
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+            <div class="bg-primary"></div>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <!-- Main Container -->
+        <div id="main-wrapper" class="menu-fixed page-hdr-fixed">
+            <!-- Menu Wrapper -->
+            <div class="menu-wrapper">
+                <div class="menu">
+                    <!-- Menu Container -->
+                    <ul>
+                        <li class="menu-title">Main</li>
+                        <li>
+                            <a href="{% url 'dashboard' %}"><i class="icon-home"></i><span>Dashboard</span></a>
+                        </li>
+{#                        <li>#}
+{#                            <a href="{% url 'ref_dashboard' %}"><i class="icon-home"></i><span>Referral Dashboard</span></a>#}
+{#                        </li>#}
+                         <li>
+                            <a href="{% url 'processed_ref' %}"><i class="icon-list "></i><span>Processed Referrals</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'pending_payment' %}"><i class="icon-paypal"></i><span>Pending For Payment</span></a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'doctor_agent_list' %}"><i class="icon-credit-card"></i><span>Doctor Agent List</span></a>
+                        </li>
+{#                        <li class="has-sub ">#}
+{#                            <a><i class="icon-people"></i><span>Referral Details</span><i class="arrow rotate"></i></a>#}
+{#                            <ul class="sub-menu">#}
+                                <li>
+{#                                    <a href="{% url 'total_referral_list' %} "><span>  Total referral List </span></a>#}
+{#                                    <a href="{% url 'new_referral_list' %}"><span> New Referral List </span></a>#}
+{#                                    <a href="{% url 'recent_updates' %}"><span> Recently Updated </span></a>#}
+{#                                    <a href="{% url 'bifurcation_list' %}"><span> Bifurcation List </span></a>#}
+{#                                    <a href="{% url 'search_referral' %}"><span> Search Referral </span></a>#}
+{#                                    <a href="{% url 'patient_referral' %}"><span> Patient Referral </span></a>#}
+{#                                    <a href="{% url 'incomplete_referral' %}"><span> Incomplete Referral Data</span></a>#}
+{#                                    <a href="{% url 'abc_report' %}"><span> ABC Report </span></a>#}
+{#                                    <a href="{% url 'allowance_report' %}"><span> Allowance Report </span></a>#}
+{#                                    <a href="{% url 'inactive_allowance_report' %}"><span> Inactive Allowance </span></a>#}
+                                    <a href="{% url 'bill_list' %}"><i class="icon-credit-card"></i><span> Bills </span></a>
+                                </li>
+                              <li>
+                              <a href="{% url 'functional_approval_list' %}"><i class="icon-list"></i><span>Functional Approval List</span></a>
+                            </li>
+                              <li>
+
+                                        <a href="{% url 'reject' %}"><i class="icon-list"></i><span>Rejected List</span></a> </li>
+{#                            </ul>#}
+{#                            </li>#}
+                         <li class="has-sub ">
+                            <a>
+                                <i class="icon-user"></i><span>Employee Details </span><i class="arrow rotate"></i></a>
+                                   <ul class="sub-menu">
+                                     <li>
+                                        <a href="{% url 'register' %}"><span>New Registration</span></a>
+{#                                        <a href="{% url 'employee_list' %}"><span>Employee List</span></a>#}
+{#                                        <a href="{% url 'neft_return_list' %}"><span>Neft Return List</span></a>#}
+                                        <a href="{% url 'cash_payment' %}"><span>Cash Payment</span></a>
+{#                                        <a href="{% url 'payment_list' %}"><span>Payment List</span></a>#}
+{#                                        <a href="{% url 'employee_leave_list' %}"><span>Employee Leave List</span></a>#}
+                                     </li>
+                                  </ul>
+                            </li>
+                            <li class="has-sub ">
+                            <a>
+                                <i class="icon-call-out"></i><span>Field Call Report</span><i class="arrow rotate"></i></a>
+                                   <ul class="sub-menu">
+                                     <li>
+                                        <a href="{% url 'call_report' %}"><span>  Call Report Master </span></a>
+                                        <a href="{% url 'daily_call_report' %}"><span> Daily Call Report </span></a>
+{#                                        <a href="{% url 'day_report' %}"><span> Day Report </span></a>#}
+{#                                        <a href="{% url 'n_day_report' %}"><span> Neighbourhood Day Report </span></a>#}
+{#                                        <a href="{% url 'champion' %}"><span> Champion Of The Day </span></a>#}
+{#                                        <a href="{% url 'admission_breakup' %}"><span> Admission Breakup </span></a>#}
+                                     </li>
+                                  </ul>
+                            </li>
+{#                        <li class="has-sub ">#}
+{#                            <a><i class="icon-people"></i><span>Camp Reports</span><i class="arrow rotate"></i></a>#}
+{#                            <ul class="sub-menu">#}
+{#                                <li>#}
+{#                                    <a href="{% url 'camp_report' %}"><span>Camp Report</span></a>#}
+{#                                </li>#}
+{#                            </ul>#}
+{#                        </li>#}
+{#                        <li class="has-sub ">#}
+{#                            <a><i class="icon-people"></i><span>Call Report Comparision</span><i class="arrow rotate"></i></a>#}
+{#                            <ul class="sub-menu">#}
+{#                                <li>#}
+{#                                    <a href="{% url 'dashboard' %}"><span>Enter Details</span></a>#}
+{#                                    <a href="{% url 'dashboard' %}"><span>Report</span></a>#}
+{#                                </li>#}
+{#                            </ul>#}
+{#                        </li>#}
+{#                        <li class="has-sub ">#}
+{#                            <a href="{% url 'bank_details' %}"><i class="icon-people"></i><span>Bank details</span><i class="arrow rotate"></i></a>#}
+{#                            <ul class="sub-menu">#}
+{#                                <li>#}
+{#                               <a href="{% url 'bank_details' %}"><span>Update Bank Details</span></a>#}
+{#                               </li>#}
+{#                                 <li>#}
+{#                                <a href="{% url 'wrong_bank_details' %}"><span>Wrong Bank Details</span></a>#}
+{#                                </li>#}
+{#                            </ul>#}
+{#                        </li>#}
+ <li>
+                               <a href="{% url 'bank_details' %}"><i class="icon-arrow-down"></i><span>Update Bank Details</span></a>
+                               </li>
+{#                         <li>#}
+{#                            <a href="{% url 'utr_update' %}"><i class="fa fa-address-card"></i><span>Utr Update </span></a>#}
+{#                        </li>#}
+
+{#                        <li>#}
+{#                            <a href="{% url 'update' %}"><i class="fa fa-address-card"></i><span>Update</span></a>#}
+{#                        </li>#}
+
+                    </ul>
+                </div>
+            </div>
+            <!-- Page header -->
+            <div class="page-hdr">
+                <div class="row align-items-center">
+                    <div class="col-4 col-md-7 page-hdr-left">
+                        <!-- Logo Container -->
+                        <div id="logo">
+                            <div class="tbl-cell logo-icon">
+                                <a href="#"><img src="{% static 'logo.png'%}" alt=""></a>
+                            </div>
+                            <div class="tbl-cell logo">
+                                <a href="{% url 'dashboard' %}"><img src="{% static 'logo.png' %}"></a>
+                            </div>
+                        </div>
+                        <div class="page-menu menu-icon">
+                            <a class="animated menu-close"><i class="far fa-hand-point-left"></i></a>
+                        </div>
+                        <div class="page-menu page-fullscreen">
+                            <a><i class="fas fa-expand"></i></a>
+                        </div>
+{#                        <div class="page-search">#}
+{#                            <input type="text" id="" placeholder="Search your key....">#}
+{#                        </div>#}
+                    </div>
+                    <div class="col-8 col-md-5 page-hdr-right">
+                        <div class="page-hdr-desktop">
+                            <div class="page-menu menu-dropdown-wrapper menu-user">
+                                <a class="user-link">
+                                    <span class="tbl-cell user-name pr-3">Hello, {{ request.user.emp_name }}<span class="pl-2"></span></span>
+                                    <span class="tbl-cell avatar"><img src="{% static 'profile .png' %}" alt=""></span>
+                                </a>
+                                <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right">
+                                    <div class="arrow arrow-right"></div>
+                                    <div class="menu-dropdown-inner">
+                                        <div class="menu-dropdown-head pb-3">
+                                            <div class="tbl-cell">
+                                                <img src="{% static 'uploads/author-1.jpg' %}" alt="">
+                                                <!-- <i class="fa fa-user-circle"></i> -->
+                                            </div>
+                                            <div class="tbl-cell pl-2 text-left">
+{#                                                <p class="m-0 font-18">{{ request.user.emp_name }}</p>#}
+{#                                                <p class="m-0 font-14">{{ request.user.designation }}</p>#}
+                                            </div>
+                                        </div>
+                                        <div class="menu-dropdown-body">
+                                            <ul class="menu-nav">
+                                                <li><a href="#"><i class="icon-user"></i><span>My Profile</span></a></li>
+{#                                                <li><a href="{% url 'change_pwd' %}"><i class="icon-globe-alt"></i><span>Change password</span></a></li>#}
+                                            </ul>
+                                        </div>
+                                        <div class="menu-dropdown-footer text-right">
+                                            <a href="{% url 'logout' %}" class="btn btn-outline btn-primary btn-pill btn-outline-2x font-12 btn-sm">Logout</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="page-hdr-mobile">
+                            <div class="page-menu open-mobile-search">
+                                <a href="#"><i class="icon-magnifier"></i></a>
+                            </div>
+                            <div class="page-menu open-left-menu">
+                                <a href="#"><i class="icon-menu"></i></a>
+                            </div>
+                            <div class="page-menu oepn-page-menu-desktop">
+                                <a href="#"><i class="icon-options-vertical"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Main Page Wrapper -->
+
+            <!-- Main Page Wrapper -->
+            <div class="page-wrapper">
+                <!-- Page Title -->
+                <div class="page-title">
+                    <div class="row align-items-center">
+                        <div class="col-sm-6">
+                            <h2 class="page-title-text">{% block content_heading %}{% endblock %}</h2>
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <div class="breadcrumbs">
+                                <ul>
+                                    <li><a href="{% url 'dashboard' %}">Home</a></li>
+                                    <li>{% block content_subheading %}{% endblock %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Page Body -->
+                <div class="page-body">
+                    {% block body %}
+                    {% endblock %}
+                </div>
+            <!-- Page Footer -->
+
+        </div>
+    </div>
+
+    </div>
+    <!-- Include js files -->
+    <!-- Vendor Plugin -->
+
+    <script type="text/javascript" src="{% static 'assets/plugin/vendor.min.js' %}"></script>
+{#      <script src="https://code.jquery.com/jquery-3.6.0.js"></script>#}
+      <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js" defer></script>
+    {#    <script#}
+    {#      src="https://code.jquery.com/jquery-3.6.0.min.js"#}
+    {#      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="#}
+    {#      crossorigin="anonymous"#}
+    {#    ></script>#}
+
+    <!-- ✅ load jQuery UI ✅ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"
+      integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <!-- Raphael Plugin -->
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    <script type="text/javascript" src="{% static 'assets/plugin/raphael/raphael-min.js' %}"></script>
+    <!-- Morris Plugin -->
+    <script type="text/javascript" src="{% static 'assets/plugin/morris/morris.min.js' %}"></script>
+    <!-- Sparkline Plugin -->
+    <script type="text/javascript" src="{% static 'assets/plugin/sparkline/jquery.sparkline.min.js' %}"></script>
+    <!-- Custom Script Plugin -->
+    <script type="text/javascript" src="{% static 'dist/js/custom.js' %}"></script>
+    <!-- Custom demo Script for Dashbaord -->
+    <script type="text/javascript" src="{% static 'dist/js/demo/dashboard.js' %}"></script>
+ <!-- Pick a Date Plugin -->
+    <script type="text/javascript" src="{% static 'assets/plugin/pickadate/picker.js' %}"></script>
+    <script type="text/javascript" src="{% static 'assets/plugin/pickadate/picker.date.js' %}"></script>
+    <script type="text/javascript" src="{% static 'assets/plugin/pickadate/picker.time.js' %}"></script>
+    <script type="text/javascript" src="{% static 'assets/plugin/pickadate/legacy.js' %}"></script>
+    <!-- Moment Plugin -->
+    <script type="text/javascript" src="{% static 'assets/plugin/moment/moment.min.js' %}"></script>
+    <!-- Daterangpicker Plugin -->
+    <script type="text/javascript" src="{% static 'assets/plugin/daterangepicker/daterangepicker.js' %}"></script>
+    <!-- Datatables Plugin -->
+    <script type="text/javascript" src="{% static 'assets/plugin/datatable/datatables.min.js' %}"></script>
+{#    <!-- Custom demo Script for Datatable -->#}
+{#    <script type="text/javascript" src="{% static 'dist/js/demo/datatable.js' %}"></script>#}
+    <!-- Custom Script Plugin -->
+    <script type="text/javascript" src="{% static 'dist/js/demo/date-time-picker.js' %}"></script>
+
+    {% block script %}
+    {% endblock %}
+<script>
+
+    $('.cus-responsive-datatable').dataTable({
+        dom: 'Bfrtip',
+        responsive: true,
+         buttons: {
+         buttons: [ 'pageLength',
+
+            { extend: 'excel',
+                text: 'Export Excel',
+
+                            },
+
+        ]
+    }
+        });
+    $('.responsive-datatable').dataTable({
+        responsive: true,
+    });
+    $('.pt-responsive-datatable').dataTable({
+        responsive: true,
+    });
+    {% for message in messages %}
+        {% if message.tags == "success" %}
+            swal("Success!", "{{ message }}", "success");
+        {% else %}
+            swal("Failed!", "{{ message }}", "warning");
+        {% endif %}
+    {% endfor %}
+    $('#transfer_search_id1').autocomplete({
+        source:'{% url 'search_emp' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#transfer_search_id1`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#transfer_search_id1`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+    $('#transfer_search_id2').autocomplete({
+        source:'{% url 'search_emp' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#transfer_search_id2`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#transfer_search_id2`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+    $('#register_search').autocomplete({
+        source:'{% url 'search_emp' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#register_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#register_search`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+    $('#emp_search').autocomplete({
+        source:'{% url 'search_emp' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#emp_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#emp_search`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+    $('#doctorid_search').autocomplete({
+        source:'{% url 'search_emp' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#doctorid_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#doctorid_search`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+    $('#empid_search').autocomplete({
+        source:'{% url 'search_emp' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#empid_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#empid_search`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+
+    $('#eid_search').autocomplete({
+        source:'{% url 'search_id' %}',
+        minLength: 3,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#eid_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+            if (ui.item.id !== "") {
+
+                $(`#eid_search`).val(ui.item.id);
+                $(`#marketingExecutive`).val(ui.item.agent_name);
+                {#$(`#bank_branch_name`).val(ui.item.bank_branch_name);#}
+                {#$(`#pancard`).val(ui.item.pancard);#}
+                {#$(`#bank_ac`).val(ui.item.bank_ac);#}
+                {#$(`#ifsc`).val(ui.item.ifsc);#}
+                    return false;
+                }
+
+        },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.id + "</b> - (<small>" + item.mobile+ "</small>)<br><i><small>"+ item.agent_name+"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.agent_name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+    $('#bankid_search').autocomplete({
+        source:'{% url 'search_uid' %}',
+        minLength: 3,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#bankid_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+            if (ui.item.id !== "") {
+
+                $(`#bankid_search`).val(ui.item.id);
+                $(`#marketingExecutive`).val(ui.item.agent_name);
+                let accnumber = $('#accnumber');
+                let ifsccode = $('#ifsccode');
+                let pancard = $('#pancard');
+
+                accnumber.val(ui.item.accnumber);
+                ifsccode.val(ui.item.ifsccode);
+                pancard.val(ui.item.pancard);
+                console.log(ui.item.accnumber);
+                if (ui.item.accnumber === "No Update" || ui.item.accnumber === "" ) {
+                    accnumber.removeAttr('readonly');
+                    ifsccode.removeAttr('readonly');
+                    pancard.removeAttr('readonly');
+                }else {
+                    accnumber.prop('readonly', true);
+                    ifsccode.prop('readonly', true);
+                    pancard.prop('readonly', true);
+                }
+                    return false;
+                }
+
+        },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.id + "</b> - (<small>" + item.mobile+ "</small>)<br><i><small>"+ item.agent_name+"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.agent_name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+    {##}
+    {#function func(){#}
+    {#       document.getElementById("accnumber").removeAttribute("readonly");#}
+    {#                  document.getElementById("ifsccode").removeAttribute("readonly");#}
+    {#       document.getElementById("pancard").removeAttribute("readonly");#}
+    {##}
+
+
+    $('#id_search').autocomplete({
+        source:'{% url 's_id' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.registration_number !== "") {
+                    $(`#id_search`).val(`${ui.item.registration_number}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.invoce_no !== "") {
+                    $(`#id_search`).val(ui.item.registration_number);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.registration_number !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.patient_name + "</b> - (<small>" + item.registration_number+ "</small>)<br><i><small>"+ item.invoice_no +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.patient_name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+    $('#unique_search').autocomplete({
+        source:'{% url 'search_emp' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#unique_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#unique_search`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+    $('#callid_search').autocomplete({
+        source:'{% url 'call_search' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#callid_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#callid_search`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.design +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+
+</script>
+</body>
+</html>

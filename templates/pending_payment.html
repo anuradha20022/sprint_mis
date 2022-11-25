@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% block content_heading %}Pending For Payment List {% endblock %}
+{% block content_subheading %}Pending For Payment {% endblock %}
+{% block title %} Pending For Payment {% endblock %}
+
+{% block script %}
+    <script>
+
+
+     $('.change-list').on('click', function () {
+       let view_type = $(this).data('view');
+
+       if (view_type === "cash") {
+           $("#cash_div").show();
+           $("#upi_div").hide();
+           $("#netbanking_div").hide();
+           $("#status_div").hide();
+       }else if (view_type === "upi") {
+           $("#cash_div").hide();
+           $("#upi_div").show();
+           $("#netbanking_div").hide();
+           $("#status_div").hide();
+
+       }else if (view_type === "netbanking") {
+           $("#cash_div").hide();
+           $("#upi_div").hide();
+           $("#netbanking_div").show();
+           $("#status_div").hide();
+
+       }
+       else if (view_type === "status"){
+           $("#status_div").show();
+            $("#cash_div").hide();
+           $("#upi_div").hide();
+           $("#netbanking_div").hide();
+       }
+
+    });
+
+
+
+    </script>
+{% endblock %}
+{% block body %}
+
+    <form action="" method="post">
+    {% csrf_token %}
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <select class="form-control" name="branch" id="branch">
+                        <option value="" >-- Select Branch --</option>
+                        <option value="All" selected data-view="status" >All</option>
+                        {% for list in branch_name %}
+                            <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" name="Submit" class="btn btn-lg btn-primary btn-gradient btn-shadow">Submit</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="col-md-12 text-right">
+{#             <a href="/pending_payment_csv/" name="excel" class="btn btn-sm btn-primary mb-3 change-list">Excel export</a>#}
+            <button type="button" name="Submit" class="btn btn-sm btn-danger mb-3 change-list" data-view="status" >All </button>
+            <button type="button" name="Submit" class="btn btn-sm btn-danger mb-3 change-list" data-view="cash">Cash </button>
+            <button type="button" name="Submit" class="btn btn-sm btn-danger mb-3 change-list" data-view="upi">UPI </button>
+            <button type="button" name="Submit" class="btn btn-sm btn-danger mb-3 change-list" data-view="netbanking" >Net Banking </button>
+        </div>
+    </div>
+    <div class="row pb-4" id="cash_div" style="display: none">
+
+        <div class="col-md-12">
+
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+
+                        <thead>
+                        <tr role="row" style="background: #3F51B5; color: #fff;">
+
+                            <th class="py-2" data-orderable="false" width="80">Sno</th>
+                            <th class="py-2" data-orderable="false">IP NO</th>
+                            <th class="py-2" data-orderable="false">Payment Mode</th>
+                            <th class="py-2" data-orderable="false">Branch</th>
+                            <th class="py-2" data-orderable="false">Patient Name</th>
+                            <th class="py-2" data-orderable="false">Referral Name</th>
+                            <th class="py-2" data-orderable="false">Referral Type</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage Name</th>
+                            <th class="py-2" data-orderable="false">Gross Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Discount Amount</th>
+                            <th class="py-2" data-orderable="false">Net Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Referral Amount</th>
+                            <th class="py-2" data-orderable="false">UCID created On</th>
+                            <th class="py-2" data-orderable="false">Department Name</th>
+                            <th class="py-2" data-orderable="false">Service Name</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ref in cash %}
+                            <tr>
+                                <td class="py-1 text-right" id="sno">{{ ref.sno }}</td>
+
+                                <td class="py-1" >{{ ref.invoice_no }}</td>
+                                <td class="py-1" >{{ ref.paymentmode}}</td>
+                                <td class="py-1" >{{ ref.branch}}</td>
+                                <td class="py-1" >{{ ref.patient_name}}</td>
+                                <td class="py-1" >{{ ref.marketing_executive}}</td>
+                                <td class="py-1" >{{ ref.referral_type}}</td>
+                                <td class="py-1" >{{ ref.referralpercentage}}</td>
+                                <td class="py-1" >{{ ref.referralpercentagename}}</td>
+                                <td class="py-1" >{{ ref.grossamount}}</td>
+                                <td class="py-1" >{{ ref.discount}}</td>
+                                <td class="py-1" >{{ ref.netamount}}</td>
+                                <td class="py-1" >{{ ref.referralamount}}</td>
+                                <td class="py-1" >{{ ref.ucidcreatedon}}</td>
+                                <td class="py-1" >{{ ref.department_name}}</td>
+                                <td class="py-1" >{{ ref.service_name}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row pb-4" id="upi_div" style="display: none">
+        <div class="col-md-12">
+            <div class="card card-body">
+
+                <div class="table-responsive">
+                    <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+
+                        <thead>
+                        <tr role="row" style="background: #3F51B5; color: #fff;">
+
+                            {#                                  <th class="" data-orderable="false" >#</th>#}
+                            <th class="py-2" data-orderable="false" width="80">Sno</th>
+                            <th class="py-2" data-orderable="false">IP NO</th>
+                            <th class="py-2" data-orderable="false">Payment Mode</th>
+                            <th class="py-2" data-orderable="false">Branch</th>
+                            <th class="py-2" data-orderable="false">Patient Name</th>
+                            <th class="py-2" data-orderable="false">Referral Name</th>
+                            <th class="py-2" data-orderable="false">Referral Type</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage Name</th>
+                            <th class="py-2" data-orderable="false">Gross Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Discount Amount</th>
+                            <th class="py-2" data-orderable="false">Net Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Referral Amount</th>
+                            <th class="py-2" data-orderable="false">UCID created On</th>
+                            <th class="py-2" data-orderable="false">Department Name</th>
+                            <th class="py-2" data-orderable="false">Service Name</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ref in upi %}
+                            <tr>
+                                <td class="py-1 text-right" id="sno">{{ ref.sno }}</td>
+                                <td class="py-1" >{{ ref.invoice_no }}</td>
+                                <td class="py-1" >{{ ref.paymentmode}}</td>
+                                <td class="py-1" >{{ ref.branch}}</td>
+                                <td class="py-1" >{{ ref.patient_name}}</td>
+                                <td class="py-1" >{{ ref.marketing_executive}}</td>
+                                <td class="py-1" >{{ ref.referral_type}}</td>
+                                <td class="py-1" >{{ ref.referralpercentage}}</td>
+                                <td class="py-1" >{{ ref.referralpercentagename}}</td>
+                                <td class="py-1" >{{ ref.grossamount}}</td>
+                                <td class="py-1" >{{ ref.discount}}</td>
+                                <td class="py-1" >{{ ref.netamount}}</td>
+                                <td class="py-1" >{{ ref.referralamount}}</td>
+                                <td class="py-1" >{{ ref.ucidcreatedon}}</td>
+                                <td class="py-1" >{{ ref.department_name}}</td>
+                                <td class="py-1" >{{ ref.service_name}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="row pb-4" id="netbanking_div" style="display: none">
+        <div class="col-md-12">
+            <div class="card card-body">
+
+                <div class="table-responsive">
+                    <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+
+                        <thead>
+                        <tr role="row" style="background: #3F51B5; color: #fff;" >
+
+                            <th class="py-2" data-orderable="false" width="80">Sno</th>
+                            <th class="py-2" data-orderable="false">IP NO</th>
+                            <th class="py-2" data-orderable="false">Payment Mode</th>
+                            <th class="py-2" data-orderable="false">Branch</th>
+                            <th class="py-2" data-orderable="false">Patient Name</th>
+                            <th class="py-2" data-orderable="false">Referral Name</th>
+                            <th class="py-2" data-orderable="false">Referral Type</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage Name</th>
+                            <th class="py-2" data-orderable="false">Gross Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Discount Amount</th>
+                            <th class="py-2" data-orderable="false">Net Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Referral Amount</th>
+                            <th class="py-2" data-orderable="false">UCID created On</th>
+                            <th class="py-2" data-orderable="false">Department Name</th>
+                            <th class="py-2" data-orderable="false">Service Name</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ref in netbanking %}
+                            <tr>
+                                <td class="py-1 text-right" id="sno">{{ ref.sno }}</td>
+                                <td class="py-1" >{{ ref.invoice_no }}</td>
+                                <td class="py-1" >{{ ref.paymentmode}}</td>
+                                <td class="py-1" >{{ ref.branch}}</td>
+                                <td class="py-1" >{{ ref.patient_name}}</td>
+                                <td class="py-1" >{{ ref.marketing_executive}}</td>
+                                <td class="py-1" >{{ ref.referral_type}}</td>
+                                <td class="py-1" >{{ ref.referralpercentage}}</td>
+                                <td class="py-1" >{{ ref.referralpercentagename}}</td>
+                                <td class="py-1" >{{ ref.grossamount}}</td>
+                                <td class="py-1" >{{ ref.discount}}</td>
+                                <td class="py-1" >{{ ref.netamount}}</td>
+                                <td class="py-1" >{{ ref.referralamount}}</td>
+                                <td class="py-1" >{{ ref.ucidcreatedon}}</td>
+                                <td class="py-1" >{{ ref.department_name}}</td>
+                                <td class="py-1" >{{ ref.service_name}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row pb-4" id="status_div" >
+        <div class="col-md-12" >
+            <div class="card card-body">
+
+                <div class="table-responsive">
+                    <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+
+                        <thead>
+                        <tr role="row" style="background: #3F51B5; color: #fff;">
+
+                            <th class="py-2" data-orderable="false" width="80">Sno</th>
+
+                            <th class="py-2" data-orderable="false">IP NO</th>
+                            <th class="py-2" data-orderable="false">Payment Mode</th>
+                            <th class="py-2" data-orderable="false">Branch</th>
+                            <th class="py-2" data-orderable="false">Patient Name</th>
+                            <th class="py-2" data-orderable="false">Referral Name</th>
+                            <th class="py-2" data-orderable="false">Referral Type</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage</th>
+                            <th class="py-2" data-orderable="false">Referral Percentage Name</th>
+                            <th class="py-2" data-orderable="false">Gross Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Discount Amount</th>
+                            <th class="py-2" data-orderable="false">Net Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Referral Amount</th>
+                            <th class="py-2" data-orderable="false">UCID created On</th>
+                            <th class="py-2" data-orderable="false">Department Name</th>
+                            <th class="py-2" data-orderable="false">Service Name</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ref in status %}
+                            <tr>
+                                <td class="py-1 text-right" id="sno">{{ ref.sno }}</td>
+
+                                <td class="py-1" >{{ ref.invoice_no }}</td>
+                                <td class="py-1" >{{ ref.paymentmode}}</td>
+                                <td class="py-1" >{{ ref.branch}}</td>
+                                <td class="py-1" >{{ ref.patient_name}}</td>
+                                <td class="py-1" >{{ ref.marketing_executive}}</td>
+                                <td class="py-1" >{{ ref.referral_type}}</td>
+                                <td class="py-1" >{{ ref.referralpercentage}}</td>
+                                <td class="py-1" >{{ ref.referralpercentagename}}</td>
+                                <td class="py-1" >{{ ref.grossamount}}</td>
+                                <td class="py-1" >{{ ref.discount}}</td>
+                                <td class="py-1" >{{ ref.netamount}}</td>
+                                <td class="py-1" >{{ ref.referralamount}}</td>
+                                <td class="py-1" >{{ ref.ucidcreatedon}}</td>
+                                <td class="py-1" >{{ ref.department_name}}</td>
+                                <td class="py-1" >{{ ref.service_name}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+{% endblock %}

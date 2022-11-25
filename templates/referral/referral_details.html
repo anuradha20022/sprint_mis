@@ -1,0 +1,103 @@
+{% extends 'base.html'%}
+{%  block content_heading %} Update Details {% endblock %}
+{%  block content_subheading %} Update details{% endblock %}
+{% block title %} Update details {% endblock %}
+
+
+{% block body %}
+
+<div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel panel-default">
+                                <div class="panel-head">
+                                    <div class="panel-title">
+                                        <span class="panel-title-text">Overview</span>
+                                    </div>
+                                </div>
+                             <form action="" method="POST">
+                                        {% csrf_token %}
+
+                                <div class="panel-body">
+										<div class="form-group row">
+                                            <label class="col-12 col-form-label">Emp ID:*</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control"  value="{{ search_ref.emp_id }}" name=emp_idemp_id"  required="true" readonly>
+                                            </div>
+                                        </div>
+										<div class="form-group row">
+                                            <label class="col-12 col-form-label">Unique ID:*</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" value="{{ search_ref.unique_id}}" name="unique_id" required="true" readonly>
+                                            </div>
+                                        </div>
+										<div class="form-group row">
+                                            <label class="col-12 col-form-label">Agent type:*</label>
+                                            <div class="col-12">
+                                                <input type="text" name="orginal_design"  value="{{ search_ref.agent_type}}" class=agent_typeform-control" required="true" readonly>
+                                            </div>
+                                        </div>
+										<div class="form-group row">
+                                            <label class="col-12 col-form-label">Agent Name:*</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" value="{{ search_ref.agent_name}}" name="agent_name" required="true">
+                                            </div>
+                                        </div>
+										<div class="form-group row">
+                                            <label class="col-12 col-form-label">Designation:*</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" value="{{ search_ref.designation}}" name="designation" required="true">
+                                            </div>
+                                        </div>
+										<div class="form-group row">
+                                            <label class="col-12 col-form-label">Mobile:</label>
+                                            <div class="col-12">
+                                                <input type="number" class="form-control" value="{{ search_ref.mobile}}" name="mobile">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-12 col-form-label">Company:</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" value="{{ search_ref.company}}" name="company">
+                                            </div>
+                                        </div>
+                                         <div class="form-group row">
+                                            <label class="col-12 col-form-label">Branch:</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" value="{{ search_ref.branch}}" name="branch">
+                                            </div>
+                                        </div>
+                                          <div class="form-group row">
+                                            <label class="col-12 col-form-label">Area:</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" value="{{ search_ref.area}}" name="branch">
+                                            </div>
+                                        </div>
+{#                                        <div class="form-group">#}
+{#                                            <label class="col-12 col-form-label">Type: </label>#}
+{#                                               <select class="form-control" name="branch">#}
+{#                                                   <option >--Select Referral Type--</option> #}
+{#                                                            <option value="108 EMPLOYEE">108 EMPLOYEE</option>#}
+{#                                                            <option value="AGENT">AGENT</option>#}
+{#															<option value="AMBULANCE">AMBULANCE</option>#}
+{#                                                            <option value="COMMUNITY">COMMUNITY</option>#}
+{#                                                            <option value="DOCTOR">DOCTOR</option>#}
+{#                                                            <option value="RMP">RMP</option>#}
+{#                                                            <option value="Public Corporate">Public Corporate</option>#}
+{#                                                            <option value="Private Coporate">Private Coporate</option>#}
+{#                                               </select>#}
+{#                                            </div>#}
+
+                                        </div>
+
+                                        <div class="panel-footer text-right">
+                                          <button type="Submit" value="submit" class="btn btn-success mr-2">Update Details</button>
+                                        </div>
+
+                              </form>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+{% endblock %}
