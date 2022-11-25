@@ -893,11 +893,11 @@ def bill_list(request):
         unique_id = request.POST.get('unique_id')
         patient_name = request.POST.get('patient_name')
         agent_name = request.POST.get('agent_name')
-        calculationtype = request.POST.get('calculationtype')
+        calculationtype = request.POST.get('referralpercentagename')
         referralpercentage = request.POST.get('referralpercentage')
         referralamount = request.POST.get('referralamount')
         paymentmode = request.POST.get('paymentmode')
-        ref_type = request.POST.get('ref_type')
+        ref_type = request.POST.get('referral_type')
         # print(sno)
         if paymentmode == "NetBanking":
             accnumber = request.POST.get("accnumber")
