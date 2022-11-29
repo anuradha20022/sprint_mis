@@ -220,7 +220,10 @@
 .table-responsive > .table-bordered {
   border: 0;
 }
-
+.btn-secondary {
+    background-color: #fb9678;
+    border-color: #ffffff;
+}
     </style>
 
     <div class="loader-wrapper">
@@ -345,9 +348,9 @@
  <li>
                                <a href="{% url 'bank_details' %}"><i class="icon-arrow-down"></i><span>Update Bank Details</span></a>
                                </li>
-{#                         <li>#}
-{#                            <a href="{% url 'utr_update' %}"><i class="fa fa-address-card"></i><span>Utr Update </span></a>#}
-{#                        </li>#}
+                         <li>
+                            <a href="{% url 'utr_update' %}"><i class="fa fa-address-card"></i><span>Utr Update </span></a>
+                        </li>
 
 {#                        <li>#}
 {#                            <a href="{% url 'update' %}"><i class="fa fa-address-card"></i><span>Update</span></a>#}

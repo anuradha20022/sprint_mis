@@ -452,7 +452,7 @@ class Logins(models.Model):
     orginal_design = models.TextField(db_column='Orginal_Design')  # Field name made lowercase.
     original_type = models.TextField(db_column='Original_Type')  # Field name made lowercase.
     last_location = models.CharField(db_column='Last_Location', max_length=50)  # Field name made lowercase.
-    last_loc_datetime = models.DateTimeField()
+    last_loc_datetime = models.DateTimeField(null=True, blank=True)
     date = models.DateField(db_column='Date')  # Field name made lowercase.
     time = models.TimeField(db_column='Time')  # Field name made lowercase.
     head = models.TextField(db_column='Head')  # Field name made lowercase.
@@ -969,7 +969,17 @@ class TourPlanReferral(models.Model):
 
 class UtrUpdate(models.Model):
     sno = models.AutoField(primary_key=True)
-    upload_csv_file = models.FileField(upload_to='documents')
+    invoice_no = models.CharField(max_length=30)
+    patient_name = models.CharField(max_length=150)
+    branch = models.CharField(max_length=40)
+    service_name = models.TextField(blank=True)
+    grossamount = models.CharField(max_length=50, null=True)
+    discount = models.CharField(max_length=50, null=True)
+    netamount = models.CharField(max_length=50, null=True)
+    referralamount = models.CharField(max_length=50, null=True)
+    utr_no = models.CharField(max_length=50, null=True)
+    utr_created_by = models.CharField(max_length=50, null=True)
+    utr_date = models.DateField(auto_now_add=now)
 
     class Meta:
-        db_table = "utr_update"
+        db_table = "utrupdate"

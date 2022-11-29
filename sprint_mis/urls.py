@@ -42,11 +42,11 @@ urlpatterns = [
     path('doctor_agent_list_dt/', views.doctor_agent_list_dt, name='doctor_agent_list_dt'),
     path('utr_update/', views.utr_update, name='utr_update'),
     path('utr_csv/', views.utr_csv, name='utr_csv'),
+    # path('upload_utr_csv/', views.upload_utr_csv, name='upload_utr_csv'),
     path('pending_payment_csv/', views.pending_payment_csv, name='pending_payment_csv'),
     path('search_id/', views.search_id, name='search_id'),
     path('s_id/', views.s_id, name='s_id'),
     path('search_uid/', views.search_uid, name='search_uid'),
-    path('delete_data/', views.delete_data, name='delete_data'),
     path('pdf/', views.pdf, name='pdf'),
 
 

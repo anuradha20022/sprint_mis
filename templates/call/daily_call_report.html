@@ -8,43 +8,44 @@
     <script>
         {#$('#DataTables_Table_0').dataTable().clear().destroy();#}
         {#$('#cus-responsive-datatable').dataTable().clear().destroy();#}
-        {#$('#cus-responsive-datatable').DataTable({#}
-        {#    serverSide: true,#}
-        {#    processing: true,#}
-        {#    select: true,#}
-        {#    paging: true,#}
-        {#    lengthChange: true,#}
-        {#    "pageLength": 10,#}
-            {#"lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],#}
-        {#    searching: true,#}
-        {#    info: true, // bottom left info#}
-        {#    responsive: true, // responnsive table#}
-            {#"deferRender": true,#}
-        {#    ajax: {#}
-        {#        url: "{% url 'daily_call_report' %}",#}
-        {#        type: "POST",#}
-        {##}
-        {#    },#}
-        {##}
-        {#    columns:[#}
-        {#        {data: "sno"},#}
-        {#        {data: "edit"},#}
-        {#        {data: "emp_id "},#}
-        {#        {data: "Emp_name "},#}
-        {#        {data: "ref_type "},#}
-        {#        {data: "unique_id "},#}
-        {#        {data: "name "},#}
-        {#        {data: "camp "},#}
-        {#        {data: "date "},#}
-        {#        {data: "time"},#}
-        {#        {data: "location "},#}
-        {#        {data: "Type "},#}
-        {#        {data: "source "},#}
-        {#        {data: "branch "},#}
-        {##}
-        {#    ],#}
+        $('#cus-responsive-datatable').DataTable({
+            serverSide: true,
+            processing: true,
+            select: true,
+            paging: true,
+            lengthChange: true,
+            "pageLength": 10,
+            "lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],
+            searching: true,
+            info: true, // bottom left info
+            responsive: true, // responnsive table
+            "deferRender": true,
+            ajax: {
+                url: "{% url 'daily_call_report' %}",
+                type: "POST",
 
-    $(".edit-admission").on('click', function () {
+            },
+
+            columns:[
+                {data: "sno"},
+                {data: "edit"},
+                {data: "emp_id "},
+                {data: "Emp_name "},
+                {data: "ref_type "},
+                {data: "unique_id "},
+                {data: "name "},
+                {data: "camp "},
+                {data: "date "},
+                {data: "time"},
+                {data: "location "},
+                {data: "Type "},
+                {data: "source "},
+                {data: "branch "},
+
+            ],
+        }
+
+    $('.edit-admission').on('click', function () {
         let edit_value = $(this).data('call');
         console.log(edit_value);
         $.ajax({
@@ -183,7 +184,7 @@
                                         <td class="py-2 text-right">{{ forloop.counter }}</td>
                                         <td class="py-2">
                                            <a href="#" data-call="{{ list.unique_id }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>
-                                            <button id="sweetalert-4" class="icon-trash text-danger"></button>
+{#                                            <button id="sweetalert-4" class="icon-trash text-danger"></button>#}
                                          </td>
                                         <td class="py-2">{{ list.emp_id }}</td>
                                         <td class="py-2">{{ list.Emp_name }}</td>

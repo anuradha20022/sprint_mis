@@ -15,11 +15,18 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from fpdf import FPDF
 
-from App.forms import Update, Upload
+from App.forms import Update
 from .models import *
 
 
 # Create your views here.
+
+def decode_utf8(input_iterator):
+    for l in input_iterator:
+        try:
+            yield l.decode('utf-8')
+        except UnicodeDecodeError:
+            yield l.decode('ISO-8859-1')
 
 
 def loginuser(request):
@@ -48,12 +55,20 @@ def loginuser(request):
     return render(request, 'login.html')
 
 
+# SELECT `logins`.`Emp_ID`, `call_report_master`.`emp_id` from `logins` INNER join `call_report_master` on `logins`.`Emp_ID`= `call_report_master`.`emp_id`;
+
+
 @login_required(login_url="/")
 def dashboard(request):
     cur = connection.cursor()
     cur.execute('''SELECT COUNT(DISTINCT (`emp_id`)) FROM `call_report_master` WHERE `date` = CURRENT_DATE ;''')
     present_data = cur.fetchall()[0][0]
     total_count = Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active')).count()
+
+    # cursor = connection.cursor()
+    # cursor.execute('''SELECT COUNT(DISTINCT (`emp_id`)) FROM `call_report_master` WHERE `date` = CURRENT_DATE ;''')
+    # absent = cursor.fetchall()[0][0]
+    # # total_count = Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active')).count()
 
     context = {
         'master_list': DoctorAgentList.objects.filter(~Q(emp_id='1234')).count(),
@@ -204,7 +219,7 @@ def pending_payment(request):
                                                     paymentmode='netbanking')
         else:
             status = PatientData.objects.filter(referralstatus='Yes',
-                                                      chapproval="approved", branch=branch_name)
+                                                chapproval="approved", branch=branch_name)
             cash = PatientData.objects.filter(referralstatus='Yes', chapproval="approved",
                                               paymentmode='cash', branch=branch_name)
             upi = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='upi',
@@ -416,6 +431,7 @@ def save_transfer(request):
         status = True
         return JsonResponse({'res': status})
 
+
 @login_required(login_url="/")
 def call_report_csv(request):
     # empid = request.GET.get('i')
@@ -452,6 +468,7 @@ def call_report_csv(request):
     # #     print(i)
 
     return res
+
 
 @login_required(login_url="/")
 def total_referral_list(request):
@@ -975,6 +992,7 @@ def bill_list(request):
 
     return render(request, 'bills_list.html', context)
 
+
 @login_required(login_url="/")
 def admission_list_filter(request):
     branch = request.GET.get('branch')
@@ -1036,6 +1054,7 @@ def admission_list_filter(request):
     return JsonResponse(
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data},
         safe=False)
+
 
 @login_required(login_url="/")
 @csrf_exempt
@@ -1191,6 +1210,7 @@ def bifurcation_list(request):
             ]
 
     return render(request, 'referral/bifurcation_list.html', context)
+
 
 @login_required(login_url="/")
 def employee_list(request):
@@ -1410,29 +1430,29 @@ def processed_ref(request):
         cursor = connection.cursor()
         if branch_name == 'All':
             cursor.execute(
-                "SELECT `invoice_no`, `patient_name`, DATE_FORMAT(`visit_data`,'%d-%b-%Y') AS adate,DATE_FORMAT(`invoice_date`,'%d-%b-%Y') AS ddate, `isbilldone` "
-                "AS admissionstatus, `patient_data`.`referralmobile` as referralmobile, `patient_data`.`branch` as branch,`patient_data`.`referraldepartment` as department,"
-                " `patient_data`.`organization` organization, `referralstatus`, `Admissiontype`, UPPER(`doctor_agent_list`.`agent_name`) AS referralname, "
-                "`referraldepartment`, `doctor_agent_list`.`mobile` as referralmobile, `referralremarks`, `paymentmode`, CONCAT('''',`doctor_agent_list`.`bank_ac`) "
-                "as accnumber,`doctor_agent_list`.`ifsc` as ifsccode, `doctor_agent_list`.`pancard` as pancard, `clashstatus`,DATE_FORMAT(`referralcreatedon`,'%d-%b-%Y %H:%i:%s') "
-                "AS referralcreatedon, `referralcreatedby`, `cluster_approval`,`cluster_approved_on`,(`phar_consum_billamount`) AS billamount, UPPER(`UCID`) AS referralcode,`referralamount`,`utr_no`,"
-                "DATE(`utr_on`) FROM `patient_data` INNER JOIN `doctor_agent_list` ON `patient_data`.`UCID`=`doctor_agent_list`.`unique_id` WHERE `patient_data`.`branch` != 'Test' "
-                "AND `cluster_approval` = 'Approved' AND `doctor_agent_list`.`bank_ac`!='' AND `doctor_agent_list`.`bank_ac`!='null' AND `utr_no`!='NEFT Return'"
-                " AND `utr_no`!='Wrong Bank Details' AND DATE(`cluster_approved_on`) BETWEEN  '{fd}' AND '{td}' GROUP BY `invoice_no` ORDER BY `patient_data`.`branch`,"
-                "`patient_data`.`utr_on`,`patient_data`.`discharge_datetime` ASC".format(fd=fr_date, td=tm_date))
+                """SELECT `invoice_no`, `patient_name`, DATE_FORMAT(`visit_data`,'%d-%b-%Y') AS adate,DATE_FORMAT(`invoice_date`,'%d-%b-%Y') AS ddate, `isbilldone` 
+                AS admissionstatus, `patient_data`.`referralmobile` as referralmobile, `patient_data`.`branch` as branch,`patient_data`.`referraldepartment` as department,
+                 `patient_data`.`organization` organization, `referralstatus`, `Admissiontype`, UPPER(`doctor_agent_list`.`agent_name`) AS referralname, 
+                `referraldepartment`, `doctor_agent_list`.`mobile` as referralmobile, `referralremarks`, `paymentmode`, CONCAT('''',`doctor_agent_list`.`bank_ac`) 
+                as accnumber,`doctor_agent_list`.`ifsc` as ifsccode, `doctor_agent_list`.`pancard` as pancard, `clashstatus`,DATE_FORMAT(`referralcreatedon`,'%d-%b-%Y %H:%i:%s') 
+                AS referralcreatedon, `referralcreatedby`, `cluster_approval`,`cluster_approved_on`,(`phar_consum_billamount`) AS billamount, UPPER(`UCID`) AS referralcode,`referralamount`,`utr_no`,
+                DATE(`utr_on`) FROM `patient_data` INNER JOIN `doctor_agent_list` ON `patient_data`.`UCID`=`doctor_agent_list`.`unique_id` WHERE `patient_data`.`branch` != 'Test' 
+                AND `cluster_approval` = 'Approved' AND `doctor_agent_list`.`bank_ac`!='' AND `doctor_agent_list`.`bank_ac`!='null' AND `utr_no`!='NEFT Return'
+                 AND `utr_no`!='Wrong Bank Details' AND DATE(`cluster_approved_on`) BETWEEN  '{fd}' AND '{td}' GROUP BY `invoice_no` ORDER BY `patient_data`.`branch`,
+                `patient_data`.`utr_on`,`patient_data`.`discharge_datetime` ASC""".format(fd=fr_date, td=tm_date))
         else:
             cursor.execute(
-                "SELECT `invoice_no`, `patient_name`, DATE_FORMAT(`visit_data`,'%d-%b-%Y') AS adate,DATE_FORMAT(`invoice_date`,'%d-%b-%Y') AS ddate, `isbilldone` "
-                "AS admissionstatus, `patient_data`.`referralmobile` as referralmobile, `patient_data`.`branch` as branch,`patient_data`.`referraldepartment` "
-                "as department,`patient_data`.`organization` organization, `referralstatus`, `Admissiontype`, UPPER(`doctor_agent_list`.`agent_name`) AS referralname,"
-                " `referraldepartment`, `doctor_agent_list`.`mobile` as referralmobile, `referralremarks`, `paymentmode`, CONCAT('''',`doctor_agent_list`.`bank_ac`) "
-                "as accnumber,`doctor_agent_list`.`ifsc` as ifsccode, `doctor_agent_list`.`pancard` as pancard, `clashstatus`,"
-                "DATE_FORMAT(`referralcreatedon`,'%d-%b-%Y %H:%i:%s') AS referralcreatedon, `referralcreatedby`, `cluster_approval`, `cluster_approved_on`,(`phar_consum_billamount`) "
-                "AS billamount, UPPER(`UCID`) AS referralcode,`referralamount`,`utr_no`, DATE(`utr_on`) FROM `patient_data` INNER JOIN `doctor_agent_list` ON"
-                " `patient_data`.`UCID`=`doctor_agent_list`.`unique_id` WHERE `patient_data`.`branch` != 'Test' AND `cluster_approval` = 'Approved' AND"
-                " `doctor_agent_list`.`bank_ac`!='' AND `doctor_agent_list`.`bank_ac`!='null'  AND `utr_no`!='NEFT Return' AND `utr_no`!='Wrong Bank Details' AND"
-                " DATE(`cluster_approved_on`) BETWEEN  '{fd}' AND '{td}' GROUP BY `invoice_no` ORDER BY `patient_data`.`branch`, `patient_data`.`utr_on`,"
-                "`patient_data`.`discharge_datetime` ASC".format(fd=fr_date, td=tm_date, bn=branch_name))
+                """SELECT `invoice_no`, `patient_name`, DATE_FORMAT(`visit_data`,'%d-%b-%Y') AS adate,DATE_FORMAT(`invoice_date`,'%d-%b-%Y') AS ddate, `isbilldone` 
+                AS admissionstatus, `patient_data`.`referralmobile` as referralmobile, `patient_data`.`branch` as branch,`patient_data`.`referraldepartment` 
+                as department,`patient_data`.`organization` organization, `referralstatus`, `Admissiontype`, UPPER(`doctor_agent_list`.`agent_name`) AS referralname,
+                 `referraldepartment`, `doctor_agent_list`.`mobile` as referralmobile, `referralremarks`, `paymentmode`, CONCAT('''',`doctor_agent_list`.`bank_ac`) 
+                as accnumber,`doctor_agent_list`.`ifsc` as ifsccode, `doctor_agent_list`.`pancard` as pancard, `clashstatus`,
+                DATE_FORMAT(`referralcreatedon`,'%d-%b-%Y %H:%i:%s') AS referralcreatedon, `referralcreatedby`, `cluster_approval`, `cluster_approved_on`,(`phar_consum_billamount`) 
+                AS billamount, UPPER(`UCID`) AS referralcode,`referralamount`,`utr_no`, DATE(`utr_on`) FROM `patient_data` INNER JOIN `doctor_agent_list` ON
+                 `patient_data`.`UCID`=`doctor_agent_list`.`unique_id` WHERE `patient_data`.`branch` != 'Test' AND `cluster_approval` = 'Approved' AND
+                 `doctor_agent_list`.`bank_ac`!='' AND `doctor_agent_list`.`bank_ac`!='null'  AND `utr_no`!='NEFT Return' AND `utr_no`!='Wrong Bank Details' AND
+                 DATE(`cluster_approved_on`) BETWEEN  '{fd}' AND '{td}'   AND `patient_data`.`branch` = '{bn}' GROUP BY `invoice_no` ORDER BY `patient_data`.`branch`, `patient_data`.`utr_on`,
+                `patient_data`.`discharge_datetime` ASC""".format(fd=fr_date, td=tm_date, bn=branch_name))
         print(cursor)
         payment = cursor.description
         context['process_ref'] = [
@@ -1555,6 +1575,7 @@ def search_id(request):
 
         return JsonResponse(result, safe=False)
 
+
 @login_required(login_url="/")
 def search_uid(request):
     if 'term' in request.GET:
@@ -1581,15 +1602,24 @@ def search_uid(request):
 
 @login_required(login_url="/")
 def utr_update(request):
-    if request.method == 'POST':
-        form = Upload(request.POST, request.FILES)
-        if form.is_valid():
-            newdoc = UtrUpdate(upload_csv_file=request.FILES.get('upload_csv_file'))
-            newdoc.save()
-            messages.success(request, "upload successfully....")
-        else:
-            messages.error(request, "failed to update")
-            return redirect('utr_update')
+
+    if request.method == "POST" or request.method == "FILES ":
+        # file = request.FILES['upload_csv_file']
+        # filename = file.save()
+        reader = csv.DictReader(decode_utf8(request.FILES.get("upload_csv_file")))
+
+        # cursor.execute(f"UPDATE `patient_data` INNER JOIN `utrupdate` ON `patient_data`.`sno`=`utrupdate`.`sno` SET `utr_no`=`utrupdate`.`sno`,`utr_created_by`='01238',`utr_on`=`utrupdate`.`utr_date`")
+
+        for row in reader:
+            if row["Sno"]:
+                UtrUpdate(sno=int(row["Sno"]),invoice_no=row["Invoice_No"], patient_name=row["Patient_Name"],
+                                branch=row["Branch"],service_name=row["Service_Name"], grossamount=row["Gross Bill Amount"],
+                                discount=row["Discount Amount"],netamount=row["Net Bill Amount"],referralamount=row["Referral Amount"],
+                                utr_no=row["UTR_No"], utr_date=row["UTR_Date"],utr_created_by=request.user.emp_id).save()
+
+                PatientData.objects.filter(sno=int(row["Sno"])).update(utr_on=row["UTR_Date"], utr_no=row["UTR_No"])
+        messages.success(request, "upload successfully....")
+        return redirect('utr_update')
     return render(request, 'utr.html')
 
 
@@ -1599,20 +1629,33 @@ def utr_csv(request):
     res['Content-Disposition'] = 'attachment; filename="Utr_Updated_file.csv"'
     writer = csv.writer(res)
     writer.writerow([
-        'Sno',
-        'BILL NO',
-        'Bill Date',
-        'Mobile _Number',
-        'Department_Name',
-        'Service_Name', ' Bill_type', 'Payment_Mode', 'Branch', 'Patient_Name',
-        'Referral_Name', 'Referral_Type', 'Referral_Percentage', 'Referral_Percentage_Name',
-        'Gross Bill Amount', 'Discount Amount', 'Net Bill Amount', 'Referral Amount', 'Referral updated on',
-        'Referral created_by',
-        'Functional_Approval', 'Functional approved on', 'UCID', 'Agent / doctor name', 'bank account',
-        'IFSC', 'PANCARD', 'UTR No', 'UTR Date'
+        'Sno', 'Invoice_No', 'Patient_Name', 'Branch',
+        'Service_Name', 'Gross Bill Amount',
+        'Discount Amount', 'Net Bill Amount', 'Referral Amount',
+        'UTR_No', 'UTR_Date'
+    ])
+    # utr = PatientData.objects.all()
+    # for i in utr:
+    #     writer.writerow([
+    #         i.sno, i.invoice_no, i.patient_name, i.branch, i.service_name, i.grossamount
+    #     ])
+
+    return res
+
+
+def upload_utr_csv(request):
+    res = HttpResponse(content_type='text/csv')
+    res['Content-Disposition'] = 'attachment; filename="Utr_Updated_file.csv"'
+    writer = csv.writer(res)
+    writer.writerow([
+        'Sno', 'Invoice_No', 'Patient_Name', 'Branch',
+        'Service_Name', 'Gross Bill Amount',
+        'Discount Amount', 'Net Bill Amount', 'Referral Amount',
+        'UTR No', 'UTR Date'
     ])
 
     return res
+
 
 @login_required(login_url="/")
 def day_reports(request):
@@ -1623,6 +1666,7 @@ def day_reports(request):
         context['emp_list'] = Logins.objects.filter(emp_id=edit)
 
     return render(request, 'call/report.html', context)
+
 
 @login_required(login_url="/")
 def incomplete_referral(request):
@@ -1673,6 +1717,7 @@ def incomplete_referral(request):
             ]
     return render(request, 'referral/incomplete_referral.html', context)
 
+
 @login_required(login_url="/")
 def reject(request):
     context = {
@@ -1688,6 +1733,7 @@ def reject(request):
             context['rejected_list'] = PatientData.objects.filter(referralstatus='Yes', chapproval="No", branch=branch)
 
     return render(request, 'reject.html', context)
+
 
 @login_required(login_url="/")
 def neft_return_list(request):
@@ -1796,6 +1842,7 @@ def pdf(request):
     filepath = os.path.join('svs.pdf')
     return FileResponse(open(filepath, 'rb'))
 
+
 @login_required(login_url="/")
 def cash_payment(request):
     context = {
@@ -1806,9 +1853,9 @@ def cash_payment(request):
         branch = request.POST.get('branch')
 
         if branch == 'All':
-            context['cash'] = PatientData.objects.filter(paymentmode='Cash')
+            context['cash'] = PatientData.objects.filter(paymentmode='Cash', referralstatus='Yes')
         else:
-            context['cash'] = PatientData.objects.filter(paymentmode='Cash', branch=branch)
+            context['cash'] = PatientData.objects.filter(paymentmode='Cash', branch=branch, referralstatus='Yes')
 
     return render(request, 'cash_payment.html', context)
 
@@ -1817,11 +1864,10 @@ def cash_payment(request):
 def functional_approval_list(request):
     context = {
         'branch_name': BranchListDum.objects.filter(~Q(branch_name='Test')),
-        'cluster': PatientData.objects.filter(chapproval="Yes")
+        'cluster': PatientData.objects.filter(referralstatus='Yes', chapproval="")
     }
     if 'approval_value' in request.POST:
         data_list = request.POST.get('approval_value')
-        print(data_list)
         try:
             for sno in ast.literal_eval(data_list):
                 print(sno)
@@ -1833,7 +1879,7 @@ def functional_approval_list(request):
             PatientData.objects.filter(sno=data_list).update(chapproval="approved", chapproval_by=request.user.emp_id,
                                                              ch_approved_on=timezone.now())
             messages.success(request, 'Approved successfully')
-        return redirect('pending_payment')
+        return redirect('functional_approval_list')
 
     elif 'reject_value' in request.POST:
         data_list = request.POST.get('reject_value')
@@ -1845,7 +1891,7 @@ def functional_approval_list(request):
         except TypeError:
             PatientData.objects.filter(sno=data_list).update(chapproval="No", chapproval_by=request.user.emp_id,
                                                              ch_approved_on=timezone.now())
-        return redirect('reject')
+        return redirect('functional_approval_list')
 
     elif request.method == "POST":
         branch_name = request.POST.get('branch')
@@ -1895,6 +1941,7 @@ def functional_approval_list(request):
 
     return render(request, 'fucntional_aprroval_list.html', context)
 
+
 @login_required(login_url="/")
 def s_id(request):
     if 'term' in request.GET:
@@ -1908,6 +1955,7 @@ def s_id(request):
             result.append({'registration_number': '', 'patient_name': '', 'invoice_no': ''})
 
         return JsonResponse(result, safe=False)
+
 
 @login_required(login_url="/")
 @csrf_exempt
@@ -1957,9 +2005,6 @@ def daily_call(request):
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data}, safe=False)
 
 
-def delete_data(request):
-    return None
-
 @login_required(login_url="/")
 def edit_list(request):
     if request.method == "POST":
@@ -1971,6 +2016,7 @@ def edit_list(request):
         #     data.delete()
         #     print(i)
     return redirect('functional_approval_list')
+
 
 @login_required(login_url="/")
 def payment_list(request):
@@ -1989,6 +2035,7 @@ def payment_list(request):
                                                            chapproval="approved")
 
     return render(request, 'payment_list.html', context)
+
 
 @login_required(login_url="/")
 def pending_payment_csv(request):

@@ -21,17 +21,15 @@
                 </div>
 
             </div>
-{#                  <div class="col-md-5">#}
-{#                    <button type="Submit" name="Submit"  href="{% url 'export_excel_file' %}" class="btn btn-success mr-3" style="border: 1px solid blue; padding: 13px;">Export Format</button>#}
-{#                   </div>#}
-
-</form>
-         <div class="col-md-2">
-             <div class="text-right">
-                 <a href ="{% url 'utr_csv' %}" name="excel" class="btn btn-lg btn-primary">Excel export</a>
-             </div>
-         </div>
-
+            <div class="row">
+               <div class="col-md-2 text-right">
+                   <a href ="{% url 'utr_csv' %}" name="excel" class="btn btn-sm btn-primary" style="padding: 10px;">Download Excel Format</a>
+               </div>
+{#                <div class="col-md-4">#}
+{#                    <a href ="{% url 'utr_update' %}" name="excel" class="btn btn-sm btn-primary" style="padding: 10px;">Download Uploaded Excel </a>#}
+{#                </div>#}
+            </div>
+  </form>
 
 
         <hr>

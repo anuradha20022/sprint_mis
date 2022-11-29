@@ -4,7 +4,7 @@ from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
-from App.models import Logins, UtrUpdate
+from App.models import Logins
 
 
 class LoginResource(resources.ModelResource):
@@ -19,4 +19,4 @@ class LoginAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(Logins, LoginAdmin)
-admin.site.register(UtrUpdate)
+# admin.site.register(UtrUpdate)
