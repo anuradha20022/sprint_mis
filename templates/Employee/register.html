@@ -44,8 +44,7 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label class="col-form-label">Employee ID:</label>
-                                        <input type="number" class="form-control form-control-sm" name="empid" placeholder="Eg. 010215" required="true" />
-
+                                        <input type="number" class="form-control form-control-sm" name="empid" id="empid" placeholder="Eg. 010215" required="true" />
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -89,12 +88,6 @@
 {#                                            <option value="">{{ list.branch_name }}</option>#}
 
                                         {% endfor %}
-                                        <!-- <option value="Jubilee Hills">Jubilee Hills</option>
-                                        <option value="Gachibowli">Gachibowli</option>
-                                        <option value="">LB Nagar</option>
-                                        <option value="">AS Rao Nagar</option>
-                                        <option value="">JNTU, Kukatpally</option> -->
-{#                                        <option value="1">AS Rao Nagar</option><option value="2">Corporate</option><option value="3">Gachibowli</option><option value="4">Jubilee Hills</option><option value="5">Kukatpally</option><option value="5">LB Nagar</option><option value="6">Test</option>#}
                                     </select>
                                 </div>
                             </div>
@@ -105,12 +98,6 @@
                                         <option value="--Select Category Type--">--Select Category Type--</option>
                                         <option value="Admin">Admin</option>
                                         <option value="Center Head">Center Head</option>
-                                        <!-- <option value="Amb. Coordinator">Amb. Coordinator</option>
-                                        <option value="Cashier">Cashier</option>
-                                        <option value="District Team">District Team</option>
-                                        <option value="Neighbourhood">Neighbourhood</option>
-                                        <option value="Private Corporate">Private Corporate</option>
-                                        <option value="Public Corporate">Public Corporate</option> -->
                                         <option value="Trade">Trade</option>
                                         <option value="Cluster head">Cluster head</option>
                                         <option value="Marketing Head">Marketing Head</option>
@@ -122,17 +109,11 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Catogery:</label>
+                                    <label class="col-form-label">Category:</label>
                                     <select class="form-control form-control-sm" name="catogery" required="true">
                                         <option value="--Select Type--">--Select Type--</option>
                                         <option value="Admin">Admin</option>
                                         <option value="Center Head">Center Head</option>
-                                        <!-- <option value="Amb. Coordinator">Amb. Coordinator</option>
-                                        <option value="Cashier">Cashier</option>
-                                        <option value="District Team">District Team</option>
-                                        <option value="Neighbourhood">Neighbourhood</option>
-                                        <option value="Private Corporate">Private Corporate</option>
-                                        <option value="Public Corporate">Public Corporate</option> -->
                                         <option value="Trade">Trade</option>
                                         <option value="Cluster head">Cluster head</option>
                                         <option value="Marketing Head">Marketing Head</option>
@@ -144,24 +125,6 @@
                                     </select>
                                 </div>
                             </div>
-                         <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="col-form-label"  for="method">Catogery:</label>
-                                    <select class="form-control form-control-sm" name="method" id="method" required="true">
-                                        <option value="--Select Type--">--Select Type--</option>
-                                        <option name="method" value="Admin">Admin</option>
-                                        <option name="method" value="Center Head">Center Head</option>
-                                        <option name="method" value="Corporate">Corporate</option>
-                                    </select>
-                                </div>
-                            </div>
-                           <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="col-form-label" for="empid" id="ID">Employee ID:</label>
-                                        <input type="text" class="form-control form-control-sm" name="empid" id="empid" placeholder="Eg. 010215" required="true" />
-
-                                </div>
-                            </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label class="col-form-label">Reporting to:</label>
@@ -171,9 +134,6 @@
                                 </div>
                             </div>
                         </div>
-
-
-
                         <div class="panel-footer text-right">
                             <button type="submit" name="Submit" class="btn btn-success mr-2">Create Now</button>
                         </div>

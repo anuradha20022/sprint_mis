@@ -12,16 +12,13 @@
                 <div class="form-group">
                     <select class="form-control" name="branch">
                         <option value="" >-- Select Branch --</option>
-                        <option value="All" selected>All</option>
+                        <option value="All" >All</option>
                         {% for list in branch %}
                             <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
             </div>
-{#            <div class="col-md-3">#}
-{#                <input type="text" name="date" class="form-control daterange-shawCalRanges">#}
-{#            </div>#}
             <div class="col-md-2">
                 <button type="submit" name="Submit" class="btn btn-lg btn-primary btn-gradient btn-shadow">Submit</button>
             </div>

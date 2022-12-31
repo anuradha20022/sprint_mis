@@ -121,6 +121,12 @@ def register(request):
                                   old_branch=old_branch.old_branch,
                                   page='Executive', designation=designation, original_type=department,
                                   head=reporting_to, type=department, branch_access=branch, new_type=catogery).save()
+
+            WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
+                                  personal_number=mobile, office_number=mobile, branch=branch,
+                                  old_branch=old_branch.old_branch,
+                                  page='Executive', designation=designation, original_type=department,
+                                  head=reporting_to, type=department, branch_access=branch, new_type=catogery).save()
             # Executive
         elif designation == 'Manager':
             Logins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
@@ -128,9 +134,20 @@ def register(request):
                                   old_branch=old_branch.old_branch,
                                   page='Manager', designation=designation, original_type=department, head=reporting_to,
                                   type=department, branch_access=branch, new_type=catogery).save()
+            WebLogins.objects.create(emp_name=empname, emp_id=empid,password=make_password(mobile), mpassword=mobile,
+                                  personal_number=mobile, office_number=mobile, branch=branch,
+                                  old_branch=old_branch.old_branch,
+                                  page='Manager', designation=designation, original_type=department, head=reporting_to,
+                                  type=department, branch_access=branch, new_type=catogery).save()
             # Manager
         else:
             Logins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
+                                  personal_number=mobile, office_number=mobile, branch=branch,
+                                  old_branch=old_branch.old_branch,
+                                  page='Team Lead', designation=designation, original_type=department,
+                                  head=reporting_to, type=department, branch_access=branch, new_type=catogery).save()
+
+            WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
                                   personal_number=mobile, office_number=mobile, branch=branch,
                                   old_branch=old_branch.old_branch,
                                   page='Team Lead', designation=designation, original_type=department,
@@ -179,6 +196,19 @@ def search_emp(request):
             result.append({'id': emp.emp_id, 'name': emp.emp_name, 'desg': emp.designation})
         if not result:
             result.append({'name': "No data found", 'id': '', 'desg': ''})
+
+        return JsonResponse(result, safe=False)
+
+
+def doctor_search(request):
+    if 'term' in request.GET:
+        result = []
+        term = request.GET.get('term')
+        new = DoctorAgentList.objects.filter(Q(unique_id__istartswith=term) | Q(agent_name__istartswith=term))
+        for emp in new:
+            result.append({'id': emp.unique_id, 'name': emp.agent_name, 'desg': emp.designation})
+        if not result:
+            result.append({'name': '', 'id': '', 'desg': 'No data found'})
 
         return JsonResponse(result, safe=False)
 
@@ -241,7 +271,6 @@ def pending_payment(request):
 def doctor_agent_list(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-        # 'doctor_agent_list': DoctorAgentList.objects.all(),
     }
     if 'transfer_id' in request.POST:
         pass
@@ -258,13 +287,13 @@ def doctor_agent_list(request):
         empid = request.POST.get('empid')
         branch = request.POST.get('branch')
         if branch == "All":
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter()
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(~Q(emp_id='1234'))
         elif empid and branch:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(emp_id=empid, branch=branch)
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(unique_id=empid, branch=branch) & ~Q(emp_id='1234'))
         elif empid:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(emp_id=empid)
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(unique_id=empid) & ~Q(emp_id='1234'))
         elif branch:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(branch=branch)
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234'))
     return render(request, 'doctor_agent_list.html', context)
 
 
@@ -277,13 +306,13 @@ def doctor_agent_list_dt(request):
     length = int(request.POST.get('length'))
     search = request.POST.get('search[value]')
     colindex = request.POST.get("order[0][column]")
-    records_total = DoctorAgentList.objects.all().order_by('emp_id').count()
+    records_total = DoctorAgentList.objects.all().order_by('unique_id').count()
     records_filtered = records_total
-    agent_data = DoctorAgentList.objects.all().order_by('emp_id').values()
+    agent_data = DoctorAgentList.objects.all().order_by('unique_id').values()
 
     if search:
-        agent_data = DoctorAgentList.objects.filter(Q(emp_id__icontains=search) | Q(agent_name__icontains=search) | Q(
-            unique_id__icontains=search)).order_by('emp_id').values()
+        agent_data = DoctorAgentList.objects.filter(Q(unique_id__icontains=search) | Q(agent_name__icontains=search) | Q(
+            unique_id__icontains=search)).order_by('unique_id').values()
         records_total = agent_data.count()
         records_filtered = records_total
 
@@ -434,8 +463,6 @@ def save_transfer(request):
 
 @login_required(login_url="/")
 def call_report_csv(request):
-    # empid = request.GET.get('i')
-    # print(empid)
 
     res = HttpResponse(content_type='text/csv')
     res['Content-Disposition'] = 'attachment; filename="myfile.csv"'
@@ -996,11 +1023,6 @@ def bill_list(request):
 @login_required(login_url="/")
 def admission_list_filter(request):
     branch = request.GET.get('branch')
-    # first_date = request.POST.get('date_input')
-    #
-    # fr_date, tm_date = first_date.split(' - ')
-    # fr_date = datetime.strptime(str(fr_date), '%m/%d/%Y').date()
-    # tm_date = datetime.strptime(str(tm_date), '%m/%d/%Y').date()
     draw = int(request.GET.get('draw'))
     start = int(request.GET.get('start'))
     length = int(request.GET.get('length'))
@@ -1013,20 +1035,26 @@ def admission_list_filter(request):
         agent_data = PatientData.objects.filter(branch=branch, referralstatus='').order_by('sno').values()[
                      start:length + start]
         if search:
-            agent_data = PatientData.objects.filter(Q(branch__istartswith=search)).order_by('sno').values()[
-                         start:length + start]
+            agent_data = PatientData.objects.filter(Q(branch__istartswith=search)).order_by('sno').values()
             records_total = agent_data.count()
             records_filtered = records_total
 
     else:
         records_total = PatientData.objects.filter(referralstatus='').order_by('sno').count()
         records_filtered = records_total
-        agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()[start:length + start]
+        agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()
         if search:
-            agent_data = PatientData.objects.filter(Q(branch__istartswith=search)).order_by('sno').values()[
-                         start:length + start]
+            agent_data = PatientData.objects.filter(Q(branch__istartswith=search)).order_by('sno').values()
+
             records_total = agent_data.count()
             records_filtered = records_total
+    paginator = Paginator(agent_data, length)
+    try:
+        object_list = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        object_list = paginator.page(draw).object_list
+    except EmptyPage:
+        object_list = paginator.page(paginator.num_pages).object_list
 
     data = [
         {
@@ -1038,18 +1066,11 @@ def admission_list_filter(request):
 
             'service_name': emp['service_name'],
             'department_name': emp['department_name'],
-            # 'marketing_executive': emp['marketing_executive'],
-            # 'referral_type': emp['referral_type'],
-            # 'referralpercentage': emp['referralpercentage'],
-            # 'referralpercentagename': emp['referralpercentagename'],
             'grossamount': emp['grossamount'],
             'discount': emp['discount'],
             'netamount': emp['netamount'],
-            # 'referralamount': emp['referralamount'],
-            # 'ucidcreatedon': emp['ucidcreatedon'],
-            # 'paymentmode': emp['paymentmode'],
 
-        } for emp in agent_data
+        } for emp in object_list
     ]
     return JsonResponse(
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data},
@@ -1066,22 +1087,20 @@ def admission(request):
     colindex = request.POST.get("order[0][column]")
     records_total = PatientData.objects.filter(referralstatus='').order_by('sno').count()
     records_filtered = records_total
-    agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()[start:length + start]
-
+    agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()
     if search:
-        agent_data = PatientData.objects.filter(Q(branch=search) & Q(referralstatus='')).order_by('sno').values()[
-                     start:length + start]
+        agent_data = PatientData.objects.filter(Q(branch=search) & Q(referralstatus='')).order_by('sno').values()
         records_total = agent_data.count()
         records_filtered = records_total
 
-    # paginator = Paginator(agent_data, length)
-    #
-    # try:
-    #     object_list = paginator.page(draw).object_list
-    # except PageNotAnInteger:
-    #     object_list = paginator.page(draw).object_list
-    # except EmptyPage:
-    #     object_list = paginator.page(paginator.num_pages).object_list
+    paginator = Paginator(agent_data, length)
+
+    try:
+        object_list = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        object_list = paginator.page(draw).object_list
+    except EmptyPage:
+        object_list = paginator.page(paginator.num_pages).object_list
 
     data = [
         {
@@ -1103,7 +1122,7 @@ def admission(request):
             'paymentmode': emp['paymentmode'],
             'department_name': emp['department_name'],
             'service_name': emp['service_name'],
-        } for emp in agent_data
+        } for emp in object_list
 
     ]
     return JsonResponse(
@@ -1891,6 +1910,7 @@ def functional_approval_list(request):
         except TypeError:
             PatientData.objects.filter(sno=data_list).update(chapproval="No", chapproval_by=request.user.emp_id,
                                                              ch_approved_on=timezone.now())
+            messages.success(request, 'Rejected successfully')
         return redirect('functional_approval_list')
 
     elif request.method == "POST":

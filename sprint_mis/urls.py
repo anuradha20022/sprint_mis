@@ -29,6 +29,7 @@ urlpatterns = [
     # path('forgot/', views.forgot_password, name='forgot_password'),
     path('logout/', views.logout_user, name='logout'),
     path('search_emp/', views.search_emp, name='search_emp'),
+    path('doctor_search/', views.doctor_search, name='doctor_search'),
     path('emp_list/', views.emp_list, name='emp_list'),
     path('bank_details/', views.bank_details, name='bank_details'),
     path('wrong_bank_details/', views.wrong_bank_details, name='wrong_bank_details'),

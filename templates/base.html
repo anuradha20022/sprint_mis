@@ -265,6 +265,9 @@
                         <li>
                             <a href="{% url 'doctor_agent_list' %}"><i class="icon-credit-card"></i><span>Doctor Agent List</span></a>
                         </li>
+                        <li>
+                            <a href="{% url 'cash_payment' %}"><i class="icon-credit-card"></i><span>Cash Payment</span></a>
+                        </li>
 {#                        <li class="has-sub ">#}
 {#                            <a><i class="icon-people"></i><span>Referral Details</span><i class="arrow rotate"></i></a>#}
 {#                            <ul class="sub-menu">#}
@@ -297,7 +300,7 @@
                                         <a href="{% url 'register' %}"><span>New Registration</span></a>
 {#                                        <a href="{% url 'employee_list' %}"><span>Employee List</span></a>#}
 {#                                        <a href="{% url 'neft_return_list' %}"><span>Neft Return List</span></a>#}
-                                        <a href="{% url 'cash_payment' %}"><span>Cash Payment</span></a>
+
 {#                                        <a href="{% url 'payment_list' %}"><span>Payment List</span></a>#}
 {#                                        <a href="{% url 'employee_leave_list' %}"><span>Employee Leave List</span></a>#}
                                      </li>
@@ -538,7 +541,7 @@
         {% endif %}
     {% endfor %}
     $('#transfer_search_id1').autocomplete({
-        source:'{% url 'search_emp' %}',
+        source:'{% url 'doctor_search' %}',
         minLength: 2,
         focus: function (event, ui) {
                 if (ui.item.id !== "") {
@@ -568,7 +571,7 @@
 
     });
     $('#transfer_search_id2').autocomplete({
-        source:'{% url 'search_emp' %}',
+        source:'{% url 'doctor_search' %}',
         minLength: 2,
         focus: function (event, ui) {
                 if (ui.item.id !== "") {
@@ -659,17 +662,48 @@
     });
 
     $('#doctorid_search').autocomplete({
-        source:'{% url 'search_emp' %}',
+        source:'{% url 'doctor_search' %}',
         minLength: 2,
         focus: function (event, ui) {
                 if (ui.item.id !== "") {
-                    $(`#doctorid_search`).val(`${ui.item.id}`);
+                    $(`#doctorid_search`).val(`${ui.item.id}`);c
                     return false;
                 }
             },
         select: function (event, ui) {
                 if (ui.item.id !== "") {
                     $(`#doctorid_search`).val(ui.item.id);
+                    return false;
+                }
+            },
+        create: function (event, ui) {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    if (item.id !== "") {
+                        return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b> - (<small>" + item.id+ "</small>)<br><i><small>"+ item.desg +"</small></i></div>")
+                            .appendTo(ul)
+                    }else return $("<li></li>")
+                            .data("item.autocomplete", item)
+                            .append("<div><b>" + item.name + "</b></div>")
+                            .appendTo(ul)
+                }
+            }
+
+    });
+
+      $('#doctor_id_search').autocomplete({
+        source:'{% url 'doctor_search' %}',
+        minLength: 2,
+        focus: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#doctor_id_search`).val(`${ui.item.id}`);
+                    return false;
+                }
+            },
+        select: function (event, ui) {
+                if (ui.item.id !== "") {
+                    $(`#doctor_id_search`).val(ui.item.id);
                     return false;
                 }
             },

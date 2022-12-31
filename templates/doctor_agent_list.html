@@ -108,7 +108,9 @@
                 $("input[name='transfer_id']").prop("checked", true);
             }
 
-        })
+        });
+
+
 
     </script>
 {% endblock %}
@@ -141,28 +143,9 @@
      <div class="row">
          <div class="col-md-3">
              <div class="form-group">
-                 <input type="text" class="form-control" name="empid" id="empid_search" placeholder="Eg. 010215">
-
-             </div>
-         </div>
-{#         <div class="col-md-4">#}
-{##}
-{#             <div class="form-group">#}
-{#                 <div class="input-group">#}
-{#                     <input type="date" name="date_range" class="form-control">#}
-{#                     <div class="input-group-append">#}
-{#                         <div class="input-group-text">#}
-{#                             <i class="icon-calendar"></i>#}
-{#                         </div>#}
-{#                     </div>#}
-{#                 </div>#}
-{#             </div>#}
-{#         </div>#}
-         <div class="col-md-3">
-             <div class="form-group">
                  <select class="form-control" name="branch">
-                     <option value="" disabled>-- Select Branch --</option>
-                     <option value="All" selected>All</option>
+                     <option value="" >-- Select Branch --</option>
+                     <option value="All" >All</option>
                      {% for list in branch %}
                          <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
 
@@ -170,15 +153,15 @@
                  </select>
              </div>
          </div>
+         <div class="col-md-4">
+             <div class="form-group">
+                 <input type="text" class="form-control" name="empid" id="doctor_id_search" placeholder="Enter Unique ID or Agent Name">
 
+             </div>
+         </div>
              <div class="col-md-2">
                  <button type="submit" name="Submit" class="btn btn-lg btn-success btn-gradient btn-shadow">Submit</button>
              </div>
-{#            <div class="col-md-2">#}
-{#             <div class="text-right">#}
-{#                 <a href ="{% url 'doctor_agent_list_csv' %}" name="Submit" class="btn btn-lg btn-primary">Excel export</a>#}
-{#             </div>#}
-{#         </div>#}
          <div class="col-md-2">
              <button type="button" name="Submit" class="btn btn-lg btn-warning btn-gradient btn-shadow" data-toggle="modal" data-target="#transfer_all">Transfer</button>
          </div>
@@ -256,15 +239,10 @@
                                     <th class="py-2" data-orderable="false">IFSC</th>
                                     <th class="py-2" data-orderable="false">Area</th>
                                     <th class="py-2" data-orderable="false">City</th>
-{#                                    <th class="py-2" data-orderable="false">District</th>#}
-{#                                    <th class="py-2" data-orderable="false">State</th>#}
-{#                                    <th class="py-2" data-orderable="false">Pincode</th>#}
                                     <th class="py-2" data-orderable="false">Date</th>
-{#                                    <th class="py-2" data-orderable="false">Source</th>#}
                                     <th class="py-2" data-orderable="false">Type</th>
                                     <th class="py-2" data-orderable="false">R_Status</th>
                                     <th class="py-2" data-orderable="false">Designation</th>
-{#                                    <th class="py-2" data-orderable="false">Department</th>#}
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -291,15 +269,10 @@
                                         <td class="py-1">{{ agents.ifsc }}</td>
                                         <td class="py-1">{{ agents.area }}</td>
                                         <td class="py-1">{{ agents.city }}</td>
-{#                                        <td class="py-1">{{ agents.district }}</td>#}
-{#                                        <td class="py-1">{{ agents.state }}</td>#}
-{#                                        <td class="py-1">{{ agents.pincode }}</td>#}
                                         <td class="py-1">{{ agents.date }}</td>
-{#                                        <td class="py-1">{{ agents.source }}</td>#}
                                         <td class="py-1">{{ agents.type }}</td>
                                         <td class="py-1">{{ agents.r_status }}</td>
                                         <td class="py-1">{{ agents.designation }}</td>
-{#                                        <td class="py-1">{{ agents.department }}</td>#}
                                     </tr>
                                 {% endfor %}
 

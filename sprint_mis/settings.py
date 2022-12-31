@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-_^tv9ra^3(-ejpr1-5c2*_fidankjfplz!p5^wf^b(6=ki!*mo'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -102,7 +102,7 @@ WSGI_APPLICATION = 'sprint_mis.wsgi.application'
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'mis',
+#         'NAME': 'sprint_mis',
 #         'USER': 'root',
 #         'PASSWORD': '',
 #         'HOST': 'localhost',
