@@ -12,15 +12,15 @@ services:
 #      - "5432:5432"
 #    volumes:
 #      - postgres_data:/var/lib/postgresql/data/
-  db:
-    image: mysql:5.7
-    restart: unless-stopped
-    ports:
-      - "3306:3306"
-    env_file:
-      - sprint_mis/.env
-    volumes:
-      - mysql_data:/var/lib/mysql
+#  db:
+#    image: mysql:5.7
+#    restart: unless-stopped
+#    ports:
+#      - "3306:3306"
+#    env_file:
+#      - sprint_mis/.env
+#    volumes:
+#      - mysql_data:/var/lib/mysql
 
 #  backed:
 #    build:
@@ -66,8 +66,8 @@ services:
     ports:
       - "8000:8000"
 
-    depends_on:
-      - db
+#    depends_on:
+#      - db
 
   nginx:
 
@@ -85,9 +85,9 @@ services:
 
       depends_on:
         - backend
-
-volumes:
-  mysql_data:
+#
+#volumes:
+#  mysql_data:
 
 
 

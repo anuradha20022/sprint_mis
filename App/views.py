@@ -1,3 +1,5 @@
+from builtins import UnicodeDecodeError
+
 import ast
 import csv
 import os
