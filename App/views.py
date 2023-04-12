@@ -67,11 +67,6 @@ def dashboard(request):
     present_data = cur.fetchall()[0][0]
     total_count = Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active')).count()
 
-    # cursor = connection.cursor()
-    # cursor.execute('''SELECT COUNT(DISTINCT (`emp_id`)) FROM `call_report_master` WHERE `date` = CURRENT_DATE ;''')
-    # absent = cursor.fetchall()[0][0]
-    # # total_count = Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active')).count()
-
     context = {
         'master_list': DoctorAgentList.objects.filter(~Q(emp_id='1234')).count(),
         'present': present_data,
@@ -82,13 +77,6 @@ def dashboard(request):
 
     }
 
-    # cur = connection.cursor()
-    # cur.execute(
-    #     '''SELECT `emp_id`,`unique_id`,`name`,`category`,`design`,`contact`,`date`,`time` FROM `call_report_master` WHERE `date` = CURRENT_DATE     GROUP  BY `emp_id`;''')
-    # desc = cur.description
-    # context['preset_data'] = [
-    #     dict(zip([i[0] for i in desc], row)) for row in cur.fetchall()
-    # ]
     return render(request, 'dashboard.html', context)
 
 
@@ -281,7 +269,7 @@ def doctor_agent_list(request):
         from_empid = request.POST.get('from_empid')
         to_empid = request.POST.get('to_empid')
         DoctorAgentList.objects.filter(emp_id=from_empid).update(emp_id=to_empid)
-        # print(from_empid, to_empid)
+        print(from_empid, to_empid)
         messages.success(request, f"Emp Id : {from_empid} Transferred to Emp Id : {to_empid}")
         return redirect('doctor_agent_list')
 
@@ -302,21 +290,38 @@ def doctor_agent_list(request):
 @csrf_exempt
 @login_required(login_url="/")
 def doctor_agent_list_dt(request):
-    # print(request.POST)
+    branch = request.GET.get('branch')
     draw = int(request.POST.get('draw'))
     # start = int(request.POST.get('start'))
     length = int(request.POST.get('length'))
     search = request.POST.get('search[value]')
     colindex = request.POST.get("order[0][column]")
-    records_total = DoctorAgentList.objects.all().order_by('unique_id').count()
-    records_filtered = records_total
-    agent_data = DoctorAgentList.objects.all().order_by('unique_id').values()
+    # records_total = DoctorAgentList.objects.all().order_by('unique_id').count()
+    # records_filtered = records_total
+    # agent_data = DoctorAgentList.objects.all().order_by('unique_id').values()
 
-    if search:
-        agent_data = DoctorAgentList.objects.filter(Q(unique_id__icontains=search) | Q(agent_name__icontains=search) | Q(
-            unique_id__icontains=search)).order_by('unique_id').values()
-        records_total = agent_data.count()
+    if branch == 'All':
+            records_total = DoctorAgentList.objects.filter(~Q(emp_id='1234')).order_by('sno').count()
+            records_filtered = records_total
+            agent_data = DoctorAgentList.objects.all().order_by('sno').values()[
+                         start:length + start]
+
+            if search:
+                agent_data = DoctorAgentList.objects.filter(Q(branch=search) | Q(agent_name__icontains=search) | Q(
+                    unique_id__icontains=search)).order_by('unique_id').values()
+                records_total = agent_data.count()
+                records_filtered = records_total
+    else:
+        records_total = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234')).order_by('sno').count()
         records_filtered = records_total
+        agent_data = DoctorAgentList.objects.filter(branch=branch).order_by('sno').values()[
+                     start:length + start]
+
+        if search:
+            agent_data = DoctorAgentList.objects.filter(Q(branch=search) | Q(agent_name__icontains=search) | Q(
+                unique_id__icontains=search)).order_by('unique_id').values()
+            records_total = agent_data.count()
+            records_filtered = records_total
 
     paginator = Paginator(agent_data, length)
 
@@ -365,10 +370,24 @@ def call_report(request):
         'report': CallReportMaster.objects.all(),
     }
     if request.method == "POST":
-        empid = request.POST.get('empid')
-        if empid:
-            context["call_report"] = CallReportMaster.objects.filter(emp_id=empid)
-            context["emp_id"] = empid
+        date_range_str = request.POST.get('date_d')
+        if date_range_str:
+            start_date_str, end_date_str = date_range_str.split(' - ')
+
+            # Convert the start and end dates to datetime objects
+            start_date_obj = datetime.strptime(start_date_str, '%m/%d/%Y')
+            end_date_obj = datetime.strptime(end_date_str, '%m/%d/%Y')
+
+            # Convert the datetime objects to strings in the desired format
+            start_date_formatted = start_date_obj.strftime('%Y-%m-%d')
+            end_date_formatted = end_date_obj.strftime('%Y-%m-%d')
+
+            # Use the formatted dates to filter the CallReportMaster objects
+            context["call_report"] = CallReportMaster.objects.filter(
+                date__range=[start_date_formatted, end_date_formatted])
+
+            context["date_range"] = date_range_str
+
 
     return render(request, 'call/call_report.html', context)
 
@@ -930,9 +949,6 @@ def inactive_allowance_report(request):
 
 @login_required(login_url="/")
 def bill_list(request):
-    context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-    }
 
     if request.method == "POST":
         sno = request.POST.get('modal_sno')
@@ -1019,64 +1035,90 @@ def bill_list(request):
     #     messages.success(request, 'Deleted succesfully')
     #     return JsonResponse({"success": True})
 
-    return render(request, 'bills_list.html', context)
-
+    return redirect('bill')
 
 @login_required(login_url="/")
-def admission_list_filter(request):
-    branch = request.GET.get('branch')
-    draw = int(request.GET.get('draw'))
-    start = int(request.GET.get('start'))
-    length = int(request.GET.get('length'))
-    search = request.GET.get('search[value]')
-    colindex = request.GET.get("order[0][column]")
+def bill(request):
+    context = {
+        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+    }
+    if 'date' in request.POST:
+        date_range_str = request.POST.get('date')
+        if date_range_str:
+            start_date_str, end_date_str = date_range_str.split(' - ')
 
-    if branch != "All":
-        records_total = PatientData.objects.filter(branch=branch, referralstatus='').order_by('sno').count()
-        records_filtered = records_total
-        agent_data = PatientData.objects.filter(branch=branch, referralstatus='').order_by('sno').values()[
-                     start:length + start]
-        if search:
-            agent_data = PatientData.objects.filter(Q(branch__istartswith=search)).order_by('sno').values()
-            records_total = agent_data.count()
-            records_filtered = records_total
+            # Convert the start and end dates to datetime objects
+            start_date_obj = datetime.strptime(start_date_str, '%m/%d/%Y')
+            end_date_obj = datetime.strptime(end_date_str, '%m/%d/%Y')
 
-    else:
-        records_total = PatientData.objects.filter(referralstatus='').order_by('sno').count()
-        records_filtered = records_total
-        agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()
-        if search:
-            agent_data = PatientData.objects.filter(Q(branch__istartswith=search)).order_by('sno').values()
+            # Convert the datetime objects to strings in the desired format
+            start_date_formatted = start_date_obj.strftime('%Y-%m-%d')
+            end_date_formatted = end_date_obj.strftime('%Y-%m-%d')
 
-            records_total = agent_data.count()
-            records_filtered = records_total
-    paginator = Paginator(agent_data, length)
-    try:
-        object_list = paginator.page(draw).object_list
-    except PageNotAnInteger:
-        object_list = paginator.page(draw).object_list
-    except EmptyPage:
-        object_list = paginator.page(paginator.num_pages).object_list
+            # Use the formatted dates to filter the CallReportMaster objects
+            context["admission"] = PatientData.objects.filter(
+                invoice_date__range=[start_date_formatted, end_date_formatted])
 
-    data = [
-        {
-            'sno': emp['sno'],
-            'edit': '',
-            'invoice_no': emp['invoice_no'],
-            'branch': emp['branch'],
-            'patient_name': emp['patient_name'],
+            context["date_range"] = date_range_str
 
-            'service_name': emp['service_name'],
-            'department_name': emp['department_name'],
-            'grossamount': emp['grossamount'],
-            'discount': emp['discount'],
-            'netamount': emp['netamount'],
+    return render(request, 'bill_list.html', context)
 
-        } for emp in object_list
-    ]
-    return JsonResponse(
-        {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data},
-        safe=False)
+
+# @login_required(login_url="/")
+# def admission_list_filter(request):
+#     date = request.GET.get('date')
+#     draw = int(request.GET.get('draw'))
+#     start = int(request.GET.get('start'))
+#     length = int(request.GET.get('length'))
+#     search = request.GET.get('search[value]')
+#     colindex = request.GET.get("order[0][column]")
+#
+#     if date is not None:
+#         records_total = PatientData.objects.filter(invoice_date__lte=date,invoice_date__gte=date, referralstatus='').order_by('sno').count()
+#         records_filtered = records_total
+#         agent_data = PatientData.objects.filter(invoice_date__lte=date,invoice_date__gte=date, referralstatus='').order_by('sno').values()[
+#                      start:length + start]
+#         if search:
+#             agent_data = PatientData.objects.filter(Q(invoice_date__lte=search,invoice_date__gte=search)).order_by('sno').values()
+#             records_total = agent_data.count()
+#             records_filtered = records_total
+#
+#     else:
+#         records_total = PatientData.objects.filter(referralstatus='').order_by('sno').count()
+#         records_filtered = records_total
+#         agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()
+#         if search:
+#             agent_data = PatientData.objects.filter(Q(invoice_date__lte=search,invoice_date__gte=search)).order_by('sno').values()
+#
+#             records_total = agent_data.count()
+#             records_filtered = records_total
+#     paginator = Paginator(agent_data, length)
+#     try:
+#         object_list = paginator.page(draw).object_list
+#     except PageNotAnInteger:
+#         object_list = paginator.page(draw).object_list
+#     except EmptyPage:
+#         object_list = paginator.page(paginator.num_pages).object_list
+#
+#     data = [
+#         {
+#             'sno': emp['sno'],
+#             'edit': '',
+#             'invoice_no': emp['invoice_no'],
+#             'invoice_date': emp['invoice_date'],
+#             'branch': emp['branch'],
+#             'patient_name': emp['patient_name'],
+#             'service_name': emp['service_name'],
+#             'department_name': emp['department_name'],
+#             'grossamount': emp['grossamount'],
+#             'discount': emp['discount'],
+#             'netamount': emp['netamount'],
+#
+#         } for emp in object_list
+#     ]
+#     return JsonResponse(
+#         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data},
+#         safe=False)
 
 
 @login_required(login_url="/")
@@ -1089,20 +1131,20 @@ def admission(request):
     colindex = request.POST.get("order[0][column]")
     records_total = PatientData.objects.filter(referralstatus='').order_by('sno').count()
     records_filtered = records_total
-    agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()
+    agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()[start:length + start]
     if search:
-        agent_data = PatientData.objects.filter(Q(branch=search) & Q(referralstatus='')).order_by('sno').values()
+        agent_data = PatientData.objects.filter(Q(sno=search) & Q(referralstatus='')).order_by('sno').values()[start:length + start]
         records_total = agent_data.count()
         records_filtered = records_total
 
-    paginator = Paginator(agent_data, length)
-
-    try:
-        object_list = paginator.page(draw).object_list
-    except PageNotAnInteger:
-        object_list = paginator.page(draw).object_list
-    except EmptyPage:
-        object_list = paginator.page(paginator.num_pages).object_list
+    # paginator = Paginator(agent_data, length)
+    #
+    # try:
+    #     object_list = paginator.page(draw).object_list
+    # except PageNotAnInteger:
+    #     object_list = paginator.page(draw).object_list
+    # except EmptyPage:
+    #     object_list = paginator.page(paginator.num_pages).object_list
 
     data = [
         {
@@ -1110,6 +1152,7 @@ def admission(request):
             'edit': '',
             # 'edit': '<a href="#"  onclick="editAdmission('+str(emp['sno'])+')" class="icon-pencil mr-2 text-info" data-toggle="modal" data-target="#admissionModal" ></a><a href="/admission_list/?delete='+str(emp['sno'])+'" class="btn btn-sm btn-danger"><i class="icon-trash" aria-hidden="true"></i></a>',
             'invoice_no': emp['invoice_no'],
+            'invoice_date': emp['invoice_date'],
             'branch': emp['branch'],
             'patient_name': emp['patient_name'],
             'marketing_executive': emp['marketing_executive'],
@@ -1124,11 +1167,11 @@ def admission(request):
             'paymentmode': emp['paymentmode'],
             'department_name': emp['department_name'],
             'service_name': emp['service_name'],
-        } for emp in object_list
+        } for emp in agent_data
 
     ]
     return JsonResponse(
-        {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data}, safe=False)
+        {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered,  "iTotalDisplayRecords": records_total,  "data": data}, safe=False)
 
 
 # def search_upi(request):
@@ -1317,21 +1360,36 @@ def daily_call_report(request):
         from_d = datetime.strptime(str(from_d), '%m/%d/%Y')
         to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
 
-        cursor = connection.cursor()
+        daily = (
+            CallReport.objects
+                .select_related('emp')
+                .filter(date__range=[from_d, to_d], branch__ne='Test', emp__page='Marketing')
+                .order_by('emp__branch')
+        )
 
-        cursor.execute(
-            "SELECT `logins`.`emp_id`, `logins`.`Emp_name`, `call_report_master`.`ref_type`,"
-            " `call_report_master`.`unique_id`, `call_report_master`.`name`, `call_report_master`.`camp`,"
-            " `call_report_master`.`date`, `call_report_master`.`time`, `call_report_master`.`location`, "
-            "`call_report_master`.`reason`, `call_report_master`.`Type`, `call_report_master`.`source`,`call_report_master`.`branch` "
-            "FROM `call_report_master` INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`emp_id`"
-            " WHERE `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `call_report_master`.`branch` != 'Test' AND `logins`.`Page` = 'Marketing'"
-            " ORDER BY `logins`.`Branch` ASC;".format(fd=from_d, td=to_d))
-
-        call = cursor.description
-        context['daily'] = [
-            dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()
-        ]
+        context['daily'] = daily
+    # if 'date_d' in request.POST:
+    #     date_d = request.POST.get('date_d')
+    #
+    #     from_d, to_d = date_d.split(' - ')
+    #     from_d = datetime.strptime(str(from_d), '%m/%d/%Y')
+    #     to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
+    #
+    #     cursor = connection.cursor()
+    #
+    #     cursor.execute(
+    #         "SELECT `logins`.`emp_id`, `logins`.`Emp_name`, `call_report_master`.`ref_type`,"
+    #         " `call_report_master`.`unique_id`, `call_report_master`.`name`, `call_report_master`.`camp`,"
+    #         " `call_report_master`.`date`, `call_report_master`.`time`, `call_report_master`.`location`, "
+    #         "`call_report_master`.`reason`, `call_report_master`.`Type`, `call_report_master`.`source`,`call_report_master`.`branch` "
+    #         "FROM `call_report_master` INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`emp_id`"
+    #         " WHERE `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `call_report_master`.`branch` != 'Test' AND `logins`.`Page` = 'Marketing'"
+    #         " ORDER BY `logins`.`Branch` ASC;".format(fd=from_d, td=to_d))
+    #
+    #     call = cursor.description
+    #     context['daily'] = [
+    #         dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()
+    #     ]
 
     elif 'unique_id' in request.POST:
         unique_id = request.POST.get("unique_id")

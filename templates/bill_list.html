@@ -5,6 +5,70 @@
 
 {% block script %}
 <script>
+if ($.fn.DataTable.isDataTable('#bill_list')) {
+    $('#bill_list').DataTable().destroy();
+}
+    $('#bill_list').DataTable({
+                select: true,
+                paging: true,
+                lengthChange: true,
+                "pageLength": 10,
+                {#"lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],#}
+                searching: true,
+                info: true, // bottom left info
+
+                 responsive: true,
+
+                 dom: 'Bfrtip',
+                  buttons: [ 'pageLength','excel'],
+            {% if not admission %}
+                {#"deferRender": true,#}
+                serverSide: true,
+                processing: true,
+
+                ajax: {
+                    url: "{% url 'admission' %}",
+                    type: "POST",
+                },
+
+                columns:[
+                    {data: "sno"},
+                    {data: "edit",
+                        render: function(data, type, row) {
+                        return '<a class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal" onclick="editAdmission('+row.sno+')" ></a>'
+                            {#+#}
+                            {#'<a href="/admission_list/?delete='+row.sno+'" class="btn btn-sm btn-danger reject-payment"><i class="icon-trash" aria-hidden="true"></i></a>'#}
+                        }
+
+                    },
+
+                    {#{data: "",#}
+                    {# render: function () {#}
+                        {#let data = data();#}
+                        {#console.log(data);#}
+                    {#     var row = $(this).closest('tr');#}
+                    {#        var id = table.row(row).data().sno;#}
+                    {#    return  `<a href="#"  data-adm="${id}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal" ></a>`#}
+                    {##}
+                    {# }},#}
+                    {data: "invoice_no"},
+                    {data: "invoice_date"},
+                    {data: "branch"},
+                    {data: "patient_name"},
+                    {data: "service_name"},
+                    {data: "department_name"},
+
+                    {data: "grossamount"},
+                    {data: "discount"},
+                    {data: "netamount"},
+                    {#{data: "referralamount"},#}
+                    {#{data: "ucidcreatedon"},#}
+                    {#{data: "paymentmode"},#}
+
+                ],
+
+            {% endif %}
+            });
 
     let delete_value;
     $(".reject-payment").on('click', function () {
@@ -42,59 +106,6 @@
                 });
     });
 
-$('#cus-responsive-datatable').DataTable({
-            serverSide: true,
-            processing: true,
-            paging: true,
-            lengthChange: true,
-            "pageLength": 10,
-            {#"lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],#}
-            searching: true,
-            destroy: true,
-            info: true, // bottom left info
-            responsive: false, // responnsive table
-            {#"deferRender": true,#}
-            ajax: {
-                url: "{% url 'admission' %}",
-                type: "POST",
-            },
-
-            columns:[
-                {data: "sno"},
-                {data: "edit",
-                    render: function(data, type, row) {
-                    return '<a class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal" onclick="editAdmission('+row.sno+')" ></a>'
-                        {#+#}
-                        {#'<a href="/admission_list/?delete='+row.sno+'" class="btn btn-sm btn-danger reject-payment"><i class="icon-trash" aria-hidden="true"></i></a>'#}
-                    }
-
-                },
-
-                {#{data: "",#}
-                {# render: function () {#}
-                    {#let data = data();#}
-                    {#console.log(data);#}
-                {#     var row = $(this).closest('tr');#}
-                {#        var id = table.row(row).data().sno;#}
-                {#    return  `<a href="#"  data-adm="${id}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal" ></a>`#}
-                {##}
-                {# }},#}
-                {data: "invoice_no"},
-                {data: "invoice_date"},
-                {data: "branch"},
-                {data: "patient_name"},
-                {data: "service_name"},
-                {data: "department_name"},
-
-                {data: "grossamount"},
-                {data: "discount"},
-                {data: "netamount"},
-                {#{data: "referralamount"},#}
-                {#{data: "ucidcreatedon"},#}
-                {#{data: "paymentmode"},#}
-
-            ],
-        });
 
 
 
@@ -125,50 +136,6 @@ $('#cus-responsive-datatable').DataTable({
             }
         })
     }
-
-    $("#admission_list_filter_form").submit(function (e) {
-        e.preventDefault();
-        let date = $("#branch_input").val();
-        $("#cus-responsive-datatable").attr("id", "admission_list_filter_table");
-        $('#admission_list_filter_table').DataTable({
-                    serverSide: true,
-                    processing: true,
-                    paging: true,
-                    lengthChange: true,
-                    destroy:true,
-                    "pageLength": 10,
-                    {#"lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],#}
-                    searching: true,
-                    info: true, // bottom left info
-                    responsive: false, // responnsive table
-                    {#"deferRender": true,#}
-                    ajax: {
-                        url: `{% url 'admission_list_filter' %}?date=${date}`,
-                        {#data: formData,#}
-                    },
-
-                    columns:[
-                        {data: "sno" },
-                        {data: "edit",
-                            render: function(data, type, row) {
-                            return '<a class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal" onclick="editAdmission('+row.sno+')" ></a>'
-                                {#+#}
-                                {#'<a href="/admission_list/?delete='+row.sno+'" class="btn btn-sm btn-danger"><i class="icon-trash" aria-hidden="true"></i></a>'#}
-                            }
-                        },
-                        {data: "invoice_no"},
-                        {data: "invoice_date"},
-                        {data: "branch"},
-                        {data: "patient_name"},
-                        {data: "service_name"},
-                        {data: "department_name"},
-                        {data: "grossamount"},
-                        {data: "discount"},
-                        {data: "netamount"},
-                    ],
-                });
-    });
-
 
     $(document).ready(
         $('#calculationType').bind('change',
@@ -250,6 +217,8 @@ function validateNumber(event) {
 
 {% block body %}
 <style>
+
+
 .ui-autocomplete{
         z-index: 999999;
     }
@@ -261,7 +230,7 @@ function validateNumber(event) {
 }
 
 .table td:first-child {
-    text-align: left;
+    text-align: right;
 }​
 
 
@@ -285,7 +254,7 @@ function validateNumber(event) {
      <div class="col-md-12">
          <div class="card card-body">
           <div class="table-responsive">
-           <table id="cus-responsive-datatable" class="table table-striped table-bordered " style="white-space: nowrap">
+           <table id="bill_list" class="table table-striped table-bordered table-bordered" style="white-space: nowrap">
             <thead>
            <tr role="row" style="background: #3F51B5; color: #fff; width: 1652px;">
                 <th class="py-2 " data-orderable="false" width="60">Sno</th>
@@ -303,6 +272,7 @@ function validateNumber(event) {
             </tr>
             </thead>
                <tbody>
+                  {% if admission %}
                {%  for adm in admission %}
                  <tr>
 {#                     <td class="py-2 text-right">{{ forloop.counter }}</td>#}
@@ -323,6 +293,7 @@ function validateNumber(event) {
                      <td class="py-2">{{ adm.netamount }}</td>
                  </tr>
                {% endfor %}
+               {% endif %}
               </tbody>
         </table>
     </div>

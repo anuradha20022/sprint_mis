@@ -86,11 +86,16 @@
     <form action="" method="POST" autocomplete="off">
  {% csrf_token %}
      <div class="row">
-         <div class="col-md-3">
-             <div class="form-group">
-                 <input type="text" class="form-control" name="unique_id" id="callid_search" placeholder="Eg. 010215">
-             </div>
-         </div>
+    {#         <div class="col-md-3">#}
+    {#             <div class="form-group">#}
+    {#                 <input type="text" class="form-control" name="unique_id" id="callid_search" placeholder="Eg. 010215">#}
+    {#             </div>#}
+    {#         </div>#}
+         <div class="col-md-5">
+               <div class="form-group">
+                <input type="text" name="date_d" class="form-control daterange-shawCalRanges">
+               </div>
+            </div>
           <div class="col-md-2">
              <button type="submit" name="Submit" class="btn btn-lg btn-success">Submit</button>
          </div>

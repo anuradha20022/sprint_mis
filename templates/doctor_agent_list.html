@@ -15,11 +15,12 @@
             paging: true,
             lengthChange: true,
             "pageLength": 10,
-            {#"lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],#}
+            "lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],
             searching: true,
+        {% if not doctor_agent_list %}
             info: true, // bottom left info
             responsive: true, // responnsive table
-            {#"deferRender": true,#}
+            "deferRender": true,
             ajax: {
                 url: "{% url 'doctor_agent_list_dt' %}",
                 type: "POST",
@@ -27,7 +28,7 @@
 
             columns:[
                 {data: "sno"},
-                {#{data: "input"},#}
+                {data: "input"},
                 {data: "emp_id"},
                 {data: "unique_id"},
                 {data: "agent_name"},
@@ -39,18 +40,19 @@
                 {data: "pancard"},
                 {data: "bank_ac"},
                 {data: "ifsc"},
-                {#{data: "area"},#}
-                {#{data: "city"},#}
-                {#{data: "district"},#}
+                {data: "area"},
+                {data: "city"},
+                {data: "district"},
                 {data: "state"},
                 {data: "pincode"},
                 {data: "date"},
-                {#{data: "source"},#}
+                {data: "source"},
                 {data: "type"},
                 {data: "r_status"},
                 {data: "designation"},
-                {#{data: "department"},#}
+                {data: "department"},
             ],
+        {% endif %}
         });
 
         {#$('#cus-responsive-datatable_wrapper').removeClass('dataTables_wrapper container-fluid dt-bootstrap4 no-footer');#}
@@ -116,7 +118,26 @@
 {% endblock %}
 {% block body %}
     <style>
-
+table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before, table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>th:first-child:before {
+    top: 12px;
+    left: 2px;
+    right: 55px;
+    height: 14px;
+    width: 14px;
+    display: block;
+    position: absolute;
+    color: white;
+    border: 2px solid white;
+    border-radius: 14px;
+    box-shadow: 0 0 3px #444;
+    box-sizing: content-box;
+    text-align: center;
+    text-indent: 0 !important;
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 14px;
+    content: '+';
+    background-color: #0275d8;
+}
     .ui-autocomplete{
         z-index: 999999;
     }
@@ -137,6 +158,12 @@
     .dataTables_wrapper {
         padding: 0!important;
     }
+    .custom-checkbox, .custom-radio {
+    padding-left: 20px;
+}
+    th {
+    text-align: center;
+}
     </style>
  <form action="" method="POST" autocomplete="off">
  {% csrf_token %}
@@ -145,7 +172,7 @@
              <div class="form-group">
                  <select class="form-control" name="branch">
                      <option value="" >-- Select Branch --</option>
-                     <option value="All" >All</option>
+{#                     <option value="All" >All</option>#}
                      {% for list in branch %}
                          <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
 
@@ -211,7 +238,6 @@
 
  </form>
 
-{#    {% if doctor_agent_list %}#}
         <form id="transfer_form" method="post">
         {% csrf_token %}
             <div class="row pb-4">
@@ -246,12 +272,12 @@
                                 </tr>
                                 </thead>
                                 <tbody>
+                                {% if doctor_agent_list %}
                                 {% for agents in doctor_agent_list %}
                                     <tr>
                                         <td class="py-1 text-right">{{ forloop.counter }}</td>
                                         <td class="py-1">
                                             <div class="custom-control custom-checkbox custom-checkbox-1">
-{#                                                <input type="checkbox" class="custom-control-input" id="Credit">#}
                                                 <input type="checkbox" class="custom-control-input" name="transfer_id" id="{{ agents.unique_id }}" value="{{ agents.unique_id }}">
                                                 <label class="custom-control-label" for="{{ agents.unique_id }}"></label>
                                             </div>
@@ -275,6 +301,7 @@
                                         <td class="py-1">{{ agents.designation }}</td>
                                     </tr>
                                 {% endfor %}
+                                {% endif %}
 
                                 </tbody>
                             </table>

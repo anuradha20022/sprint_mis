@@ -68,7 +68,8 @@ urlpatterns = [
     path('allowance_report/', views.allowance_report, name='allowance_report'),
     path('inactive_allowance_report/', views.inactive_allowance_report, name='inactive_allowance_report'),
     path('bill_list/', views.bill_list, name='bill_list'),
-    path('admission_list_filter/', views.admission_list_filter, name='admission_list_filter'),
+    path('bill/', views.bill, name='bill'),
+    # path('admission_list_filter/', views.admission_list_filter, name='admission_list_filter'),
     path('admission/', views.admission, name='admission'),
 
 #Employee Details
