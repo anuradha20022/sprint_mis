@@ -39,26 +39,27 @@
                                 <tr role="row" style="background: #3F51B5; color: #fff;">
                                     <th class="py-2" data-orderable="false">#</th>
                                     <th class="py-2" data-orderable="false">Emp ID</th>
-{#                                    <th class="py-2" data-orderable="false">Unique ID</th>#}
-{#                                    <th class="py-2" data-orderable="false">Agent Type</th>#}
-{#                                    <th class="py-2" data-orderable="false">Category</th>#}
                                     <th class="py-2" data-orderable="false">Name</th>
+                                    <th class="py-2" data-orderable="false">Allowance</th>
                                     <th class="py-2" data-orderable="false">Branch</th>
+                                    <th class="py-2" data-orderable="false">Total Days</th>
+                                    <th class="py-2" data-orderable="false">Total Calls</th>
+                                    <th class="py-2" data-orderable="false">Per Day Allowance</th>
+                                    <th class="py-2" data-orderable="false">Total Allowance</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 {%  for report in inactive %}
                                     <tr>
                                         <td class="py-2 text-right">{{ forloop.counter }}</td>
-{#                                        <td class="py-1">#}
-{#                                            <div class="custom-control custom-checkbox custom-checkbox-1">#}
-{#                                                <input type="checkbox" class="custom-control-input" id="Credit">#}
-{#                                                <input type="checkbox" class="custom-control-input" name="transfer_id" id="{{ agents.unique_id }}" value="{{ agents.unique_id }}">#}
-{#                                                                                            </div>#}
-{#                                        </td>#}
                                         <td class="py-2">{{ report.Emp_ID }}</td>
                                         <td class="py-2">{{ report.Emp_name }}</td>
+                                        <td class="py-2">{{ report.Allowance }}</td>
                                         <td class="py-2">{{ report.Branch }}</td>
+                                        <td class="py-2">{{ report.Total_Days }}</td>
+                                        <td class="py-2">{{ report.Total_Calls }}</td>
+                                        <td class="py-2">{{ report.Per_Day_Allowance }}</td>
+                                        <td class="py-2">{{ report.TOTAL }}</td>
 
                                     </tr>
                                 {% endfor %}

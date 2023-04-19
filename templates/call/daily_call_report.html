@@ -16,6 +16,7 @@
             lengthChange: true,
             "pageLength": 10,
             "lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],
+
             searching: true,
             info: true, // bottom left info
             responsive: true, // responnsive table
@@ -43,10 +44,9 @@
                 {data: "branch "},
 
             ],
-        }
+        }),
 
     $('.edit-admission').on('click', function () {
-        let edit_value = $(this).data('call');
         console.log(edit_value);
         $.ajax({
             url: '{% url 'daily_call_report' %}',
@@ -70,19 +70,17 @@
 {% block body %}
     <form action="" method="POST" autocomplete="off">
  {% csrf_token %}
-     <div class="row">
-
-{#             <div class="form-group">#}
-{#                 <input type="date" class="form-control" name="date" id="callid_search" placeholder="Eg. 010215">#}
-{#             </div>#}
-         <div class="col-md-7">
-                <input type="text" name="date_d" class="form-control daterange-shawCalRanges">
+        <div class="row ">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <input type="date" name="date" class="form-control mb-2">
+                    <div class="input-group-append">
+                        <input class="btn btn-primary btn-sm form-control " type="submit" name="submit" value="Go">
+                    </div>
+                </div>
             </div>
 
-          <div class="col-md-2">
-             <button type="submit" name="Submit" class="btn btn-lg btn-success">Submit</button>
-         </div>
-     </div>
+        </div>
 
   </form>
 
@@ -163,7 +161,7 @@
                               <thead>
                                  <tr role="row" style="background: #3F51B5; color: #fff;">
                                         <th class="py-2" data-orderable="false">S No</th>
-                                        <th class="py-2" data-orderable="false">Edit</th>
+{#                                        <th class="py-2" data-orderable="false">Edit</th>#}
                                         <th class="py-2" data-orderable="false">Emp ID</th>
                                         <th class="py-2" data-orderable="false">Emp Name</th>
                                         <th class="py-2" data-orderable="false">Referral Type</th>
@@ -182,17 +180,17 @@
                                 {% for list in daily %}
                                     <tr>
                                         <td class="py-2 text-right">{{ forloop.counter }}</td>
-                                        <td class="py-2">
-                                           <a href="#" data-call="{{ list.unique_id }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>
+{#                                        <td class="py-2">#}
+{#                                           <a href="#" data-call="{{ list.unique_id }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>#}
 {#                                            <button id="sweetalert-4" class="icon-trash text-danger"></button>#}
-                                         </td>
+{#                                         </td>#}
                                         <td class="py-2">{{ list.emp_id }}</td>
                                         <td class="py-2">{{ list.Emp_name }}</td>
                                         <td class="py-2">{{ list.ref_type }}</td>
                                         <td class="py-2">{{ list.unique_id }}</td>
                                         <td class="py-2">{{ list.name }}</td>
                                         <td class="py-2">{{ list.contact }}</td>
-                                        <td class="py-2">{{ list.date }}</td>
+                                        <td class="py-2">{{ list.date|date:"d/m/Y" }}</td>
                                         <td class="py-2">{{ list.time}}</td>
                                         <td class="py-2">{{ list.location }}</td>
                                         <td class="py-2">{{ list.Type }}</td>

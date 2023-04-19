@@ -10,7 +10,9 @@
                <div class="col-md-3">
                   <div class="form-group">
                       <select class="form-control" name="branch">
-                          <option value="">-- Select Branch --</option>
+{#                          <option value="">-- Select Branch --</option>#}
+                          <option value="All" selected>All</option>
+
                           {% for list in branch %}
                               <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
                           {% endfor %}
@@ -36,26 +38,28 @@
                                 <thead>
                                 <tr role="row" style="background: #3F51B5; color: #fff;">
                                     <th class="py-2" data-orderable="false">#</th>
-                                    <th class="py-2" data-orderable="false">Emp Name</th>
                                     <th class="py-2" data-orderable="false">Emp ID</th>
+                                    <th class="py-2" data-orderable="false">Name</th>
+                                    <th class="py-2" data-orderable="false">Allowance</th>
+                                    <th class="py-2" data-orderable="false">Branch</th>
                                     <th class="py-2" data-orderable="false">Total Days</th>
                                     <th class="py-2" data-orderable="false">Total Calls</th>
-                                    <th class="py-2" data-orderable="false">Allowance</th>
                                     <th class="py-2" data-orderable="false">Per Day Allowance</th>
                                     <th class="py-2" data-orderable="false">Total Allowance</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for list in allowance %}
+                                {%  for report in allowance %}
                                     <tr>
                                         <td class="py-2 text-right">{{ forloop.counter }}</td>
-                                        <td class="py-2">{{ list.emp_name }}</td>
-                                        <td class="py-2">{{ list.emp_id }}</td>
-                                        <td class="py-2">{{ list.TOTALDAYS }}</td>
-                                        <td class="py-2">{{ list.TOTALCALLS }}</td>
-                                        <td class="py-2">{{ list.allow }}</td>
-                                        <td class="py-2">{{ list.PERDAYALLOWNACE }}</td>
-                                        <td class="py-2">{{ list.TOTALALLOWANCE }}</td>
+                                        <td class="py-2">{{ report.Emp_ID }}</td>
+                                        <td class="py-2">{{ report.Emp_name }}</td>
+                                        <td class="py-2">{{ report.Allowance }}</td>
+                                        <td class="py-2">{{ report.Branch }}</td>
+                                        <td class="py-2">{{ report.Total_Days }}</td>
+                                        <td class="py-2">{{ report.Total_Calls }}</td>
+                                        <td class="py-2">{{ report.Per_Day_Allowance }}</td>
+                                        <td class="py-2">{{ report.TOTAL }}</td>
 
                                     </tr>
                                 {% endfor %}

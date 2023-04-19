@@ -68,8 +68,7 @@ urlpatterns = [
     path('allowance_report/', views.allowance_report, name='allowance_report'),
     path('inactive_allowance_report/', views.inactive_allowance_report, name='inactive_allowance_report'),
     path('bill_list/', views.bill_list, name='bill_list'),
-    path('bill/', views.bill, name='bill'),
-    # path('admission_list_filter/', views.admission_list_filter, name='admission_list_filter'),
+    path('admission_list_filter/', views.admission_list_filter, name='admission_list_filter'),
     path('admission/', views.admission, name='admission'),
 
 #Employee Details
@@ -103,6 +102,7 @@ urlpatterns = [
     path('neft_return_list/', views.neft_return_list, name='neft_return_list'),
     path('cash_payment/', views.cash_payment, name='cash_payment'),
     path('functional_approval_list/', views.functional_approval_list, name='functional_approval_list'),
+    # path('dynamic_form/', views.dynamic_form, name='dynamic_form'),
 
 
 

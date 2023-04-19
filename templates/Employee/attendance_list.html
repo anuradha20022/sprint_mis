@@ -7,9 +7,9 @@
      <form action="" method="post">
     {% csrf_token %}
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="input-group">
-                    <input type="text" name="datee" class="form-control mb-2 daterange-shawCalRanges">
+                    <input type="text" name="date_d" class="form-control mb-2 daterange-shawCalRanges">
                     <div class="input-group-append">
                       <input class="btn btn-primary btn-sm form-control form-control" type="submit" name="submit" value="Go">
                     </div>
@@ -38,10 +38,10 @@
             <tr>
                 <td class="py-2 text-right">{{ forloop.counter }}</td>
                 <td class="py-2">{{ i.emp_id }}</td>
-                <td class="py-2">{{ i.emp_name }}</td>
+                <td class="py-2">{{ i.name }}</td>
                 <td class="py-2">{{ i.date }}</td>
-                <td class="py-2">{{ i.start_time}}</td>
-                <td class="py-2">{{ i.end_time}}</td>
+                <td class="py-2">{{ i.first_time|time:"h:i:s" }}</td>
+                <td class="py-2">{{ i.last_time|time:"h:i:s" }}</td>
                 <td class="py-2">{{ i.attendance }}</td>
                 <td class="py-2">{{ i.branch }}</td>
             </tr>

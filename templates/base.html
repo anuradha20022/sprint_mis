@@ -287,18 +287,28 @@
                               <li>
                               <a href="{% url 'functional_approval_list' %}"><i class="icon-list"></i><span>Functional Approval List</span></a>
                             </li>
-                              <li>
-
-                                        <a href="{% url 'reject' %}"><i class="icon-list"></i><span>Rejected List</span></a> </li>
 {#                            </ul>#}
 {#                            </li>#}
+                         <li class="has-sub ">
+                            <a>
+                                <i class="icon-user"></i><span>Referral Details </span><i class="arrow rotate"></i></a>
+                                   <ul class="sub-menu">
+                                     <li>
+                                        <a href="{% url 'allowance_report' %}"><span>Allowance Report</span></a>
+                                         <a href="{% url 'inactive_allowance_report' %}"><span> Inactive Allowance </span></a>
+                                        <a href="{% url 'reject' %}"><span>Rejected List</span></a>
+                                     </li>
+                                  </ul>
+                            </li>
+
                          <li class="has-sub ">
                             <a>
                                 <i class="icon-user"></i><span>Employee Details </span><i class="arrow rotate"></i></a>
                                    <ul class="sub-menu">
                                      <li>
                                         <a href="{% url 'register' %}"><span>New Registration</span></a>
-{#                                        <a href="{% url 'employee_list' %}"><span>Employee List</span></a>#}
+                                        <a href="{% url 'employee_list' %}"><span>Employee List</span></a>
+                                        <a href="{% url 'attendance_list' %}"><span>Attendance List</span></a>
 {#                                        <a href="{% url 'neft_return_list' %}"><span>Neft Return List</span></a>#}
 
 {#                                        <a href="{% url 'payment_list' %}"><span>Payment List</span></a>#}
@@ -313,7 +323,7 @@
                                      <li>
                                         <a href="{% url 'call_report' %}"><span>  Call Report Master </span></a>
                                         <a href="{% url 'daily_call_report' %}"><span> Daily Call Report </span></a>
-{#                                        <a href="{% url 'day_report' %}"><span> Day Report </span></a>#}
+                                        <a href="{% url 'day_report' %}"><span> Day Report </span></a>
 {#                                        <a href="{% url 'n_day_report' %}"><span> Neighbourhood Day Report </span></a>#}
 {#                                        <a href="{% url 'champion' %}"><span> Champion Of The Day </span></a>#}
 {#                                        <a href="{% url 'admission_breakup' %}"><span> Admission Breakup </span></a>#}
@@ -356,7 +366,7 @@
                         </li>
 
 {#                        <li>#}
-{#                            <a href="{% url 'update' %}"><i class="fa fa-address-card"></i><span>Update</span></a>#}
+{#                            <a href="{% url 'dynamic_form' %}"><i class="fa fa-address-card"></i><span>Update</span></a>#}
 {#                        </li>#}
 
                     </ul>
