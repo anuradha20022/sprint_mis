@@ -34,7 +34,7 @@
                                   <tr role="row" style="background: #0e43b5; color: #fff;">
                                       <th class="py-2" data-orderable="false">S No</th>
 {#                                      <th class="py-2" data-orderable="false">View</th>#}
-                                      <th class="py-2" data-orderable="false">Category</th>
+                                      <th class="py-2" data-orderable="false">Designation</th>
                                       <th class="py-2" data-orderable="false">Emp ID</th>
                                       <th class="py-2" data-orderable="false">Emp Name</th>
                                       <th class="py-2" data-orderable="false">Start Time</th>
@@ -44,7 +44,8 @@
                                       <th class="py-2" data-orderable="false">No of Calls</th>
                                       <th class="py-2" data-orderable="false">Branch</th>
                                       <th class="py-2" data-orderable="false">date</th>
-{#                                      <th class="py-2" data-orderable="false">t_date</th>#}
+                                      <th class="py-2" data-orderable="false">Category</th>
+                                      {#                                      <th class="py-2" data-orderable="false">t_date</th>#}
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -53,7 +54,7 @@
                                         <td class="py-1 text-right">{{ forloop.counter }}</td>
 {#                                        <td><button id="sweetalert-4" class="icon-arrow-up-circle text-purple"></button></i>#}
 {#                                        </td>#}
-                                        <td class="py-1" data-orderable="false">{{ day.type }}</td>
+                                        <td class="py-1" data-orderable="false">{{ day.Orginal_Design }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.emp_id }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.emp_name }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.first_time|time:"H:i:s" }}</td>
@@ -63,7 +64,8 @@
                                         <td class="py-1" data-orderable="false">{{ day.call_count }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.branch }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.date }}</td>
-{#                                        <td class="py-1" data-orderable="false">{{ day.date }}</td>#}
+                                        <td class="py-1" data-orderable="false">{{ day.type }}</td>
+                                        {#                                        <td class="py-1" data-orderable="false">{{ day.date }}</td>#}
                                     </tr>
                                 {% endfor %}
 

@@ -1412,9 +1412,13 @@ def attendance_list(request):
         to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
 
         cursor = connection.cursor()
-        cursor.execute("SELECT date, emp_id, name, attendance, branch, MIN(time) as first_time,"
-                       " MAX(time) as last_time FROM call_report_master WHERE emp_id IS NOT NULL AND "
-                       "`date` BETWEEN '{fd}' AND '{td}' GROUP BY date ORDER BY date ASC;".format(fd=from_d, td=to_d))
+        cursor.execute("SELECT l.`emp_id`, l.`emp_name`,  crm.`date`, MIN(crm.`time`) AS `first_time`,"
+                       "  MAX(crm.`time`) AS `last_time`,crm.`attendance`, crm.`branch`"
+                       " FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` "
+                       "  WHERE l.`Job_Status` = 'Active' AND l.`Page` = 'Marketing' AND l.`type` != 'Center Head' "
+                       " AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and "
+                       "l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills')"
+                       " GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;".format(fd=from_d, td=to_d))
         call = cursor.description
         context['attendance'] = [
             dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()
@@ -1518,7 +1522,7 @@ def day_report(request):
         #     dict(zip([i[0] for i in day], rep)) for rep in cursor.fetchall()
         # ]
         cursor = connection.cursor()
-        cursor.execute("SELECT l.`emp_id`, l.`emp_name`, crm.`attendance`, crm.`branch`,crm.`date`, "
+        cursor.execute("SELECT l.`emp_id`, l.`emp_name`,l.`Orginal_Design`, crm.`attendance`, crm.`branch`,crm.`date`, "
                        "MIN(crm.`time`) AS `first_time`, MAX(crm.`time`) AS `last_time`, "
                        "COUNT(*) AS `call_count`, l.`ref_count`, l.`type` FROM `call_report_master` crm "
                        "JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
