@@ -1518,12 +1518,17 @@ def day_report(request):
         #     dict(zip([i[0] for i in day], rep)) for rep in cursor.fetchall()
         # ]
         cursor = connection.cursor()
-        cursor.execute(
-            "SELECT crm.`emp_id`, crm.`name`, crm.`attendance`, crm.`branch`,crm.`date`, MIN(crm.`time`) AS `first_time`,"
-            "MAX(crm.`time`) AS `last_time`, COUNT(*) AS `call_count`, l.`ref_count`, l.`type`"
-            "FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` "
-            "WHERE crm.`emp_id` IS NOT NULL AND crm.`date` BETWEEN '{fd}' AND '{td}' and  l.`Job_Status` = 'Active'"
-            "GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
+        cursor.execute("SELECT l.`emp_id`, l.`emp_name`, crm.`attendance`, crm.`branch`,crm.`date`, "
+                       "MIN(crm.`time`) AS `first_time`, MAX(crm.`time`) AS `last_time`, "
+                       "COUNT(*) AS `call_count`, l.`ref_count`, l.`type` FROM `call_report_master` crm "
+                       "JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
+                       "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
+                       "(l.`type` != 'Center Head' or l.type != 'Cluster Head') AND crm.`date` "
+                       "BETWEEN '{fd}' AND '{td}' AND "
+                       "(`Orginal_Design` = 'Executive' OR `Orginal_Design` = 'General Manager') "
+                       " AND l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills')"
+                       " AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
+                       " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
         day = cursor.description
         context['report'] = [
             dict(zip([i[0] for i in day], rep)) for rep in cursor.fetchall()
