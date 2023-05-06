@@ -19,6 +19,7 @@ from django.urls import path, include
 
 from App import views
 from sprint_mis import settings
+# from App.views import PaymentListAPIView, PaymentListView, MyAPIView
 
 urlpatterns = [
     # path('__debug__/', include('debug_toolbar.urls')),
@@ -102,8 +103,12 @@ urlpatterns = [
     path('neft_return_list/', views.neft_return_list, name='neft_return_list'),
     path('cash_payment/', views.cash_payment, name='cash_payment'),
     path('functional_approval_list/', views.functional_approval_list, name='functional_approval_list'),
-    # path('dynamic_form/', views.dynamic_form, name='dynamic_form'),
 
+    path('coverage_report/', views.coverage_report, name='coverage_report'),
+    # path('dynamic_form/', views.dynamic_form, name='dynamic_form'),
+    # path('api/payment-list/', PaymentListAPIView.as_view(), name='payment_list_api'),
+    # path('payment-list/', PaymentListView.as_view(), name='payment_list'),
+    # path('my-api/', MyAPIView.as_view(), name='my_api'),
 
 
 

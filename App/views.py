@@ -2250,3 +2250,105 @@ def pending_payment_csv(request):
     for i in data:
         writer.writerow(i)
     return response
+
+#
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework import status
+# from rest_framework import permissions
+# from .models import PatientData
+# from .serializers import PatientDataSerializer
+#
+#
+# from rest_framework import generics
+# from .serializers import PatientDataSerializer
+# from .models import PatientData
+#
+# class PaymentListAPIView(generics.ListAPIView):
+#     serializer_class = PatientDataSerializer
+#
+#     def get_queryset(self):
+#             queryset = PatientData.objects.filter(referralstatus='Yes', chapproval='approved')
+#             return queryset
+#
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.get_queryset()
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response(serializer.data)
+# from django.views.generic import TemplateView
+#
+#
+# class PaymentListView(TemplateView):
+#     template_name = 'emp_list.html'
+#
+#     branch_name = BranchListDum.objects.all()
+#     def get_context_data(self, **kwargs):
+#         branch_name = self.request.GET.get('branch')
+#         if branch_name == 'All':
+#             queryset = PatientData.objects.filter(referralstatus='Yes', chapproval='approved')
+#         else:
+#             queryset = PatientData.objects.filter(referralstatus='Yes', branch=branch_name, chapproval='approved')
+#         serializer = PatientDataSerializer(queryset, many=True)
+#         context = super().get_context_data(**kwargs)
+#         context['query'] = serializer.data
+#         return context
+#
+#
+# import pandas as pd
+# from django.db import connection
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+#
+# class MyAPIView(APIView):
+#     def get(self, request):
+#         with connection.cursor() as cursor:
+#             cursor.execute("SELECT  `emp_id`,`ref_type`,`unique_id`,`name`,`design` FROM `call_report_master`;")
+#             result = cursor.fetchall()
+#         df = pd.DataFrame(result)
+#
+#
+#         table_html = df.to_html(index=False)
+#
+#         context = {'table_html': table_html}
+#         return render(request, 'emp_list.html', context)
+
+
+
+
+def coverage_report(request):
+
+    context = {
+        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+    }
+    if request.method == 'POST':
+        branch = request.POST.get('branch', '')
+        date = request.POST.get('date', '')
+        cursor = connection.cursor()
+        if branch == 'All':
+            cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, (SELECT COUNT(`unique_id`) FROM `call_report_master` 
+            WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL,
+             SUM(CASE WHEN call_report_master.ref_type
+             LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
+               SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
+                   SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+                       IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
+                           logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN 
+                           call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
+                            AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
+                            logins.Last_Location, logins.last_loc_datetime;""".format(d=date))
+        else:
+            cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, (SELECT COUNT(`unique_id`) FROM `call_report_master`
+             WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL, SUM(CASE WHEN call_report_master.ref_type
+             LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
+               SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
+                   SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+                       IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
+                           logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN 
+                           call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
+                            AND logins.Branch = '{b}'  AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
+                            logins.Last_Location, logins.last_loc_datetime;""".format(d=date, b=branch))
+        desc = cursor.description
+        context['new'] = [
+            dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
+        ]
+    return render(request, 'coverage_report.html', context)

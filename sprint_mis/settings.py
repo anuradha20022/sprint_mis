@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'import_export',
     # 'debug_toolbar',
     'crispy_forms',
+    # 'rest_framework',
+    # 'pytally',
 ]
 
 MIDDLEWARE = [
@@ -71,8 +73,7 @@ ROOT_URLCONF = 'sprint_mis.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -107,12 +108,13 @@ WSGI_APPLICATION = 'sprint_mis.wsgi.application'
 #         'PASSWORD': '',
 #         'HOST': 'localhost',
 #         'PORT': '3306',
+#         'CONN_MAX_AGE': 20,
 #         'OPTIONS': {
 #             'init_command': 'SET foreign_key_checks=0;'
 #         }
 #     }
 # }
-#
+# #
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -182,3 +184,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+TALLY_HOST = 'localhost'
+TALLY_PORT = 8000
+TALLY_COMPANY = 'MyCompany'
