@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<html>
+  <head>
+    <title>Map Maker</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <!-- Google Maps API script -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+    <!-- jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      #map {
+        height: 400px;
+      }
+    </style>
+  </head>
+  <body>
+    {% if no_data_found %}
+      <div class="no-data-message">
+        <p>No Data Found!</p>
+      </div>
+    {% else %}
+      <div id="map"></div>
+      <script>
+        function initMap() {
+          var center = {lat: {{ center.latitude }}, lng: {{ center.longitude }}};
+          var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 15,
+            center: center
+          });
+          var marker = new google.maps.Marker({
+            position: center,
+            map: map
+          });
+        }
+      </script>
+    {% endif %}
+  </body>
+</html>
+{% endblock %}

@@ -105,6 +105,11 @@ urlpatterns = [
     path('functional_approval_list/', views.functional_approval_list, name='functional_approval_list'),
 
     path('coverage_report/', views.coverage_report, name='coverage_report'),
+
+    path('map_maker/', views.map_maker, name='map_maker'),
+    path('live_location/', views.live_location, name='live_location'),
+    path('emp_map_data/', views.emp_map_data, name='emp_map_data'),
+
     # path('dynamic_form/', views.dynamic_form, name='dynamic_form'),
     # path('api/payment-list/', PaymentListAPIView.as_view(), name='payment_list_api'),
     # path('payment-list/', PaymentListView.as_view(), name='payment_list'),

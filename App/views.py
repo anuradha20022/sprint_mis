@@ -2352,3 +2352,103 @@ def coverage_report(request):
             dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
         ]
     return render(request, 'coverage_report.html', context)
+
+
+def emp_map_data(request):
+    context = {
+        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+    }
+
+    if request.method == "POST":
+        branch = request.POST.get('branch')
+        date_str = request.POST.get('date')
+        if not date_str:
+            return HttpResponse("Date not provided.")
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        date = date_obj.strftime('%Y-%m-%d')
+        cursor = connection.cursor()
+        if date and branch and branch != 'All':
+            cursor.execute(
+                """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,
+                    COUNT(`call_report_master`.`unique_id`) AS TOTAL,
+                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
+                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
+                    IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
+                    FROM `logins`
+                    INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
+                    WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Branch` = '{b}' AND `logins`.`Job_Status` = 'Active'
+                    AND `call_report_master`.`date` = '{d}'
+                    GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
+                    """.format(d=date, b=branch))
+        elif date and branch == 'All':
+            cursor.execute(
+                """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,
+                    COUNT(`call_report_master`.`unique_id`) AS TOTAL,
+                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
+                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
+                    IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
+                    FROM `logins`
+                    INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
+                    WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Job_Status` = 'Active'
+                    AND `call_report_master`.`date` = '{d}'
+                    GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
+                    """.format(d=date))
+        desc = cursor.description
+        context['data'] = [
+            dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
+        ]
+
+    return render(request, 'map_report.html', context)
+
+
+def map_maker(request):
+    empid = request.GET.get('empid')
+    date = request.GET.get('date')
+
+    queryset = CallReportMaster.objects.filter(emp_id=empid, date=date).values('latitude', 'longitude')
+    center = queryset.first()
+    if center:
+        last_location = f'{center["latitude"]}, {center["longitude"]}'
+        context = {
+            'last_location': last_location,
+            'center': center,
+            'no_data_found': False
+        }
+        return render(request, 'map_maker.html', context)
+    else:
+        messages.error(request, "No Data Found!")
+        context = {
+            'no_data_found': True
+        }
+        return render(request, 'map_maker.html', context)
+        # else:
+    #     messages.error(request, "No Data Found!")
+    #     return redirect('map_maker')
+
+
+def live_location(request):
+    empid = request.GET.get('empid')
+    date = request.GET.get('date')
+    cursor = connection.cursor()
+    cursor.execute("""SELECT `Last_Location`,
+                       SUBSTRING_INDEX(`Last_Location`, ',', 1) AS latitude,
+                       SUBSTRING_INDEX(`Last_Location`, ',', -1) AS longitude
+                FROM `logins`
+                WHERE DATE(`last_loc_datetime`) = '{d}' and `Emp_ID` ='{empid}';""".format(d=date, empid=empid))
+    query = cursor.fetchall()
+
+    if query:
+        center = query[0]
+        if center[0] == ",":
+            messages.warning(request, "No Data Found!")
+            return redirect('emp_map_data')
+        else:
+            last_location = center[0]
+            context = {
+                'last_location': last_location,
+            }
+            return render(request, 'live_status.html', context)
+    else:
+        messages.warning(request, "No Data Found!")
+        return HttpResponse("No data found")
+
