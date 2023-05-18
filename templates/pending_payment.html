@@ -21,14 +21,15 @@
            $("#netbanking_div").hide();
            $("#status_div").hide();
 
-       }else if (view_type === "netbanking") {
+       }
+       else if (view_type === "netbanking") {
            $("#cash_div").hide();
            $("#upi_div").hide();
            $("#netbanking_div").show();
            $("#status_div").hide();
 
        }
-       else if (view_type === "status"){
+       else if(view_type === "status"){
            $("#status_div").show();
             $("#cash_div").hide();
            $("#upi_div").hide();

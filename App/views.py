@@ -228,34 +228,18 @@ def ref_dashboard(request):
 
 @login_required(login_url="/")
 def pending_payment(request):
-    status = PatientData.objects.filter(referralstatus='Yes', chapproval="approved")
-    cash = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='cash')
-    upi = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='upi')
-    netbanking = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='netbanking')
-
-    if request.method == "POST":
-        branch_name = request.POST.get('branch')
-
-        if branch_name == 'All':
-            status = PatientData.objects.filter(referralstatus='Yes', chapproval="approved")
-            cash = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='cash'
-                                              ),
-            upi = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='upi'
-                                             ),
-            netbanking = PatientData.objects.filter(referralstatus='Yes', chapproval="approved",
-                                                    paymentmode='netbanking')
-        else:
-            status = PatientData.objects.filter(referralstatus='Yes',
-                                                chapproval="approved", branch=branch_name)
-            cash = PatientData.objects.filter(referralstatus='Yes', chapproval="approved",
-                                              paymentmode='cash', branch=branch_name)
-            upi = PatientData.objects.filter(referralstatus='Yes', chapproval="approved", paymentmode='upi',
-                                             branch=branch_name),
-            netbanking = PatientData.objects.filter(referralstatus='Yes', chapproval="approved",
-                                                    paymentmode='netbanking', branch=branch_name)
-
+    common_filter = Q(referralstatus='Yes', chapproval='approved')
+    branch_name = request.POST.get('branch')
+    if branch_name == 'All':
+        filtered_data = PatientData.objects.filter(Q(common_filter) & (~Q(paymentmode=None)))
+    else:
+        filtered_data = PatientData.objects.filter(Q(common_filter, branch=branch_name) & (~Q(paymentmode=None)))
+    status = filtered_data
+    cash = filtered_data.filter(Q(paymentmode='CASH') & (~Q(paymentmode=None)))
+    upi = filtered_data.filter(Q(paymentmode='UPI') & (~Q(paymentmode=None)))
+    netbanking = filtered_data.filter(Q(paymentmode='netbanking') & (~Q(paymentmode=None)))
     context = {
-        'branch_name': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch_name': BranchListDum.objects.exclude(branch_name='Test'),
         'status': status,
         'cash': cash,
         'upi': upi,
@@ -267,31 +251,30 @@ def pending_payment(request):
 @login_required(login_url="/")
 def doctor_agent_list(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.exclude(branch_name='Test'),
     }
-    if 'transfer_id' in request.POST:
-        pass
 
-    if request.POST.get('from_empid'):
+    if 'transfer_id' in request.POST:
         from_empid = request.POST.get('from_empid')
         to_empid = request.POST.get('to_empid')
         DoctorAgentList.objects.filter(emp_id=from_empid).update(emp_id=to_empid)
-        print(from_empid, to_empid)
         messages.success(request, f"Emp Id : {from_empid} Transferred to Emp Id : {to_empid}")
         return redirect('doctor_agent_list')
 
-    if request.method == "POST":
-        empid = request.POST.get('empid')
-        branch = request.POST.get('branch')
-        if branch == "All":
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(~Q(emp_id='1234'))
-        elif empid and branch:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(unique_id=empid, branch=branch) & ~Q(emp_id='1234'))
-        elif empid:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(unique_id=empid) & ~Q(emp_id='1234'))
-        elif branch:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234'))
+    empid = request.POST.get('empid')
+    branch = request.POST.get('branch')
+    queryset = DoctorAgentList.objects.exclude(emp_id='1234')
+    filter_q = ~Q(emp_id='1234')
+
+    if empid:
+        filter_q &= Q(unique_id=empid)
+    if branch:
+        filter_q &= Q(branch=branch)
+
+    context["doctor_agent_list"] = queryset.filter(filter_q)
+
     return render(request, 'doctor_agent_list.html', context)
+
 
 
 @csrf_exempt
@@ -1016,6 +999,9 @@ def inactive_allowance_report(request):
 
 @login_required(login_url="/")
 def bill_list(request):
+    context = {
+        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+    }
 
     if request.method == "POST":
         sno = request.POST.get('modal_sno')
@@ -1102,7 +1088,7 @@ def bill_list(request):
     #     messages.success(request, 'Deleted succesfully')
     #     return JsonResponse({"success": True})
 
-    return redirect('bill')
+    return render(request, 'bills_list.html', context)
 
 @login_required(login_url="/")
 def bill(request):
@@ -2043,6 +2029,8 @@ def cash_payment(request):
     return render(request, 'cash_payment.html', context)
 
 
+
+@login_required(login_url="/")
 @csrf_exempt
 def functional_approval_list(request):
     context = {
@@ -2079,49 +2067,12 @@ def functional_approval_list(request):
 
     elif request.method == "POST":
         branch_name = request.POST.get('branch')
-        # f_date = request.POST.get('date')
-        #
-        # from_date, to_date = f_date.split(' - ')
-        # from_date = datetime.strptime(str(from_date), '%m/%d/%Y').date()
-        # to_date = datetime.strptime(str(to_date), '%m/%d/%Y').date()
 
         if branch_name == 'All':
             context['cluster'] = PatientData.objects.filter(referralstatus='Yes', chapproval="")
         else:
             context['cluster'] = PatientData.objects.filter(referralstatus='Yes', branch=branch_name, chapproval="")
 
-    #     approve = request.GET.get('approve')
-    #     # data = PatientData.objects.get(sno=approve)
-    #     # data.chapproval = "Yes"
-    #     # data.chapproval_by = request.user.emp_id
-    #     # data.ch_approved_on = timezone.now()
-    #     # data.save()
-
-    # if 'approve' in request.GET:
-    #     approve = request.GET.get('approve')
-    #     # data = PatientData.objects.get(sno=approve)
-    #     # data.chapproval = "Yes"
-    #     # data.chapproval_by = request.user.emp_id
-    #     # data.ch_approved_on = timezone.now()
-    #     # data.save()
-    #
-    #     PatientData.objects.filter(sno=approve).update(chapproval="approved", chapproval_by=request.user.emp_id,
-    #                                                    ch_approved_on=timezone.now())
-    #     messages.success(request, 'Approved successfully')
-    #     return redirect('pending_payment')
-    #
-    # if 'reject_id' in request.GET and request.is_ajax():
-    #     reject = request.GET.get('reject_id')
-    #     # data = PatientData.objects.get(sno=approve)
-    #     # data.chapproval = "Yes"
-    #     # data.chapproval_by = request.user.emp_id
-    #     # data.ch_approved_on = timezone.now()
-    #     # data.save()
-    #
-    #     PatientData.objects.filter(sno=reject).update(chapproval="No", chapproval_by=request.user.emp_id,
-    #                                                   ch_approved_on=timezone.now())
-    #     # messages.success(request, 'Approved successfully')
-    #     return JsonResponse({"success": True})
 
     return render(request, 'fucntional_aprroval_list.html', context)
 
@@ -2194,11 +2145,6 @@ def edit_list(request):
     if request.method == "POST":
         data_list = request.POST.get('transfer_id')
         print(request.POST)
-        print(data_list)
-        # for i in data_list:
-        #     data = PatientData.objects.filter(sno=i)
-        #     data.delete()
-        #     print(i)
     return redirect('functional_approval_list')
 
 

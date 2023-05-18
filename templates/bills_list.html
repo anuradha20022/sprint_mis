@@ -80,7 +80,6 @@ $('#cus-responsive-datatable').DataTable({
                 {##}
                 {# }},#}
                 {data: "invoice_no"},
-                {data: "invoice_date"},
                 {data: "branch"},
                 {data: "patient_name"},
                 {data: "service_name"},
@@ -97,11 +96,39 @@ $('#cus-responsive-datatable').DataTable({
         });
 
 
+    {% comment %}$(".edit-admission").on('click', function () {
+        let edit_value = $(this).data('adm');
+        console.log(edit_value);
+        $.ajax({
+            url: '{% url 'admission_list' %}',
+            data: {sno: edit_value},
+            success: function (response) {
+                $('#invoice_no').html(response.invoice_no);
+                $('#ucid_search').html(response.sno);
+                $('#sno').html(response.sno);
+                $('#sno_input').val(response.sno);
+                $('#grossamount').html(response.grossamount);
+                $('#discount').html(response.discount);
+                $('#netamount').html(response.netamount);
+                $('#serviceamount').html(response.serviceamount);
+                $('#marketingExecutive ').val(response.marketing_executive );
+                $('#referralDoctor ').val(response.patient_name );
+                $('#referralType ').val(response.referral_type );
+                $('#changeValue ').val(response.referralpercentage );
+                $('#calculationType ').val(response.referralpercentagename );
+                $('#referralAmount ').val(response.referralamount );
+
+            },
+            error: function () {
+                alert('Oops something went wrong!')
+            }
+        })
+    });{% endcomment %}
 
     function editAdmission(edit_value){
         {#let edit_value = $(this).data('adm');#}
         {#console.log(edit_value);#}
-        $('#update_form').trigger('reset');
+        {#$('#update_form').trigger('reset');#}
         $.ajax({
             url: '{% url 'bill_list' %}',
             data: {sno: edit_value},
@@ -128,7 +155,7 @@ $('#cus-responsive-datatable').DataTable({
 
     $("#admission_list_filter_form").submit(function (e) {
         e.preventDefault();
-        let date = $("#branch_input").val();
+        let branch = $("#branch_input").val();
         $("#cus-responsive-datatable").attr("id", "admission_list_filter_table");
         $('#admission_list_filter_table').DataTable({
                     serverSide: true,
@@ -143,7 +170,7 @@ $('#cus-responsive-datatable').DataTable({
                     responsive: false, // responnsive table
                     {#"deferRender": true,#}
                     ajax: {
-                        url: `{% url 'admission_list_filter' %}?date=${date}`,
+                        url: `{% url 'admission_list_filter' %}?branch=${branch}`,
                         {#data: formData,#}
                     },
 
@@ -157,7 +184,6 @@ $('#cus-responsive-datatable').DataTable({
                             }
                         },
                         {data: "invoice_no"},
-                        {data: "invoice_date"},
                         {data: "branch"},
                         {data: "patient_name"},
                         {data: "service_name"},
@@ -224,7 +250,7 @@ $('#cus-responsive-datatable').DataTable({
         } else if ($(this).val() === "UPI" ) {
             $("#upinumber_div").show();
             $("#bank_details_div").hide();
-        }else  if ($(this).val() === "Cash" ){
+        }else {
             $("#upinumber_div").hide();
             $("#bank_details_div").hide();
 
@@ -269,9 +295,18 @@ function validateNumber(event) {
     <form id="admission_list_filter_form" method="post" autocomplete="off">
     {% csrf_token %}
         <div class="row">
-            <div class="col-md-5">
-                <input type="text" name="date" class="form-control daterange-shawCalRanges">
-                           </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <select class="form-control " name="branch" id="branch_input">
+                        <option value="" disabled >-- Select Branch --</option>
+                        <option value="All" selected>All</option>
+                        {% for list in branch %}
+                            <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
             <div class="col-md-3">
                 <button type="submit" name="Submit" class="btn btn-lg btn-primary btn-gradient btn-shadow">Submit</button>
             </div>
@@ -291,7 +326,6 @@ function validateNumber(event) {
                 <th class="py-2 " data-orderable="false" width="60">Sno</th>
                 <th class="py-2" data-orderable="false" >Edit</th>
                 <th class="py-2" data-orderable="false">IP NO</th>
-                <th class="py-2" data-orderable="false">Bill Date</th>
                 <th class="py-2" data-orderable="false">Branch</th>
                 <th class="py-2" data-orderable="false">Patient Name</th>
 
@@ -313,7 +347,6 @@ function validateNumber(event) {
                      </td>
                      <td class="py-2 text-right">{{ adm.sno }}</td>
                      <td class="py-2">{{ adm.invoice_no }}</td>
-                     <td class="py-2">{{ adm.invoice_date|date:"Y-m-d" }}</td>
                      <td class="py-2">{{ adm.branch }}</td>
                      <td class="py-2">{{ adm.patient_name }}</td>
                      <td class="py-2">{{ adm.service_name }}</td>
@@ -416,7 +449,7 @@ function validateNumber(event) {
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="referralPaymentMode">Refferal Payment Mode</label><span class="text-danger">*</span>
-                                        <select class="form-control form-control-sm" name="paymentmode" id="referralPaymentMode" required>
+                                        <select class="form-control form-control-sm" name="paymentmode" id="referralPaymentMode">
                                             <option disabled>-Select Payment Mode-</option>
                                             <option value="Cash" selected>Cash</option>
                                             <option value="UPI" >UPI</option>
@@ -449,19 +482,19 @@ function validateNumber(event) {
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label for="referralPaymentMode">Bank Acc</label>
+                                            <label>Bank Acc</label>
                                             <input type="number" class="form-control form-control-sm" name="accnumber" id="accnumber" >
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label for="referralPaymentMode">Ifsc Code</label>
+                                            <label >Ifsc Code</label>
                                             <input type="text" style="text-transform: uppercase;" class="form-control form-control-sm" name="ifsccode" id="ifsccode" pattern="^[A-Za-z]{4}[a-zA-Z0-9]{7}$" maxlength="11">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label for="referralPaymentMode">Pan Card</label>
+                                            <label>Pan Card</label>
                                             <input type="text" style="text-transform: uppercase;" class="form-control form-control-sm" name="pancard" id="pancard" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10">
 
                                         </div>
