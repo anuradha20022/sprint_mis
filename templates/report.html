@@ -111,44 +111,38 @@
                         <div class="table-responsive">
                             <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
                             <thead>
-                            <tr>
-                                <th>Emp_ID</th>
-                                <th>Emp_name</th>
-                                <th>Branch</th>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Total</th>
-                                <th>MINTIME</th>
-                                <th>View map</th>
+                            <tr role="row" style="background: #3F51B5; color: #fff;">
+                                <th class="py-2">Employee ID</th>
+                                <th class="py-2">Employee Name</th>
+                                <th class="py-2">First Call Time</th>
+                                <th class="py-2">No. of Calls</th>
+                                <th class="py-2">Location</th>
+                                <th class="py-2">View map</th>
                             </tr>
                             </thead>
                                 <tbody>
                                    {% for item in result %}
-                                       {% if TOTAL == 0 %}
+                                       {% if item.TOTAL == 0 %}
                                            <tr>
-                                              <td>{{ item.empid }}</td>
-                                            <td>{{ item.name }}</td>
-                                            <td>{{ item.branch }}</td>
-                                            <td>{{ item.date }}</td>
-                                            <td>{{ item.type }}</td>
-                                      <td style="text-align:center;">--</td>
-                                      <td style="text-align:center;">No Data</td>
-                                       <td>
+                                              <td  class="py-1">{{ item.empid }}</td>
+                                            <td  class="py-1">{{ item.name }}</td>
+                                              <td style="text-align:center;" class="py-1">{{ item.MINTIME|time:'h:i:s'|default:'No Data' }}</td>
+                                               <td style="text-align:center;" class="py-1">No Data</td>
+                                               <td class="py-1">{{ item.branch }}</td>
+                                               <td  class="py-1">
                                      <a href="{% url 'live_location' %}?empid={{ item.empid }}&date={{ item.date }}" target="_blank" style="color: #0d47a1; text-underline: #0d47a1">Live Status</a>
                                  </td>
                                     </tr>
                                        {% else %}
                                 <tr>
-                                    <td>{{ item.empid }}</td>
-                                    <td>{{ item.name }}</td>
-                                    <td>{{ item.branch }}</td>
-                                    <td>{{ item.date }}</td>
-                                    <td>{{ item.type }}</td>
-                                     <td>{{ item.TOTAL}}({{ item.doctor }} - Doctor, {{ item.RMP }}- RMP, {{ item.others }} - Others)</td>
-                                    <td>{{ item.MINTIME|time:'h:i:s' }}</td>
-                                 <td>
-                                     <a href="{% url 'live_location' %}?empid={{ item.empid }}&date={{ item.date }}" target="_blank" style="color: #0d47a1; text-underline: #0d47a1">Live Status</a>
-                                 </td>
+                                    <td class="py-1">{{ item.empid }}</td>
+                                    <td class="py-1">{{ item.name }}</td>
+                                    <td class="py-1">{{ item.MINTIME|time:'h:i:s' }}</td>
+                                    <td class="py-1">{{ item.TOTAL}}({{ item.doctor }} - Doctor, {{ item.RMP }}- RMP, {{ item.others }} - Others)</td>
+                                    <td class="py-1">{{ item.branch }}</td>
+                                    <td class="py-1">
+                                         <a href="{% url 'live_location' %}?empid={{ item.empid }}&date={{ item.date }}" target="_blank" style="color: #0d47a1; text-underline: #0d47a1">Live Status</a>
+                                     </td>
                                 </tr>
                             {% endif %}
                             {% endfor %}

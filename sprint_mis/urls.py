@@ -109,7 +109,7 @@ urlpatterns = [
 
     path('map_maker/', views.map_maker, name='map_maker'),
     path('live_location/', views.live_location, name='live_location'),
-    path('emp_map_data/', views.emp_map_data, name='emp_map_data'),
+    # path('emp_map_data/', views.emp_map_data, name='emp_map_data'),
     path('map_data/', views.map_data, name='map_data'),
     path('ucid_creation/', views.ucid_creation, name='ucid_creation'),
 

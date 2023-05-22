@@ -84,8 +84,9 @@
             <div class="col-md-3">
                 <div class="form-group">
                     <select class="form-control" name="branch">
-                        <option value="" disabled>-- Select Working Location --</option>
-                        <option value="All">All</option>
+                        <option value="" selected>-- Select Branch --</option>
+{#                        <option value="All">All</option>#}
+{#                        <option value="All">All</option>#}
                         {% for list in branch %}
                             <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
                         {% endfor %}
@@ -116,20 +117,32 @@
                                           <th  class="py-2" style="text-align:center;">Employee Name</th>
                                           <th  class="py-2" style="text-align:center;">First Call Time</th>
                                          <th  class="py-2" style="text-align:center;">No. of Calls</th>
-                                         <th  class="py-2" style="text-align:center;">Address</th>
+{#                                         <th  class="py-2" style="text-align:center;">Address</th>#}
                               </tr>
                             </thead>
                                 <tbody>
-                                {% for ref in new %}
+                                {% for ref in result %}
+                                     {% if ref.TOTAL == 0 %}
+                                           <tr>
+                                              <td  class="py-1">{{ forloop.counter }}</td>
+                                               <td class="py-1">{{ ref.branch }}</td>
+                                               <td  class="py-1">{{ ref.empid }}</td>
+                                               <td  class="py-1">{{ ref.name }}</td>
+                                               <td class="py-1">{{ ref.MINTIME|time:'h:i:s'|default:'No Data' }}</td>
+                                               <td style="text-align:center;" class="py-1">No Data</td>
+
+                                    </tr>
+                                       {% else %}
                                     <tr>
-                                        <td>{{ forloop.counter }}</td>
-                                        <td>{{ ref.Branch }}</td>
-                                        <td>{{ ref.Emp_ID }}</td>
-                                        <td>{{ ref.Emp_name }}</td>
-                                        <td>{{ ref.MINTIME }}</td>
-                                        <td class="py-2" style='text-align:center;'>{{ ref.TOTAL }} ({{ ref.QUA }} - Qualified, {{ ref.REG }} - Registered, {{ ref.SPC }} - Special)</td>
-                                        <td class="py-1">NO Data</td>
+                                        <td class="py-1">{{ forloop.counter }}</td>
+                                        <td class="py-1">{{ ref.branch }}</td>
+                                        <td class="py-1">{{ ref.empid }}</td>
+                                        <td class="py-1">{{ ref.name }}</td>
+                                        <td class="py-1">{{ ref.MINTIME|time:'h:i:s' }}</td>
+                                        <td class="py-1" style='text-align:center;'>{{ ref.TOTAL }} ({{ ref.QUA }} - Qualified, {{ ref.REG }} - Registered, {{ ref.SPC }} - Special)</td>
+{#                                        <td class="py-1">NO Data</td>#}
                                 </tr>
+                                    {% endif %}
                                 {% endfor %}
                                 </tbody>
                             </table>

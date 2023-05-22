@@ -2251,93 +2251,145 @@ def pending_payment_csv(request):
 #         return render(request, 'emp_list.html', context)
 
 
-
-
 def coverage_report(request):
-
-    context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
-    }
+    context = {}
     if request.method == 'POST':
-        branch = request.POST.get('branch', '')
-        date = request.POST.get('date', '')
-        cursor = connection.cursor()
-        if branch == 'All':
-            cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, (SELECT COUNT(`unique_id`) FROM `call_report_master` 
-            WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL,
-             SUM(CASE WHEN call_report_master.ref_type
-             LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
-               SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
-                   SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
-                       IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
-                           logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN 
-                           call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
-                            AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
-                            logins.Last_Location, logins.last_loc_datetime;""".format(d=date))
-        else:
-            cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, (SELECT COUNT(`unique_id`) FROM `call_report_master`
-             WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL, SUM(CASE WHEN call_report_master.ref_type
-             LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
-               SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
-                   SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
-                       IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
-                           logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN 
-                           call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
-                            AND logins.Branch = '{b}'  AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
-                            logins.Last_Location, logins.last_loc_datetime;""".format(d=date, b=branch))
-        desc = cursor.description
-        context['new'] = [
-            dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
-        ]
+        branch = request.POST.get('branch')
+        date = request.POST.get('date')
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        query = Logins.objects.filter(
+            Q(page='Marketing') &
+            ~Q(branch='Test') &
+            Q(job_status='Active') &
+            ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
+        ).distinct()
+
+        results = query.extra(
+            tables=['call_report_master'],
+            where=[
+                '`call_report_master`.`emp_id` = `logins`.`Emp_ID`',
+            ],
+            select={
+                'Emp_ID': '`logins`.`Emp_ID`',
+                'Emp_name': '`logins`.`Emp_name`',
+                'Branch': '`logins`.`Branch`',
+            }
+        )
+        if branch != 'All':
+            results = results.filter(branch=branch)
+        result = []
+        for emp in results:
+            emp_id = emp.emp_id
+            call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date)
+            total = call_report_qs.aggregate(TOTAL=Count('unique_id'))
+            qua = call_report_qs.filter(ref_type__contains='QUALIFIED').aggregate(QUA=Count('unique_id'))
+            reg = call_report_qs.filter(ref_type__contains='REGISTERED PRACTIONER').aggregate(REG=Count('unique_id'))
+            spc = call_report_qs.filter(ref_type__contains='SPECIAL CATEGORY').aggregate(SPC=Count('unique_id'))
+            karnataka = call_report_qs.filter(ref_type__contains='KARNATAKA').aggregate(KARNATAKA=Count('unique_id'))
+            mintime = call_report_qs.aggregate(MINTIME=Min('time'))
+
+            logins_location = Logins.objects.filter(emp_id=emp_id, last_loc_datetime__date=date).values('last_location')
+
+            values = {
+                'empid': emp_id,
+                'name': emp.emp_name,
+                'branch': emp.branch,
+                'TOTAL': total['TOTAL'] if total['TOTAL'] else 0,
+                'QUA': qua['QUA'] if qua['QUA'] else 0,
+                'REG': reg['REG'] if reg['REG'] else 0,
+                'SPC': spc['SPC'] if spc['SPC'] else 0,
+                'KARNATAKA': karnataka['KARNATAKA'] if karnataka['KARNATAKA'] else 0,
+                'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else '-',
+                'location': logins_location[0]['last_location'] if logins_location else None,
+            }
+            result.append(values)
+        context = {
+            'result': result,
+            'date': date_obj,
+        }
+    context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
+
+
+    # if request.method == 'POST':
+    #     branch = request.POST.get('branch', '')
+    #     date = request.POST.get('date', '')
+    #     cursor = connection.cursor()
+    #     if branch == 'All':
+    #         cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, (SELECT COUNT(`unique_id`) FROM `call_report_master`
+    #         WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL,
+    #          SUM(CASE WHEN call_report_master.ref_type
+    #          LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
+    #            SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+    #                    IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
+    #                        logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
+    #                        call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
+    #                         AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
+    #                         logins.Last_Location, logins.last_loc_datetime;""".format(d=date))
+    #     else:
+    #         cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, (SELECT COUNT(`unique_id`) FROM `call_report_master`
+    #          WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL, SUM(CASE WHEN call_report_master.ref_type
+    #          LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
+    #            SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+    #                    IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
+    #                        logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
+    #                        call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
+    #                         AND logins.Branch = '{b}'  AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
+    #                         logins.Last_Location, logins.last_loc_datetime;""".format(d=date, b=branch))
+    #     desc = cursor.description
+    #     context['new'] = [
+    #         dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
+    #     ]
     return render(request, 'coverage_report.html', context)
 
 
-def emp_map_data(request):
-    context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-    }
-
-    if request.method == "POST":
-        branch = request.POST.get('branch')
-        date_str = request.POST.get('date')
-        if not date_str:
-            return HttpResponse("Date not provided.")
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-        date = date_obj.strftime('%Y-%m-%d')
-        cursor = connection.cursor()
-        if date and branch and branch != 'All':
-            cursor.execute(
-                """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,
-                `call_report_master`.`attendance`,
-                    COUNT(`call_report_master`.`unique_id`) AS TOTAL,
-                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
-                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
-                    IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
-                    FROM `logins`
-                    INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
-                    WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Branch` = '{b}' AND `logins`.`Job_Status` = 'Active'
-                    AND `call_report_master`.`date` = '{d}'
-                    GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
-                    """.format(d=date, b=branch))
-        elif date and branch == 'All':
-            cursor.execute(
-                """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,  `call_report_master`.`attendance`,
-                    COUNT(`call_report_master`.`unique_id`) AS TOTAL,
-                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
-                    SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
-                    IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
-                    FROM `logins`
-                    INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
-                    WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Job_Status` = 'Active'
-                    AND `call_report_master`.`date` = '{d}'
-                    GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
-                    """.format(d=date))
-        desc = cursor.description
-        context['data'] = [
-            dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
-        ]
-
-    return render(request, 'map_report.html', context)
+# def emp_map_data(request):
+#     context = {
+#         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+#     }
+#
+#     if request.method == "POST":
+#         branch = request.POST.get('branch')
+#         date_str = request.POST.get('date')
+#         if not date_str:
+#             return HttpResponse("Date not provided.")
+#         date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+#         date = date_obj.strftime('%Y-%m-%d')
+#         cursor = connection.cursor()
+#         if date and branch and branch != 'All':
+#             cursor.execute(
+#                 """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,
+#                 `call_report_master`.`attendance`,
+#                     COUNT(`call_report_master`.`unique_id`) AS TOTAL,
+#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
+#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
+#                     IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
+#                     FROM `logins`
+#                     INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
+#                     WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Branch` = '{b}' AND `logins`.`Job_Status` = 'Active'
+#                     AND `call_report_master`.`date` = '{d}'
+#                     GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
+#                     """.format(d=date, b=branch))
+#         elif date and branch == 'All':
+#             cursor.execute(
+#                 """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,  `call_report_master`.`attendance`,
+#                     COUNT(`call_report_master`.`unique_id`) AS TOTAL,
+#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
+#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
+#                     IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
+#                     FROM `logins`
+#                     INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
+#                     WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Job_Status` = 'Active'
+#                     AND `call_report_master`.`date` = '{d}'
+#                     GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
+#                     """.format(d=date))
+#         desc = cursor.description
+#         context['data'] = [
+#             dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
+#         ]
+#
+#     return render(request, 'map_report.html', context)
 
 
 def map_data(request):
@@ -2386,7 +2438,7 @@ def map_data(request):
                 'RMP': rmp,
                 'doctor': doctor,
                 'others': total - doctor + rmp,
-                'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else 'No Data',
+                'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else '---',
             }
 
             result.append(value)
