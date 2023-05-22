@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import connection
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Min
 from django.http import JsonResponse, HttpResponse, FileResponse, HttpResponseRedirect, response
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -103,7 +103,7 @@ def register(request):
         branch = request.POST.get('branch')
         department = request.POST.get('department')
         catogery = request.POST.get('catogery')
-        reporting_to = request.POST.get('reporting_to')
+        reporting_to = request.POST.get('repo   rting_to')
         old_branch = Logins.objects.filter(branch=branch).exclude(branch='').first()
 
         if designation == 'Executive' or designation == 'Senior Executive':
@@ -230,6 +230,7 @@ def ref_dashboard(request):
 def pending_payment(request):
     common_filter = Q(referralstatus='Yes', chapproval='approved')
     branch_name = request.POST.get('branch')
+    print(branch_name)
     if branch_name == 'All':
         filtered_data = PatientData.objects.filter(Q(common_filter) & (~Q(paymentmode=None)))
     else:
@@ -245,6 +246,7 @@ def pending_payment(request):
         'upi': upi,
         'netbanking': netbanking,
     }
+    print(context)
     return render(request, 'pending_payment.html', context)
 
 
@@ -275,57 +277,41 @@ def doctor_agent_list(request):
 
     return render(request, 'doctor_agent_list.html', context)
 
-
-
 @csrf_exempt
 @login_required(login_url="/")
 def doctor_agent_list_dt(request):
     branch = request.GET.get('branch')
     draw = int(request.POST.get('draw'))
-    # start = int(request.POST.get('start'))
+    start = int(request.POST.get('start'))
     length = int(request.POST.get('length'))
     search = request.POST.get('search[value]')
     colindex = request.POST.get("order[0][column]")
-    # records_total = DoctorAgentList.objects.all().order_by('unique_id').count()
-    # records_filtered = records_total
-    # agent_data = DoctorAgentList.objects.all().order_by('unique_id').values()
+    agent_data = DoctorAgentList.objects.all().order_by('unique_id').values()
 
     if branch == 'All':
-            records_total = DoctorAgentList.objects.filter(~Q(emp_id='1234')).order_by('sno').count()
-            records_filtered = records_total
-            agent_data = DoctorAgentList.objects.all().order_by('sno').values()[
-                         start:length + start]
-
-            if search:
-                agent_data = DoctorAgentList.objects.filter(Q(branch=search) | Q(agent_name__icontains=search) | Q(
-                    unique_id__icontains=search)).order_by('unique_id').values()
-                records_total = agent_data.count()
-                records_filtered = records_total
-    else:
-        records_total = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234')).order_by('sno').count()
+        records_total = DoctorAgentList.objects.filter(~Q(emp_id='1234')).order_by('sno').count()
         records_filtered = records_total
-        agent_data = DoctorAgentList.objects.filter(branch=branch).order_by('sno').values()[
+        agent_data = DoctorAgentList.objects.all().order_by('sno').values()[
                      start:length + start]
-
         if search:
             agent_data = DoctorAgentList.objects.filter(Q(branch=search) | Q(agent_name__icontains=search) | Q(
                 unique_id__icontains=search)).order_by('unique_id').values()
             records_total = agent_data.count()
             records_filtered = records_total
-
-    paginator = Paginator(agent_data, length)
-
-    try:
-        object_list = paginator.page(draw).object_list
-    except PageNotAnInteger:
-        object_list = paginator.page(draw).object_list
-    except EmptyPage:
-        object_list = paginator.page(paginator.num_pages).object_list
-
+    else:
+        records_total = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234')).order_by('sno').count()
+        records_filtered = records_total
+        agent_data = DoctorAgentList.objects.filter(branch=branch).order_by('sno').values()[
+                     start:length + start]
+        if search:
+            agent_data = DoctorAgentList.objects.filter(Q(branch=search) | Q(agent_name__icontains=search) | Q(
+                unique_id__icontains=search)).order_by('unique_id').values()
+            records_total = agent_data.count()
+            records_filtered = records_total
     data = [
         {
             'sno': '',
-            # 'input': '<input type="checkbox" class="" name="'+str(emp['emp_id'])+'" value="">',
+            'input': '<input type="checkbox" class="" name="'+str(emp['emp_id'])+'" value="">',
             'emp_id': emp['emp_id'],
             'unique_id': emp['unique_id'],
             'agent_type': emp['agent_type'],
@@ -348,7 +334,7 @@ def doctor_agent_list_dt(request):
             'designation': emp['designation'],
             'department': emp['department'],
             # 'employee_id': '<a href="/profile/?i=' + str(emp['employee_id']) + '">' + str(emp['employee_id']) + '</a>',
-        } for emp in object_list
+        } for emp in agent_data
     ]
     return JsonResponse(
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data}, safe=False)
@@ -419,6 +405,7 @@ def call_reports(request):
             'unique_id': emp['unique_id'],
             'name': emp['name'],
             'category': emp['category'],
+            'ref_type': emp['ref_type'],
             'design': emp['design'],
             'contact': emp['contact'],
             'date': emp['date'],
@@ -1024,6 +1011,11 @@ def bill_list(request):
             ifsccode = None
             pancard = None
             upinumber = request.POST.get("upinumber")
+        elif paymentmode == "Cash":
+            accnumber = None
+            ifsccode = None
+            pancard = None
+            upinumber = None
         else:
             accnumber = None
             ifsccode = None
@@ -1082,11 +1074,11 @@ def bill_list(request):
         res = list(PatientData.objects.filter(sno=sno).values())[0]
         return JsonResponse(res)
 
-    # if 'delete_sno' in request.GET and request.is_ajax():
-    #     delete_sno = request.GET.get('delete_sno')
-    #     PatientData.objects.get(sno=delete_sno)
-    #     messages.success(request, 'Deleted succesfully')
-    #     return JsonResponse({"success": True})
+    if 'delete_sno' in request.GET and request.is_ajax():
+        delete_sno = request.GET.get('delete_sno')
+        PatientData.objects.get(sno=delete_sno)
+        messages.success(request, 'Deleted succesfully')
+        return JsonResponse({"success": True})
 
     return render(request, 'bills_list.html', context)
 
@@ -1202,8 +1194,8 @@ def admission(request):
     data = [
         {
             'sno': emp['sno'],
-            'edit': '',
-            # 'edit': '<a href="#"  onclick="editAdmission('+str(emp['sno'])+')" class="icon-pencil mr-2 text-info" data-toggle="modal" data-target="#admissionModal" ></a><a href="/admission_list/?delete='+str(emp['sno'])+'" class="btn btn-sm btn-danger"><i class="icon-trash" aria-hidden="true"></i></a>',
+            # 'edit': '',
+            'edit': '<a href="#"  onclick="editAdmission('+str(emp['sno'])+')" class="icon-pencil mr-2 text-info" data-toggle="modal" data-target="#admissionModal" ></a><a href="/admission_list/?delete='+str(emp['sno'])+'" class="btn btn-sm btn-danger"><i class="icon-trash" aria-hidden="true"></i></a>',
             'invoice_no': emp['invoice_no'],
             'invoice_date': emp['invoice_date'],
             'branch': emp['branch'],
@@ -1368,8 +1360,8 @@ def employee_list(request):
         branch = request.POST.get('branch')
 
         if branch == 'All':
-            context['emp_list'] = Logins.objects.filter(job_status='Active', page='Marketing') & Logins.objects.filter(
-                ~Q(type='Admin')).order_by(
+            context['emp_list'] = Logins.objects.filter(job_status='Active', page='Marketing').exclude(branch="Test") & Logins.objects.filter(
+                ~Q(type='Admin')).exclude(branch="Test").order_by(
                 'branch', 'emp_id')
 
         else:
@@ -2316,6 +2308,7 @@ def emp_map_data(request):
         if date and branch and branch != 'All':
             cursor.execute(
                 """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,
+                `call_report_master`.`attendance`,
                     COUNT(`call_report_master`.`unique_id`) AS TOTAL,
                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
@@ -2328,7 +2321,7 @@ def emp_map_data(request):
                     """.format(d=date, b=branch))
         elif date and branch == 'All':
             cursor.execute(
-                """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,
+                """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,  `call_report_master`.`attendance`,
                     COUNT(`call_report_master`.`unique_id`) AS TOTAL,
                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
@@ -2345,6 +2338,65 @@ def emp_map_data(request):
         ]
 
     return render(request, 'map_report.html', context)
+
+
+def map_data(request):
+    context = {}
+
+    if request.method == 'POST':
+        branch = request.POST.get('branch')
+        date = request.POST.get('date')
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        query = Logins.objects.filter(
+                Q(page='Marketing') &
+                ~Q(branch='Test') &
+                Q(job_status='Active') &
+                ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
+        ).distinct()
+
+        results = query.extra(
+            tables=['call_report_master'],
+            where=[
+                '`call_report_master`.`emp_id` = `logins`.`Emp_ID`',
+            ],
+            select={
+                'Emp_ID': '`logins`.`Emp_ID`',
+                'Emp_name': '`logins`.`Emp_name`',
+                'Branch': '`logins`.`Branch`',
+                'type': '`logins`.`type`',
+            }
+        )
+        if branch != 'All':
+            results = results.filter(branch=branch)
+        result = []
+        for emp in results:
+            emp_id = emp.emp_id
+            total = CallReportMaster.objects.filter(emp_id=emp_id, date=date).count()
+            rmp = CallReportMaster.objects.filter(emp_id=emp_id, date=date, ref_type='RMP').count()
+            doctor = CallReportMaster.objects.filter(emp_id=emp_id, date=date, ref_type='DOCTOR').count()
+            mintime = CallReportMaster.objects.filter(emp_id=emp_id, date=date).aggregate(MINTIME=Min('time'))
+
+            value = {
+                'empid': emp_id,
+                'name': emp.emp_name,
+                'branch': emp.branch,
+                'date': date,
+                'type': emp.type,
+                'TOTAL': total,
+                'RMP': rmp,
+                'doctor': doctor,
+                'others': total - doctor + rmp,
+                'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else 'No Data',
+            }
+
+            result.append(value)
+        context = {
+            'result': result,
+            'date': date_obj,
+        }
+    context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
+
+    return render(request, 'report.html', context)
 
 
 def map_maker(request):
@@ -2398,3 +2450,6 @@ def live_location(request):
         messages.warning(request, "No Data Found!")
         return HttpResponse("No data found")
 
+
+def ucid_creation(request):
+    return render(request, 'ucid_creation.html')

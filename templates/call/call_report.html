@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{%  block content_heading %}Daily Call report{% endblock %}
+{%  block content_heading %}Call Report Master{% endblock %}
 {%  block content_subheading %}Call Report Master {% endblock %}
-{% block title %} Call Report {% endblock %}
+{% block title %} Call Report Master{% endblock %}
 
 {% block script %}
     <script>
@@ -38,6 +38,7 @@
                 {data: "unique_id"},
                 {data: "name"},
                 {data: "category"},
+                {data: "ref_type"},
                 {data: "design"},
                 {data: "contact"},
                 {data: "date"},
@@ -118,6 +119,7 @@
                         <th class="py-2" data-orderable="false">Unique ID</th>
                         <th class="py-2" data-orderable="false">Name</th>
                         <th class="py-2" data-orderable="false">Category</th>
+                        <th class="py-2" data-orderable="false">Referral Type</th>
                         <th class="py-2" data-orderable="false">Design</th>
                         <th class="py-2" data-orderable="false">Contact</th>
                         <th class="py-2" data-orderable="false">Date</th>
@@ -142,6 +144,7 @@
                             <td class="py-1">{{ user.unique_id}}</td>
                             <td class="py-1">{{ user.name}}</td>
                             <td class="py-1">{{ user.category}}</td>
+                            <td class="py-1">{{ user.ref_type}}</td>
                             <td class="py-1">{{ user.design}}</td>
                             <td class="py-1">{{ user.contact}}</td>
                             <td class="py-1">{{ user.date}}</td>

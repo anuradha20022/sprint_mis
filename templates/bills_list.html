@@ -65,7 +65,7 @@ $('#cus-responsive-datatable').DataTable({
                     render: function(data, type, row) {
                     return '<a class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal" onclick="editAdmission('+row.sno+')" ></a>'
                         {#+#}
-                        {#'<a href="/admission_list/?delete='+row.sno+'" class="btn btn-sm btn-danger reject-payment"><i class="icon-trash" aria-hidden="true"></i></a>'#}
+                        {#'<a href="/admission/?delete='+row.sno+'" class="btn btn-sm btn-danger reject-payment"><i class="icon-trash" aria-hidden="true"></i></a>'#}
                     }
 
                 },
@@ -95,35 +95,6 @@ $('#cus-responsive-datatable').DataTable({
             ],
         });
 
-
-    {% comment %}$(".edit-admission").on('click', function () {
-        let edit_value = $(this).data('adm');
-        console.log(edit_value);
-        $.ajax({
-            url: '{% url 'admission_list' %}',
-            data: {sno: edit_value},
-            success: function (response) {
-                $('#invoice_no').html(response.invoice_no);
-                $('#ucid_search').html(response.sno);
-                $('#sno').html(response.sno);
-                $('#sno_input').val(response.sno);
-                $('#grossamount').html(response.grossamount);
-                $('#discount').html(response.discount);
-                $('#netamount').html(response.netamount);
-                $('#serviceamount').html(response.serviceamount);
-                $('#marketingExecutive ').val(response.marketing_executive );
-                $('#referralDoctor ').val(response.patient_name );
-                $('#referralType ').val(response.referral_type );
-                $('#changeValue ').val(response.referralpercentage );
-                $('#calculationType ').val(response.referralpercentagename );
-                $('#referralAmount ').val(response.referralamount );
-
-            },
-            error: function () {
-                alert('Oops something went wrong!')
-            }
-        })
-    });{% endcomment %}
 
     function editAdmission(edit_value){
         {#let edit_value = $(this).data('adm');#}
@@ -343,7 +314,7 @@ function validateNumber(event) {
                      <td class="py-2"> <a href="#"  data-adm="{{ adm.sno }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" onclick="editAdmission()" data-target="#admissionModal" ></a>
 {#                      <a href="#"  data-adm="{{ adm.sno }}" class="icon-trash text-danger deleteRow" data-target="#deleteRow"></a></td>#}
 
-{#                        <a href="#" data-payment="{{ adm.sno }}" class="icon-trash reject-payment" name="delete">Delete</a>#}
+                        <a href="#" data-payment="{{ adm.sno }}" class="icon-trash reject-payment" name="delete">Delete</a>
                      </td>
                      <td class="py-2 text-right">{{ adm.sno }}</td>
                      <td class="py-2">{{ adm.invoice_no }}</td>
@@ -454,7 +425,6 @@ function validateNumber(event) {
                                             <option value="Cash" selected>Cash</option>
                                             <option value="UPI" >UPI</option>
                                             <option value="NetBanking">NetBanking</option>
-{#                                            <option value="Cheque" >Cheque</option>#}
                                         </select>
                                     </div>
                                 </div>

@@ -17,12 +17,11 @@
             "pageLength": 10,
             "lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],
             searching: true,
-        {% if not doctor_agent_list %}
             info: true, // bottom left info
             responsive: true, // responnsive table
             "deferRender": true,
             ajax: {
-                url: "{% url 'doctor_agent_list_dt' %}",
+                {#url: "{% url 'doctor_agent_list_dt' %}",#}
                 type: "POST",
             },
 
@@ -52,7 +51,6 @@
                 {data: "designation"},
                 {data: "department"},
             ],
-        {% endif %}
         });
 
         {#$('#cus-responsive-datatable_wrapper').removeClass('dataTables_wrapper container-fluid dt-bootstrap4 no-footer');#}
@@ -172,7 +170,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
              <div class="form-group">
                  <select class="form-control" name="branch">
                      <option value="" >-- Select Branch --</option>
-{#                     <option value="All" >All</option>#}
+                     <option value="All" >All</option>
                      {% for list in branch %}
                          <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
 
@@ -272,7 +270,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% if doctor_agent_list %}
+{#                                {% if doctor_agent_list %}#}
                                 {% for agents in doctor_agent_list %}
                                     <tr>
                                         <td class="py-1 text-right">{{ forloop.counter }}</td>
@@ -301,7 +299,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                         <td class="py-1">{{ agents.designation }}</td>
                                     </tr>
                                 {% endfor %}
-                                {% endif %}
+{#                                {% endif %}#}
 
                                 </tbody>
                             </table>

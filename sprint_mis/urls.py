@@ -50,6 +50,7 @@ urlpatterns = [
     path('s_id/', views.s_id, name='s_id'),
     path('search_uid/', views.search_uid, name='search_uid'),
     path('pdf/', views.pdf, name='pdf'),
+    path('pdf/', views.pdf, name='pdf'),
 
 
 
@@ -109,12 +110,13 @@ urlpatterns = [
     path('map_maker/', views.map_maker, name='map_maker'),
     path('live_location/', views.live_location, name='live_location'),
     path('emp_map_data/', views.emp_map_data, name='emp_map_data'),
+    path('map_data/', views.map_data, name='map_data'),
+    path('ucid_creation/', views.ucid_creation, name='ucid_creation'),
 
     # path('dynamic_form/', views.dynamic_form, name='dynamic_form'),
     # path('api/payment-list/', PaymentListAPIView.as_view(), name='payment_list_api'),
     # path('payment-list/', PaymentListView.as_view(), name='payment_list'),
     # path('my-api/', MyAPIView.as_view(), name='my_api'),
-
 
 
 
