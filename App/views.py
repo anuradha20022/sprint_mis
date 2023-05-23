@@ -2280,14 +2280,13 @@ def coverage_report(request):
         result = []
         for emp in results:
             emp_id = emp.emp_id
-            call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date)
+            call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date).values('area', 'city', 'state', 'pincode')
             total = call_report_qs.aggregate(TOTAL=Count('unique_id'))
             qua = call_report_qs.filter(ref_type__contains='QUALIFIED').aggregate(QUA=Count('unique_id'))
             reg = call_report_qs.filter(ref_type__contains='REGISTERED PRACTIONER').aggregate(REG=Count('unique_id'))
             spc = call_report_qs.filter(ref_type__contains='SPECIAL CATEGORY').aggregate(SPC=Count('unique_id'))
             karnataka = call_report_qs.filter(ref_type__contains='KARNATAKA').aggregate(KARNATAKA=Count('unique_id'))
             mintime = call_report_qs.aggregate(MINTIME=Min('time'))
-
             logins_location = Logins.objects.filter(emp_id=emp_id, last_loc_datetime__date=date).values('last_location')
 
             values = {
@@ -2301,6 +2300,10 @@ def coverage_report(request):
                 'KARNATAKA': karnataka['KARNATAKA'] if karnataka['KARNATAKA'] else 0,
                 'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else '-',
                 'location': logins_location[0]['last_location'] if logins_location else None,
+                'area': call_report_qs[0]['area'] if call_report_qs else None,
+                'city': call_report_qs[0]['city'] if call_report_qs else None,
+                'state': call_report_qs[0]['state'] if call_report_qs else None,
+                'pincode': call_report_qs[0]['pincode'] if call_report_qs else None,
             }
             result.append(values)
         context = {
