@@ -263,55 +263,53 @@ def doctor_agent_list(request):
         messages.success(request, f"Emp Id : {from_empid} Transferred to Emp Id : {to_empid}")
         return redirect('doctor_agent_list')
 
-    empid = request.POST.get('empid')
-    branch = request.POST.get('branch')
-    queryset = DoctorAgentList.objects.exclude(emp_id='1234')
-    filter_q = ~Q(emp_id='1234')
-
-    if empid:
-        filter_q &= Q(unique_id=empid)
-    if branch:
-        filter_q &= Q(branch=branch)
-
-    context["doctor_agent_list"] = queryset.filter(filter_q)
-
+    if request.method == "POST":
+        empid = request.POST.get('empid')
+        branch = request.POST.get('branch')
+        if branch == "All":
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(~Q(emp_id='1234'))
+        elif empid and branch:
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(
+                Q(unique_id=empid, branch=branch) & ~Q(emp_id='1234'))
+        elif empid:
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(unique_id=empid) & ~Q(emp_id='1234'))
+        elif branch:
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234'))
     return render(request, 'doctor_agent_list.html', context)
 
 @csrf_exempt
 @login_required(login_url="/")
 def doctor_agent_list_dt(request):
-    branch = request.GET.get('branch')
+    # print(request.POST)
     draw = int(request.POST.get('draw'))
-    start = int(request.POST.get('start'))
+    # start = int(request.POST.get('start'))
     length = int(request.POST.get('length'))
     search = request.POST.get('search[value]')
     colindex = request.POST.get("order[0][column]")
+    records_total = DoctorAgentList.objects.all().order_by('unique_id').count()
+    records_filtered = records_total
     agent_data = DoctorAgentList.objects.all().order_by('unique_id').values()
 
-    if branch == 'All':
-        records_total = DoctorAgentList.objects.filter(~Q(emp_id='1234')).order_by('sno').count()
-        records_filtered = records_total
-        agent_data = DoctorAgentList.objects.all().order_by('sno').values()[
-                     start:length + start]
-        if search:
-            agent_data = DoctorAgentList.objects.filter(Q(branch=search) | Q(agent_name__icontains=search) | Q(
+    if search:
+        agent_data = DoctorAgentList.objects.filter(
+            Q(unique_id__icontains=search) | Q(agent_name__icontains=search) | Q(
                 unique_id__icontains=search)).order_by('unique_id').values()
-            records_total = agent_data.count()
-            records_filtered = records_total
-    else:
-        records_total = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234')).order_by('sno').count()
+        records_total = agent_data.count()
         records_filtered = records_total
-        agent_data = DoctorAgentList.objects.filter(branch=branch).order_by('sno').values()[
-                     start:length + start]
-        if search:
-            agent_data = DoctorAgentList.objects.filter(Q(branch=search) | Q(agent_name__icontains=search) | Q(
-                unique_id__icontains=search)).order_by('unique_id').values()
-            records_total = agent_data.count()
-            records_filtered = records_total
+
+    paginator = Paginator(agent_data, length)
+
+    try:
+        object_list = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        object_list = paginator.page(draw).object_list
+    except EmptyPage:
+        object_list = paginator.page(paginator.num_pages).object_list
+
     data = [
         {
             'sno': '',
-            'input': '<input type="checkbox" class="" name="'+str(emp['emp_id'])+'" value="">',
+            # 'input': '<input type="checkbox" class="" name="'+str(emp['emp_id'])+'" value="">',
             'emp_id': emp['emp_id'],
             'unique_id': emp['unique_id'],
             'agent_type': emp['agent_type'],
@@ -334,7 +332,7 @@ def doctor_agent_list_dt(request):
             'designation': emp['designation'],
             'department': emp['department'],
             # 'employee_id': '<a href="/profile/?i=' + str(emp['employee_id']) + '">' + str(emp['employee_id']) + '</a>',
-        } for emp in agent_data
+        } for emp in object_list
     ]
     return JsonResponse(
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered, "data": data}, safe=False)
@@ -814,23 +812,23 @@ def allowance_report(request):
                 `logins`.`Branch` AS Branch, `logins`.`allow` AS Allowance,
                  COUNT(DISTINCT `call_report_master`.`date`) AS Total_Days,
                  COUNT(`call_report_master`.`emp_id`) AS Total_Calls, CASE WHEN `logins`.`allow` = 300 THEN 25.00
-                 WHEN `logins`.`allow` = 250 THEN 16.67 ELSE 0.00 END AS Per_Day_Allowance,
+                 WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00 END AS Per_Day_Allowance,
                  COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00
-                  WHEN `logins`.`allow` = 250 THEN 16.67  ELSE 0.00  END As TOTAL FROM `call_report_master`
+                  WHEN `logins`.`allow` = 250 THEN 21  ELSE 0.00  END As TOTAL FROM `call_report_master`
                  INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE
                 `call_report_master`.`date` BETWEEN '{from_d}' AND '{to_d}'
                  AND `logins`.`Job_Status` = 'Active' AND `logins`.`Designation` != 'Center Head'
                  AND `logins`.`Page` = 'Marketing' AND `logins`.`type` != 'Admin' GROUP BY
-                `call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;""")
+                `call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;""".format(fd=from_d, td=to_d))
         else:
             cursor.execute(
                 "SELECT `call_report_master`.`emp_id` AS Emp_ID,`logins`.`Emp_name` AS Emp_name,"
                 "`logins`.`Branch` AS Branch, `logins`.`allow` AS Allowance,"
                 " COUNT(DISTINCT `call_report_master`.`date`) AS Total_Days,"
                 " COUNT(`call_report_master`.`emp_id`) AS Total_Calls, CASE WHEN `logins`.`allow` = 300 THEN 25.00"
-                " WHEN `logins`.`allow` = 250 THEN 16.67 ELSE 0.00 END AS Per_Day_Allowance,"
+                " WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00 END AS Per_Day_Allowance,"
                 " COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00"
-                "  WHEN `logins`.`allow` = 250 THEN 16.67  ELSE 0.00  END As TOTAL FROM `call_report_master`"
+                "  WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00  END As TOTAL FROM `call_report_master`"
                 " INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE"
                 "`call_report_master`.`date` BETWEEN '{fd}' AND '{td}' and `logins`.`Branch` = '{bn}'"
                 " AND `logins`.`Job_Status` = 'Active' AND `logins`.`Designation` != 'Center Head'"
@@ -865,23 +863,23 @@ def inactive_allowance_report(request):
                 `logins`.`Branch` AS Branch, `logins`.`allow` AS Allowance,
                  COUNT(DISTINCT `call_report_master`.`date`) AS Total_Days,
                  COUNT(`call_report_master`.`emp_id`) AS Total_Calls, CASE WHEN `logins`.`allow` = 300 THEN 25.00
-                 WHEN `logins`.`allow` = 250 THEN 16.67 ELSE 0.00 END AS Per_Day_Allowance,
+                 WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00 END AS Per_Day_Allowance,
                  COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00
-                  WHEN `logins`.`allow` = 250 THEN 16.67  ELSE 0.00  END As TOTAL FROM `call_report_master`
+                  WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00  END As TOTAL FROM `call_report_master`
                  INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE
                 `call_report_master`.`date` BETWEEN '{from_d}' AND '{to_d}'
                  AND `logins`.`Job_Status` = 'Inactive' AND `logins`.`Designation` != 'Center Head'
                  AND `logins`.`Page` = 'Marketing' AND `logins`.`type` != 'Admin' GROUP BY
-                `call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;""")
+                `call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;""".format(fd=from_d, td=to_d))
         else:
             cursor.execute(
                 "SELECT `call_report_master`.`emp_id` AS Emp_ID,`logins`.`Emp_name` AS Emp_name,"
                 "`logins`.`Branch` AS Branch, `logins`.`allow` AS Allowance,"
                 " COUNT(DISTINCT `call_report_master`.`date`) AS Total_Days,"
                 " COUNT(`call_report_master`.`emp_id`) AS Total_Calls, CASE WHEN `logins`.`allow` = 300 THEN 25.00"
-                " WHEN `logins`.`allow` = 250 THEN 16.67 ELSE 0.00 END AS Per_Day_Allowance,"
+                " WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00 END AS Per_Day_Allowance,"
                 " COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00"
-                "  WHEN `logins`.`allow` = 250 THEN 16.67  ELSE 0.00  END As TOTAL FROM `call_report_master`"
+                "  WHEN `logins`.`allow` = 250 THEN 21  ELSE 0.00  END As TOTAL FROM `call_report_master`"
                 " INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE"
                 "`call_report_master`.`date` BETWEEN '{fd}' AND '{td}' and `logins`.`Branch` = '{bn}'"
                 " AND `logins`.`Job_Status` = 'Inactive' AND `logins`.`Designation` != 'Center Head'"
@@ -1358,16 +1356,13 @@ def employee_list(request):
 
     if 'branch' in request.POST and 'employee_update' not in request.POST:
         branch = request.POST.get('branch')
-
-        if branch == 'All':
-            context['emp_list'] = Logins.objects.filter(job_status='Active', page='Marketing').exclude(branch="Test") & Logins.objects.filter(
-                ~Q(type='Admin')).exclude(branch="Test").order_by(
+        if branch:
+            context['emp_list'] = Logins.objects.filter(Q(job_status='Active', page='Marketing', branch=branch) & (~Q(branch="Test"))).order_by(
                 'branch', 'emp_id')
 
-        else:
-            context['emp_list'] = Logins.objects.filter(job_status='Active', page='Marketing',
-                                                        branch=branch) & Logins.objects.filter(
-                ~Q(type='Admin')).order_by('branch', 'emp_id')
+    else:
+        context['emp_list'] = Logins.objects.filter(Q(job_status='Active', page='Marketing') &(~Q(branch="Test"))).order_by(
+                'branch', 'emp_id')
 
     if request.method == "GET" and request.is_ajax():
         emp_id = request.GET.get('emp_id')
@@ -1410,14 +1405,14 @@ def employee_leave_list(request):
     context = {
         'daily_call': CallReportMaster.objects.all()
     }
-    if request.method == 'POST':
-        filter_date = request.POST.get('date')
+    # if request.method == 'POST':
+    #     filter_date = request.POST.get('date')
+    #
+    #     fdate, tdate = filter_date.split(' - ')
+    #     fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
+    #     tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
 
-        fdate, tdate = filter_date.split(' - ')
-        fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
-        tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
-
-    return render(request, 'Employee/employee_leave_list.html')
+    return render(request, 'Employee/employee_leave_list.html', context)
 
 
 @login_required(login_url="/")
@@ -1558,15 +1553,27 @@ def camp_report(request):
         tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
 
         data = connection.cursor()
+        if filter_date:
+            data.execute("SELECT `camp_create`.`sno`,`camp_create`.`empid`,`camp_create`.`empname`,`camp_create`.`state`,"
+                         "`camp_create`.`zone`,`camp_create`.`area`,`camp_create`.`colonyname`,`camp_create`.`camptype`,"
+                         "`camp_create`.`transid`,`camp_create`.`branch`,DATE_FORMAT(`camp_create`.`date_time`,'%d-%m-%Y') "
+                         "AS date_time,`camp_create`.`status`,COUNT(`camp_reg`.`transid`) AS registration FROM `camp_create` "
+                         "INNER JOIN `camp_reg` ON `camp_create`.`transid` = `camp_reg`.`transid` WHERE"
+                         " DATE_FORMAT(`camp_create`.`date_time`,'%Y-%m-%d') BETWEEN '{fd}' AND '{td}' and `camp_create`.`branch` !='Test' GROUP BY "
+                         "`camp_reg`.`transid` ORDER BY `camp_create`.`date_time` ASC;".format(
+                fd=fdate, td=tdate))
+        desc = data.description
+        context['camp'] = [
+            dict(zip([i[0] for i in desc], row)) for row in data.fetchall()
+        ]
+    else:
+        data = connection.cursor()
         data.execute("SELECT `camp_create`.`sno`,`camp_create`.`empid`,`camp_create`.`empname`,`camp_create`.`state`,"
                      "`camp_create`.`zone`,`camp_create`.`area`,`camp_create`.`colonyname`,`camp_create`.`camptype`,"
                      "`camp_create`.`transid`,`camp_create`.`branch`,DATE_FORMAT(`camp_create`.`date_time`,'%d-%m-%Y') "
                      "AS date_time,`camp_create`.`status`,COUNT(`camp_reg`.`transid`) AS registration FROM `camp_create` "
-                     "INNER JOIN `camp_reg` ON `camp_create`.`transid` = `camp_reg`.`transid` WHERE"
-                     " DATE_FORMAT(`camp_create`.`date_time`,'%Y-%m-%d') BETWEEN '2019-01-01' AND '2023-01-01' GROUP BY "
-                     "`camp_reg`.`transid` ORDER BY `camp_create`.`date_time` ASC;".format(
-            fd=fdate, td=tdate))
-
+                     "INNER JOIN `camp_reg` ON `camp_create`.`transid` = `camp_reg`.`transid` where `camp_create`.`branch` !='Test' GROUP BY "
+                     "`camp_reg`.`transid` ORDER BY `camp_create`.`date_time` ASC;")
         desc = data.description
         context['camp'] = [
             dict(zip([i[0] for i in desc], row)) for row in data.fetchall()
@@ -2507,4 +2514,5 @@ def live_location(request):
 
 
 def ucid_creation(request):
+    
     return render(request, 'ucid_creation.html')

@@ -76,7 +76,7 @@
                 <div class="form-group">
                     <select class="form-control" name="branch">
                         <option value="">--select branch--</option>
-                        <option value="All">All</option>
+                        <option value="All" selected>All</option>
                         {% for list in branch %}
                             <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
                         {% endfor %}
@@ -200,7 +200,7 @@
                                 <thead>
                                 <tr role="row" style="background: #3F51B5; color: #fff;">
                                     <th class="py-2" data-orderable="false">#</th>
-                                    <th class="py-2" data-orderable="false">Action</th>
+                                    <th class="py-2" data-orderable="false">Edit</th>
                                     <th class="py-2" data-orderable="false">Emp ID</th>
                                     <th class="py-2" data-orderable="false">Name</th>
                                     <th class="py-2" data-orderable="false"> Designation</th>
@@ -216,7 +216,7 @@
                                          <td class="py-1">
                                              <a href="#"  data-ref="{{ emp.emp_id}}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>
 {#                                           <a href="{% url 'referral_details' %}?edit={{ emp.emp_id }}" class=" "><i class="icon-pencil mr-2 text-info"></i></a>#}
-                                             <a href="{% url 'employee_list' %}?delete={{ emp.emp_id}}" class=" "><i class="icon-trash mr-2 text-danger"></i></a>
+{#                                             <a href="{% url 'employee_list' %}?delete={{ emp.emp_id}}" class=" "><i class="icon-trash mr-2 text-danger"></i></a>#}
 {#                                        <a class="dropdown-item delete-unit" href="#" data-toggle="modal" data-unit={{ emp.emp_id}} data-target="#delete_unit"><i class="fa fa-trash-o m-r-5"></i> Deactive</a>#}
                                          </td>
                                         <td class="py-1">{{ emp.emp_id }}</td>

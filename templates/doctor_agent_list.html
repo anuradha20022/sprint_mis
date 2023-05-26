@@ -15,19 +15,19 @@
             paging: true,
             lengthChange: true,
             "pageLength": 10,
-            "lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],
+            {#"lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],#}
             searching: true,
             info: true, // bottom left info
             responsive: true, // responnsive table
-            "deferRender": true,
+            {#"deferRender": true,#}
             ajax: {
-                {#url: "{% url 'doctor_agent_list_dt' %}",#}
+                url: "{% url 'doctor_agent_list_dt' %}",
                 type: "POST",
             },
 
             columns:[
                 {data: "sno"},
-                {data: "input"},
+                {#{data: "input"},#}
                 {data: "emp_id"},
                 {data: "unique_id"},
                 {data: "agent_name"},
@@ -39,17 +39,17 @@
                 {data: "pancard"},
                 {data: "bank_ac"},
                 {data: "ifsc"},
-                {data: "area"},
-                {data: "city"},
-                {data: "district"},
+                {#{data: "area"},#}
+                {#{data: "city"},#}
+                {#{data: "district"},#}
                 {data: "state"},
                 {data: "pincode"},
                 {data: "date"},
-                {data: "source"},
+                {#{data: "source"},#}
                 {data: "type"},
                 {data: "r_status"},
                 {data: "designation"},
-                {data: "department"},
+                {#{data: "department"},#}
             ],
         });
 
@@ -57,7 +57,7 @@
 
         var agent_list;
 
-        $('#transfer_form').on('submit', function (e) {
+            $('#transfer_form').on('submit', function (e) {
             e.preventDefault();
             {#let agent_list = $("input[name='transfer_id']:checked").val();#}
             agent_list = $("input[name='transfer_id']:checked").map(function () {
@@ -116,26 +116,7 @@
 {% endblock %}
 {% block body %}
     <style>
-table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before, table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>th:first-child:before {
-    top: 12px;
-    left: 2px;
-    right: 55px;
-    height: 14px;
-    width: 14px;
-    display: block;
-    position: absolute;
-    color: white;
-    border: 2px solid white;
-    border-radius: 14px;
-    box-shadow: 0 0 3px #444;
-    box-sizing: content-box;
-    text-align: center;
-    text-indent: 0 !important;
-    font-family: 'Courier New', Courier, monospace;
-    line-height: 14px;
-    content: '+';
-    background-color: #0275d8;
-}
+
     .ui-autocomplete{
         z-index: 999999;
     }
@@ -156,12 +137,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
     .dataTables_wrapper {
         padding: 0!important;
     }
-    .custom-checkbox, .custom-radio {
-    padding-left: 20px;
-}
-    th {
-    text-align: center;
-}
     </style>
  <form action="" method="POST" autocomplete="off">
  {% csrf_token %}
@@ -236,6 +211,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
 
  </form>
 
+{#    {% if doctor_agent_list %}#}
         <form id="transfer_form" method="post">
         {% csrf_token %}
             <div class="row pb-4">
@@ -270,12 +246,12 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                 </tr>
                                 </thead>
                                 <tbody>
-{#                                {% if doctor_agent_list %}#}
                                 {% for agents in doctor_agent_list %}
                                     <tr>
                                         <td class="py-1 text-right">{{ forloop.counter }}</td>
                                         <td class="py-1">
                                             <div class="custom-control custom-checkbox custom-checkbox-1">
+{#                                                <input type="checkbox" class="custom-control-input" id="Credit">#}
                                                 <input type="checkbox" class="custom-control-input" name="transfer_id" id="{{ agents.unique_id }}" value="{{ agents.unique_id }}">
                                                 <label class="custom-control-label" for="{{ agents.unique_id }}"></label>
                                             </div>
@@ -299,7 +275,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
                                         <td class="py-1">{{ agents.designation }}</td>
                                     </tr>
                                 {% endfor %}
-{#                                {% endif %}#}
 
                                 </tbody>
                             </table>
@@ -339,113 +314,4 @@ table.dataTable.dtr-inline.collapsed>tbody>tr[role="row"]>td:first-child:before,
             </div>
         </div>
 
-{#    {% else %}#}
-{#        <form action="" method="post">#}
-{#        {% csrf_token %}#}
-{#            <div class="row pb-4">#}
-{#                <div class="col-md-12">#}
-{#                    <div class="card card-body">#}
-{#                        <div class="text-right">#}
-{#                           <button type="submit" name="Submit" class="btn btn-success text-right">Transfer</button>#}
-{#                        </div><hr>#}
-{#                        <div class="table-responsive">#}
-{#                            <button type="submit" name="Submit" class="btn btn-sm btn-success text-right">In Activate</button>#}
-{#                            <table id="cus-responsive-datatable" class="table table-striped table-bordered" style="white-space: nowrap">#}
-{#                                <thead>#}
-{#                                <tr role="row" style="background: #3F51B5; color: #fff;">#}
-{#                                    <th class="py-2">#</th>#}
-{#                                    <th class="py-2">select</th>#}
-{#                                    <th class="py-2">Emp ID</th>#}
-{#                                    <th class="py-2">Unique ID</th>#}
-{#                                    <th class="py-2">Agent Type</th>#}
-{#                                    <th class="py-2">Category</th>#}
-{#                                    <th class="py-2">Branch</th>#}
-{#                                    <th class="py-2">Mobile</th>#}
-{#                                    <th class="py-2">Company</th>#}
-{#                                    <th class="py-2">Pan Card</th>#}
-{#                                    <th class="py-2">Bank Act</th>#}
-{#                                    <th class="py-2">IFSC</th>#}
-{#                                    <th class="py-2">Area</th>#}
-{#                                    <th class="py-2">City</th>#}
-{#                                    <th class="py-2">District</th>#}
-{#                                    <th class="py-2">State</th>#}
-{#                                    <th class="py-2">Pincode</th>#}
-{#                                    <th class="py-2">Date</th>#}
-{#                                    <th class="py-2">Source</th>#}
-{#                                    <th class="py-2">Type</th>#}
-{#                                    <th class="py-2">R_Status</th>#}
-{#                                    <th class="py-2">Designation</th>#}
-{#                                    <th class="py-2">Department</th>#}
-{#                                </tr>#}
-{#                                </thead>#}
-{#                                <tbody>#}
-{##}
-{#                                </tbody>#}
-{#                            </table>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{##}
-{#            </div>#}
-{#        </form>#}
-{#    {% endif %}#}
-{#    <div id="inactive_data" style="display: none;">#}
-{##}
-{#        <table id="data-table-5 " class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;">#}
-{#            <thead>#}
-{#            <tr role="row">#}
-{#                <th class="py-1">#</th>#}
-{#                <th class="py-1">Emp ID</th>#}
-{#                <th class="py-1">Unique ID</th>#}
-{#                <th class="py-1">Agent Type</th>#}
-{#                <th class="py-1">Category</th>#}
-{#                <th class="py-1">Branch</th>#}
-{#                <th class="py-1">Mobile</th>#}
-{#                <th class="py-1">Company</th>#}
-{#                <th class="py-1">Pan Card</th>#}
-{#                <th class="py-1">Bank Act</th>#}
-{#                <th class="py-1">IFSC</th>#}
-{#                <th class="py-1">Area</th>#}
-{#                <th class="py-1">City</th>#}
-{#                <th class="py-1">District</th>#}
-{#                <th class="py-1">State</th>#}
-{#                <th class="py-1">Pincode</th>#}
-{#                <th class="py-1">Date</th>#}
-{#                <th class="py-1">Source</th>#}
-{#                <th class="py-1">Type</th>#}
-{#                <th class="py-1">R_Status</th>#}
-{#                <th class="py-1">Designation</th>#}
-{#                <th class="py-1">Department</th>#}
-{#            </tr>#}
-{#            </thead>#}
-{#            <tbody>#}
-{#            {% for agents in inactive_data %}#}
-{#                <tr>#}
-{#                    <td class="py-1">{{ forloop.counter }}</td>#}
-{#                    <td class="py-1">{{ agents.emp_id }}</td>#}
-{#                    <td class="py-1">{{ agents.unique_id }}</td>#}
-{#                    <td class="py-1">{{ agents.agent_type }}</td>#}
-{#                    <td class="py-1">{{ agents.category }}</td>#}
-{#                    <td class="py-1">{{ agents.branch }}</td>#}
-{#                    <td class="py-1">{{ agents.mobile }}</td>#}
-{#                    <td class="py-1">{{ agents.company }}</td>#}
-{#                    <td class="py-1">{{ agents.pancard }}</td>#}
-{#                    <td class="py-1">{{ agents.bank_ac }}</td>#}
-{#                    <td class="py-1">{{ agents.ifsc }}</td>#}
-{#                    <td class="py-1">{{ agents.area }}</td>#}
-{#                    <td class="py-1">{{ agents.city }}</td>#}
-{#                    <td class="py-1">{{ agents.district }}</td>#}
-{#                    <td class="py-1">{{ agents.state }}</td>#}
-{#                    <td class="py-1">{{ agents.pincode }}</td>#}
-{#                    <td class="py-1">{{ agents.date }}</td>#}
-{#                    <td class="py-1">{{ agents.source }}</td>#}
-{#                    <td class="py-1">{{ agents.type }}</td>#}
-{#                    <td class="py-1">{{ agents.r_status }}</td>#}
-{#                    <td class="py-1">{{ agents.designation }}</td>#}
-{#                    <td class="py-1">{{ agents.department }}</td>#}
-{#                </tr>#}
-{#            {% endfor %}#}
-{#            </tbody>#}
-{#        </table>#}
-{#    </div>#}
 {% endblock %}
