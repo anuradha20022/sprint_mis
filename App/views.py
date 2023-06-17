@@ -28,18 +28,13 @@ def decode_utf8(input_iterator):
 
 
 def loginuser(request):
-    for logins in Logins.objects.all():
-        # if logins.join_date == "0000-00-00":
-        Logins.objects.filter(emp_id=logins.emp_id).update(is_staff=True, is_active=True)
-    #     # login_data = WebLogins.objects.get(emp_id=logins.emp_id)
-    #     # login_data.mpassword = login_data.password
-    #     # login_data.password = make_password(login_data.password)
-    #     # login_data.save()
+    for logins in WebLogins.objects.all():
+        WebLogins.objects.filter(emp_id=logins.emp_id).update(is_staff=True, is_active=True)
+
     if request.method == 'POST':
         emp_id = request.POST.get('emp_id')
         password = request.POST.get('password')
         user = authenticate(username=emp_id, password=password)
-        # print(user)
         if user is not None:
             login(request, user)
             return redirect('dashboard')
@@ -111,7 +106,8 @@ def register(request):
                                       page='Marketing', designation='Executive', original_type=department,
                                       orginal_design=designation,
                                       head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
                                       last_loc_datetime=timezone.now(), allow='0',
@@ -120,6 +116,23 @@ def register(request):
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
                                       androidsubmenu=submenu,
                                       loginstatus='0')
+                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
+                                         personal_number=mobile, office_number=mobile, branch=branch,
+                                         old_branch=old_branch.old_branch,
+                                         page='Marketing', designation='Executive', original_type=department,
+                                         orginal_design=designation,
+                                         head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                         date=timezone.now().date(), time=timezone.now().time(),
+                                         join_date=timezone.now().date(),
+                                         visibility='Hidden',
+                                         job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
+                                         last_location='',
+                                         last_loc_datetime=timezone.now(), allow='0',
+                                         img_link='',
+                                         model='', version='', firebase_token='',
+                                         deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                         androidsubmenu=submenu,
+                                         loginstatus='0')
 
         elif designation == 'Manager' or designation == 'Assistant Manager' or designation == 'Deputy Manager' or designation == 'Senior Manager' \
                 or designation == 'Team Lead':
@@ -133,7 +146,24 @@ def register(request):
                                       page='Marketing', designation='Manager', original_type=department,
                                       orginal_design=designation,
                                       head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
+                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page='Marketing', designation='Manager', original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
                                       last_loc_datetime=timezone.now(), allow='0',
@@ -154,7 +184,8 @@ def register(request):
                                       page='Marketing', designation='Marketing Head', original_type=department,
                                       orginal_design=designation,
                                       head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
                                       last_loc_datetime=timezone.now(), allow='0',
@@ -163,6 +194,23 @@ def register(request):
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
                                       androidsubmenu=submenu,
                                       loginstatus='0').save()
+                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page='Marketing', designation='Marketing Head', original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
+
         elif designation == 'Center Head':
             get_menu_details = LoginPermissions.objects.filter(designation__contains='Center Head').first()
             if get_menu_details:
@@ -174,7 +222,8 @@ def register(request):
                                       page='Marketing', designation='Center Head', original_type=department,
                                       orginal_design=designation,
                                       head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
                                       last_loc_datetime=timezone.now(), allow='0',
@@ -183,6 +232,23 @@ def register(request):
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
                                       androidsubmenu=submenu,
                                       loginstatus='0').save()
+                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page='Marketing', designation='Center Head', original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
+
         else:
             get_menu_details = LoginPermissions.objects.filter(designation=designation).first()
             if get_menu_details:
@@ -194,7 +260,24 @@ def register(request):
                                       page=department, designation=designation, original_type=department,
                                       orginal_design=designation,
                                       head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
+                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page=department, designation=designation, original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(),
+                                      join_date=timezone.now().date(),
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
                                       last_loc_datetime=timezone.now(), allow='0',
@@ -226,7 +309,6 @@ def register(request):
             messages.error(request, "You have entered incorrect Emp_ID")
         return redirect('register')
 
-
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
         'branch_wise_count': result,
@@ -245,7 +327,7 @@ def employee_list(request):
 
     if 'delete' in request.GET:
         delete = request.GET.get('delete')
-        data = Logins.objects.get(emp_id=delete)
+        data = WebLogins.objects.get(emp_id=delete)
         data.delete()
         messages.success(request, 'Deleted succesfully')
         return redirect('employee_list')
@@ -1221,6 +1303,7 @@ def admission(request):
     return JsonResponse(
         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered,
          "iTotalDisplayRecords": records_total, "data": data}, safe=False)
+
 
 @login_required(login_url="/")
 def recent_updates(request):
