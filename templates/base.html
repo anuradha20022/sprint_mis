@@ -552,6 +552,23 @@
         ]
     }
         });
+
+    $('.datatable').dataTable({
+          dom: 'Bfrtip',
+          responsive: true,
+          buttons: [
+            'pageLength',
+            {
+              extend: 'excel',
+              text: 'Export Excel',
+              className: 'btn-export',
+              exportOptions: {
+                columns: [0, 1, 2, 3, 4], // Specify the column indices to export
+              },
+            },
+          ],
+        });
+
     $('.responsive-datatable').dataTable({
         responsive: true,
     });
@@ -565,8 +582,9 @@
             swal("Failed!", "{{ message }}", "warning");
         {% endif %}
     {% endfor %}
+
     $('#transfer_search_id1').autocomplete({
-        source:'{% url 'doctor_search' %}',
+        source:'{% url 'transfer_doctor_search' %}',
         minLength: 2,
         focus: function (event, ui) {
                 if (ui.item.id !== "") {
@@ -596,7 +614,7 @@
 
     });
     $('#transfer_search_id2').autocomplete({
-        source:'{% url 'doctor_search' %}',
+        source:'{% url 'transfer_doctor_search' %}',
         minLength: 2,
         focus: function (event, ui) {
                 if (ui.item.id !== "") {

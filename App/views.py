@@ -1,9 +1,10 @@
 from builtins import UnicodeDecodeError
-
+from datetime import date
 import ast
 import csv
 import os
 
+import bcrypt
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -15,13 +16,8 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from fpdf import FPDF
-
-from App.forms import Update
 from .models import *
 
-
-# Create your views here.
 
 def decode_utf8(input_iterator):
     for l in input_iterator:
@@ -32,10 +28,9 @@ def decode_utf8(input_iterator):
 
 
 def loginuser(request):
-    WebLogins.objects.filter(emp_id='15423').update(password=make_password('7207999141'))
-    for logins in WebLogins.objects.all():
+    for logins in Logins.objects.all():
         # if logins.join_date == "0000-00-00":
-        WebLogins.objects.filter(emp_id=logins.emp_id).update(is_staff=True, is_active=True)
+        Logins.objects.filter(emp_id=logins.emp_id).update(is_staff=True, is_active=True)
     #     # login_data = WebLogins.objects.get(emp_id=logins.emp_id)
     #     # login_data.mpassword = login_data.password
     #     # login_data.password = make_password(login_data.password)
@@ -43,8 +38,6 @@ def loginuser(request):
     if request.method == 'POST':
         emp_id = request.POST.get('emp_id')
         password = request.POST.get('password')
-        # emp_id = request.POST['emp_id']
-        # password = request.POST['password']
         user = authenticate(username=emp_id, password=password)
         # print(user)
         if user is not None:
@@ -56,9 +49,6 @@ def loginuser(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     return render(request, 'login.html')
-
-
-# SELECT `logins`.`Emp_ID`, `call_report_master`.`emp_id` from `logins` INNER join `call_report_master` on `logins`.`Emp_ID`= `call_report_master`.`emp_id`;
 
 
 @login_required(login_url="/")
@@ -102,54 +92,118 @@ def register(request):
         designation = request.POST.get('designation')
         branch = request.POST.get('branch')
         department = request.POST.get('department')
-        catogery = request.POST.get('catogery')
-        reporting_to = request.POST.get('repo   rting_to')
+        category = request.POST.get('category')
+        reporting_to = request.POST.get('reporting_to')
         old_branch = Logins.objects.filter(branch=branch).exclude(branch='').first()
+        password = mobile.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_password_bytes = bcrypt.hashpw(password, salt)
+        hashed_password = hashed_password_bytes.decode('utf-8')
 
         if designation == 'Executive' or designation == 'Senior Executive':
-            # Logins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
-            #                       personal_number=mobile, office_number=mobile, branch=branch,
-            #                       old_branch=old_branch.old_branch,
-            #                       page='Executive', designation=designation, original_type=department,
-            #                       head=reporting_to, type=department, branch_access=branch, new_type=catogery).save()
+            get_menu_details = LoginPermissions.objects.filter(designation__contains='Executive').first()
+            if get_menu_details:
+                menu = get_menu_details.menu
+                submenu = get_menu_details.submenu
+                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page='Marketing', designation='Executive', original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0')
 
-            WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
-                                     personal_number=mobile, office_number=mobile, branch=branch,
-                                     old_branch=old_branch.old_branch,
-                                     page='Executive', designation=designation, original_type=department,
-                                     head=reporting_to, type=department, branch_access=branch, new_type=catogery, date=timezone.now().date(), time=timezone.now().time(),visibility='',
-                                     job_status='Active', levels=0, bank_acc='', ifsc='', pan='', img_link='', model='', version='', firebase_token='',
-                                     deviceid='', accesskey='', state='',  androidpermissions='', loginstatus='' )
-            # Executive
-        elif designation == 'Manager':
-            # Logins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
-            #                       personal_number=mobile, office_number=mobile, branch=branch,
-            #                       old_branch=old_branch.old_branch,
-            #                       page='Manager', designation=designation, original_type=department, head=reporting_to,
-            #                       type=department, branch_access=branch, new_type=catogery).save()
-            WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
-                                     personal_number=mobile, office_number=mobile, branch=branch,
-                                     old_branch=old_branch.old_branch,
-                                     page='Manager', designation=designation, original_type=department,
-                                     head=reporting_to, type=department, branch_access=branch, new_type=catogery, date=timezone.now().date(), time=timezone.now().time(),visibility='',
-                                     job_status='Active', levels=0, bank_acc='', ifsc='', pan='', img_link='', model='', version='', firebase_token='',
-                                     deviceid='', accesskey='', state='',  androidpermissions='', loginstatus='' )
-            # Manager
+        elif designation == 'Manager' or designation == 'Assistant Manager' or designation == 'Deputy Manager' or designation == 'Senior Manager' \
+                or designation == 'Team Lead':
+            get_menu_details = LoginPermissions.objects.filter(designation__contains='Manager').first()
+            if get_menu_details:
+                menu = get_menu_details.menu
+                submenu = get_menu_details.submenu
+                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page='Marketing', designation='Manager', original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
+
+        elif designation == 'General Manager' or designation == 'Deputy General Manager':
+            get_menu_details = LoginPermissions.objects.filter(designation__contains='Marketing Head').first()
+            if get_menu_details:
+                menu = get_menu_details.menu
+                submenu = get_menu_details.submenu
+                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page='Marketing', designation='Marketing Head', original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
+        elif designation == 'Center Head':
+            get_menu_details = LoginPermissions.objects.filter(designation__contains='Center Head').first()
+            if get_menu_details:
+                menu = get_menu_details.menu
+                submenu = get_menu_details.submenu
+                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page='Marketing', designation='Center Head', original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
         else:
-            # Logins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
-            #                       personal_number=mobile, office_number=mobile, branch=branch,
-            #                       old_branch=old_branch.old_branch,
-            #                       page='Team Lead', designation=designation, original_type=department,
-            #                       head=reporting_to, type=department, branch_access=branch, new_type=catogery).save()
+            get_menu_details = LoginPermissions.objects.filter(designation=designation).first()
+            if get_menu_details:
+                menu = get_menu_details.menu
+                submenu = get_menu_details.submenu
+                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
+                                      personal_number=mobile, office_number=mobile, branch=branch,
+                                      old_branch=old_branch.old_branch,
+                                      page=department, designation=designation, original_type=department,
+                                      orginal_design=designation,
+                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
+                                      date=timezone.now().date(), time=timezone.now().time(), join_date=timezone.now().date(),
+                                      visibility='Hidden',
+                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
+                                      last_loc_datetime=timezone.now(), allow='0',
+                                      img_link='',
+                                      model='', version='', firebase_token='',
+                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
+                                      androidsubmenu=submenu,
+                                      loginstatus='0').save()
 
-            WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile), mpassword=mobile,
-                                     personal_number=mobile, office_number=mobile, branch=branch,
-                                     old_branch=old_branch.old_branch,
-                                     page='Team Lead', designation=designation, original_type=department,
-                                     head=reporting_to, type=department, branch_access=branch, new_type=catogery, date=timezone.now().date(), time=timezone.now().time(),visibility='',
-                                     job_status='Active', levels=0, bank_acc='', ifsc='', pan='', img_link='', model='', version='', firebase_token='',
-                                     deviceid='', accesskey='', state='',  androidpermissions='', loginstatus='' )
-            # Team Lead
         messages.success(request, 'Employee Account has been created')
         return redirect('register')
 
@@ -159,20 +213,19 @@ def register(request):
         messages.success(request, "branch added")
         return redirect('register')
 
-    # active and inactive user
     if 'emp_search' in request.POST:
         emp_search = request.POST.get('emp_search')
         status = request.POST.get('status')
         try:
             user = Logins.objects.get(emp_id=emp_search)
             user.job_status = status
-            user.inactive_dt = datetime.today().date()
+            user.inactive_dt = date.today()
             user.save()
             messages.success(request, "updated successfully..")
         except Logins.DoesNotExist:
             messages.error(request, "You have entered incorrect Emp_ID")
-
         return redirect('register')
+
 
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
@@ -183,8 +236,62 @@ def register(request):
 
 
 @login_required(login_url="/")
+def employee_list(request):
+    context = {
+        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'agent_type': DoctorAgentList.objects.filter(~Q(agent_type='Type')).values('agent_type').distinct(),
+        'designation': Logins.objects.all()
+    }
+
+    if 'delete' in request.GET:
+        delete = request.GET.get('delete')
+        data = Logins.objects.get(emp_id=delete)
+        data.delete()
+        messages.success(request, 'Deleted succesfully')
+        return redirect('employee_list')
+
+    if 'employee_update' in request.POST:
+        emp_name = request.POST.get("emp_name")
+        emp_id = request.POST.get("emp_id")
+        designation = request.POST.get("designation")
+        mobile_number = request.POST.get("mobile_number")
+        office_number = request.POST.get("office_number")
+        bank_ac = request.POST.get("bank_ac")
+        ifsc = request.POST.get("ifsc")
+        pancard = request.POST.get("pancard")
+        reporting = request.POST.get("reporting")
+        branch = request.POST.get("branch")
+        department = request.POST.get("department")
+        Logins.objects.filter(emp_id=emp_id).update(emp_name=emp_name, orginal_design=designation,
+                                                    original_type=department,
+                                                    office_number=office_number, personal_number=mobile_number,
+                                                    bank_acc=bank_ac, pan=pancard, ifsc=ifsc, head=reporting,
+                                                    branch=branch)
+
+        messages.success(request, "Details updated successfully")
+
+    if 'branch' in request.POST and 'employee_update' not in request.POST:
+        branch = request.POST.get('branch')
+        if branch:
+            context['emp_list'] = Logins.objects.filter(
+                Q(job_status='Active', page='Marketing', branch=branch) & (~Q(branch="Test"))).order_by(
+                'branch', 'emp_id').exclude(emp_id='10101')
+
+    else:
+        context['emp_list'] = Logins.objects.filter(
+            Q(job_status='Active', page='Marketing') & (~Q(branch="Test"))).order_by(
+            'branch', 'emp_id').exclude(emp_id='10101')
+
+    if request.method == "GET" and request.is_ajax():
+        emp_id = request.GET.get('emp_id')
+        res = list(Logins.objects.filter(emp_id=emp_id).values())[0]
+        return JsonResponse(res)
+
+    return render(request, 'Employee/employee_list.html', context)
+
+
+@login_required(login_url="/")
 def search_emp(request):
-    # print(request.GET, request.POST)
     if 'term' in request.GET:
         result = []
         term = request.GET.get('term')
@@ -210,20 +317,17 @@ def doctor_search(request):
         return JsonResponse(result, safe=False)
 
 
-@login_required(login_url="/")
-def emp_list(request):
-    return render(request, 'emp_list.html')
+def transfer_doctor_search(request):
+    if 'term' in request.GET:
+        result = []
+        term = request.GET.get('term')
+        new = DoctorAgentList.objects.filter(Q(emp_id__istartswith=term) | Q(agent_name__istartswith=term))
+        for emp in new:
+            result.append({'id': emp.emp_id, 'name': emp.agent_name, 'desg': emp.designation})
+        if not result:
+            result.append({'name': '', 'id': '', 'desg': 'No data found'})
 
-
-@login_required(login_url="/")
-def update_activity(request):
-    return render(request, 'update_act.html')
-
-
-@login_required(login_url="/")
-def ref_dashboard(request):
-    return render(request, 'ref_dashboard.html')
-    #     # print(PatientData.objects.filter(~Q(branch='Test') & Q(cluster_approval='Approved') & ~Q(utr_no='') & ~Q(utr_no='NEFT Return') & ~Q(utr_no='Wrong Bank Details')).select_related('invoice_no'))
+        return JsonResponse(result, safe=False)
 
 
 @login_required(login_url="/")
@@ -257,9 +361,13 @@ def doctor_agent_list(request):
     }
 
     if 'transfer_id' in request.POST:
+        pass
+
+    if request.POST.get('from_empid'):
         from_empid = request.POST.get('from_empid')
         to_empid = request.POST.get('to_empid')
-        DoctorAgentList.objects.filter(emp_id=from_empid).update(emp_id=to_empid)
+        data = DoctorAgentList.objects.filter(emp_id=from_empid).update(emp_id=to_empid)
+        print(from_empid, to_empid)
         messages.success(request, f"Emp Id : {from_empid} Transferred to Emp Id : {to_empid}")
         return redirect('doctor_agent_list')
 
@@ -276,6 +384,7 @@ def doctor_agent_list(request):
         elif branch:
             context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234'))
     return render(request, 'doctor_agent_list.html', context)
+
 
 @csrf_exempt
 @login_required(login_url="/")
@@ -361,7 +470,6 @@ def call_report(request):
                 date__range=[start_date_formatted, end_date_formatted])
 
             context["date_range"] = date_range_str
-
 
     return render(request, 'call/call_report.html', context)
 
@@ -450,7 +558,7 @@ def save_transfer(request):
         agent = agent.split(',')
         print(transfer, agent)
         for i in agent:
-            DoctorAgentList.objects.filter(unique_id=i).update(emp_id=transfer)
+            DoctorAgentList.objects.filter(emp_id=i).update(emp_id=transfer)
             print(i)
 
         status = True
@@ -459,7 +567,6 @@ def save_transfer(request):
 
 @login_required(login_url="/")
 def call_report_csv(request):
-
     res = HttpResponse(content_type='text/csv')
     res['Content-Disposition'] = 'attachment; filename="myfile.csv"'
     writer = csv.writer(res)
@@ -593,7 +700,7 @@ def new_referral_list(request):
             "SELECT `logins`.`Emp_ID`,`logins`.`Emp_name`,`doctor_agent_list`.`agent_name`,`doctor_agent_list`.`designation`,"
             "`doctor_agent_list`.`agent_type`,`doctor_agent_list`.`unique_id`,`doctor_agent_list`.`category`,"
             "`doctor_agent_list`.`date`,`logins`.`Branch` FROM `doctor_agent_list` INNER JOIN `logins` ON `logins`.`Emp_ID` = `doctor_agent_list`.`emp_id`"
-            " WHERE `doctor_agent_list`.`branch` != 'Test' AND `doctor_agent_list`.`date` BETWEEN  '2019-01-01' AND '2023-12-12';".format(
+            " WHERE `doctor_agent_list`.`branch` != 'Test' AND `doctor_agent_list`.`date` BETWEEN  '{fd}' AND '{td}';".format(
                 fd=from_d, td=to_d))
 
         desc = cursor.description
@@ -708,26 +815,6 @@ def patient_referral(request):
                                                                      date__lte=last_date).order_by('date')
 
     return render(request, 'referral/patient_referral.html', context)
-
-
-@login_required(login_url="/")
-def abc_report(request):
-    context = {
-        'abcreport': AbcReport.objects.all(),
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
-    }
-    if request.method == 'POST':
-        branch = request.POST.get('branch')
-        # first_date = request.POST.get('date')
-        #
-        # fr_date, tm_date = first_date.split(' - ')
-        # fr_date = datetime.strptime(str(fr_date), '%m/%d/%Y').date()
-        # tm_date = datetime.strptime(str(tm_date), '%m/%d/%Y').date()
-        #
-        # if branch and first_date:
-        #     context['abcreport'] =
-
-    return render(request, 'referral/abc_report.html', context)
 
 
 @login_required(login_url="/")
@@ -887,100 +974,10 @@ def inactive_allowance_report(request):
                 "`call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;".format(fd=from_d, td=to_d, bn=branch))
         ina = cursor.description
         context['inactive'] = [
-           dict(zip([i[0] for i in ina], list)) for list in cursor.fetchall()
+            dict(zip([i[0] for i in ina], list)) for list in cursor.fetchall()
         ]
     return render(request, 'referral/inactive_allowance_report.html', context)
 
-
-@login_required(login_url="/")
-# def bill_list(request):
-#     context = {
-#         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-#     }
-#
-#     if request.POST.get('invoice_no'):
-#         invoice_no = request.POST.get("unique_id")
-#         unique_id = request.POST.get("invoice_no")
-#         marketing_executive marketing_executive request.POST.get("marketing_executive ")
-#         calculationtype = request.POST.get("referralpercentagename")
-#         referralpercentage = request.POST.get("referralpercentage")
-#         referralamount = request.POST.get("referralamount")
-#         ref_type = request.POST.get("referral_type")
-#         paymentmode = request.POST.get("paymentmode")
-#         if paymentmode == "NetBanking":
-#             accnumber = request.POST.get("accnumber")
-#             ifsccode = request.POST.get("ifsccode")
-#             pancard = request.POST.get("pancard")
-#             upinumber = None
-#         elif paymentmode == "UPI":
-#             accnumber = None
-#             ifsccode = None
-#             pancard = None
-#             upinumber = request.POST.get("upinumber")
-#         else:
-#             accnumber = None
-#             ifsccode = None
-#             pancard = None
-#             upinumber = None
-#
-#         doctor_agent = DoctorAgentList.objects.get(unique_id=invoice_no)
-#         if doctor_agent.bank_ac == "No Update" or doctor_agent.bank_ac == "":
-#             if paymentmode == "NetBanking":
-#                 doctor_agent.bank_ac = accnumber
-#                 doctor_agent.ifsc = ifsccode
-#                 doctor_agent.pancard = pancard
-#                 doctor_agent.save()
-#             PatientData.objects.filter(sno=invoice_no).update(ucid=unique_id,
-#                                                               referral_cal_by=request.user.emp_id,
-#                                                               referralcreatedby=request.user.emp_id,
-#                                                               ucidcreatedon=timezone.now(),
-#                                                               referralcreatedon=timezone.now(),
-#                                                               referralname=marketing_executive,
-#                                                               referralpercentagename=calculationtype,
-#                                                               referralpercentage=referralpercentage,
-#                                                               referralamount=referralamount,
-#                                                               referral_type=ref_type,
-#                                                               paymentmode=paymentmode,
-#                                                               accnumber=accnumber,
-#                                                               ifsccode=ifsccode,
-#                                                               pancard=pancard, upinumber=upinumber,
-#                                                               referralstatus='Yes')
-#             messages.success(request, "Updated successfully")
-#         else:
-#             PatientData.objects.filter(sno=invoice_no).update(ucid=unique_id,
-#                                                               referral_cal_by=request.user.emp_id,
-#                                                               referralcreatedby=request.user.emp_id,
-#                                                               ucidcreatedon=timezone.now(),
-#                                                               referralcreatedon=timezone.now(),
-#                                                               referralname=marketing_executive,
-#                                                               referralpercentagename=calculationtype,
-#                                                               referralpercentage=referralpercentage,
-#                                                               referralamount=referralamount,
-#                                                               referral_type=ref_type,
-#                                                               paymentmode=paymentmode,
-#                                                               accnumber=doctor_agent.bank_ac,
-#                                                               ifsccode=doctor_agent.ifsc,
-#                                                               pancard=doctor_agent.pancard, upinumber=upinumber,
-#                                                               referralstatus='Yes')
-#
-#     # if 'referralstatus' in request.POST:
-#     #     referralstatus = request.POST.get('referralstatus')
-#     #     PatientData.objects.filter(referralstatus=referralstatus).update(referralstatus='Yes')
-#     #     print(referralstatus)
-#     #     return redirect('cluster_approved_list')
-#
-#     if request.method == "GET" and request.is_ajax():
-#         sno = int(request.GET.get('sno'))
-#         res = list(PatientData.objects.filter(sno=sno).values())[0]
-#         return JsonResponse(res)
-#
-#     if 'delete_sno' in request.GET and request.is_ajax():
-#         delete_sno = request.GET.get('delete_sno')
-#         PatientData.objects.get(sno=delete_sno)
-#         messages.success(request, 'Deleted succesfully')
-#         return JsonResponse({"success": True})
-#
-#     return render(request, 'bills_list.html', context)
 
 @login_required(login_url="/")
 def bill_list(request):
@@ -1080,6 +1077,7 @@ def bill_list(request):
 
     return render(request, 'bills_list.html', context)
 
+
 @login_required(login_url="/")
 def bill(request):
     context = {
@@ -1117,12 +1115,15 @@ def admission_list_filter(request):
     colindex = request.GET.get("order[0][column]")
 
     if date is not None:
-        records_total = PatientData.objects.filter(invoice_date__lte=date,invoice_date__gte=date, referralstatus='').order_by('sno').count()
+        records_total = PatientData.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
+                                                   referralstatus='').order_by('sno').count()
         records_filtered = records_total
-        agent_data = PatientData.objects.filter(invoice_date__lte=date,invoice_date__gte=date, referralstatus='').order_by('sno').values()[
+        agent_data = PatientData.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
+                                                referralstatus='').order_by('sno').values()[
                      start:length + start]
         if search:
-            agent_data = PatientData.objects.filter(Q(invoice_date__lte=search,invoice_date__gte=search)).order_by('sno').values()
+            agent_data = PatientData.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
+                'sno').values()
             records_total = agent_data.count()
             records_filtered = records_total
 
@@ -1131,7 +1132,8 @@ def admission_list_filter(request):
         records_filtered = records_total
         agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()
         if search:
-            agent_data = PatientData.objects.filter(Q(invoice_date__lte=search,invoice_date__gte=search)).order_by('sno').values()
+            agent_data = PatientData.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
+                'sno').values()
 
             records_total = agent_data.count()
             records_filtered = records_total
@@ -1176,7 +1178,8 @@ def admission(request):
     records_filtered = records_total
     agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()[start:length + start]
     if search:
-        agent_data = PatientData.objects.filter(Q(sno=search) & Q(referralstatus='')).order_by('sno').values()[start:length + start]
+        agent_data = PatientData.objects.filter(Q(sno=search) & Q(referralstatus='')).order_by('sno').values()[
+                     start:length + start]
         records_total = agent_data.count()
         records_filtered = records_total
 
@@ -1193,7 +1196,9 @@ def admission(request):
         {
             'sno': emp['sno'],
             # 'edit': '',
-            'edit': '<a href="#"  onclick="editAdmission('+str(emp['sno'])+')" class="icon-pencil mr-2 text-info" data-toggle="modal" data-target="#admissionModal" ></a><a href="/admission_list/?delete='+str(emp['sno'])+'" class="btn btn-sm btn-danger"><i class="icon-trash" aria-hidden="true"></i></a>',
+            'edit': '<a href="#"  onclick="editAdmission(' + str(emp[
+                                                                     'sno']) + ')" class="icon-pencil mr-2 text-info" data-toggle="modal" data-target="#admissionModal" ></a><a href="/admission_list/?delete=' + str(
+                emp['sno']) + '" class="btn btn-sm btn-danger"><i class="icon-trash" aria-hidden="true"></i></a>',
             'invoice_no': emp['invoice_no'],
             'invoice_date': emp['invoice_date'],
             'branch': emp['branch'],
@@ -1214,30 +1219,8 @@ def admission(request):
 
     ]
     return JsonResponse(
-        {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered,  "iTotalDisplayRecords": records_total,  "data": data}, safe=False)
-
-
-# def search_upi(request):
-#     if 'term' in request.GET:
-#         result = []
-#         term = request.GET.get('term')
-#         cursor = connection.cursor()
-#         cursor.execute(
-#             "SELECT `unique_id`,`agent_name`,`mobile`,`logins`.`Emp_name` As empname FROM `doctor_agent_list` INNER JOIN `logins` "
-#             "ON `doctor_agent_list`.`emp_id`=`logins`.`Emp_ID` WHERE `unique_id` LIKE '%{term}%' OR `agent_name` LIKE '%{term}%' OR `mobile` LIKE '{term}' LIMIT 15;".format(
-#                 term=term))
-#         desc = cursor.description
-#         data = [
-#             dict(zip([i[0] for i in desc], emp)) for emp in cursor.fetchall()
-#         ]
-#         for emp in data:
-#             result.append(
-#                 {'id': emp['unique_id'], 'name': emp['agent_name'], 'empname': emp['empname'], 'mobile': emp['mobile']})
-#         if not result:
-#             result.append({'name': '', 'id': '', 'mobile': '', 'empname': 'No search found'})
-#
-#         return JsonResponse(result, safe=False)
-
+        {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered,
+         "iTotalDisplayRecords": records_total, "data": data}, safe=False)
 
 @login_required(login_url="/")
 def recent_updates(request):
@@ -1320,62 +1303,8 @@ def bifurcation_list(request):
 
 
 @login_required(login_url="/")
-def employee_list(request):
-    context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-        'agent_type': DoctorAgentList.objects.filter(~Q(agent_type='Type')).values('agent_type').distinct(),
-        'designation': Logins.objects.all()
-    }
-
-    if 'delete' in request.GET:
-        delete = request.GET.get('delete')
-        data = Logins.objects.get(emp_id=delete)
-        data.delete()
-        messages.success(request, 'Deleted succesfully')
-        return redirect('employee_list')
-
-    if 'employee_update' in request.POST:
-        emp_name = request.POST.get("emp_name")
-        emp_id = request.POST.get("emp_id")
-        designation = request.POST.get("designation")
-        mobile_number = request.POST.get("mobile_number")
-        office_number = request.POST.get("office_number")
-        bank_ac = request.POST.get("bank_ac")
-        ifsc = request.POST.get("ifsc")
-        pancard = request.POST.get("pancard")
-        reporting = request.POST.get("reporting")
-        branch = request.POST.get("branch")
-        department = request.POST.get("department")
-        Logins.objects.filter(emp_id=emp_id).update(emp_name=emp_name, orginal_design=designation,
-                                                    original_type=department,
-                                                    office_number=office_number, personal_number=mobile_number,
-                                                    bank_acc=bank_ac, pan=pancard, ifsc=ifsc, head=reporting,
-                                                    branch=branch)
-
-        messages.success(request, "Details updated successfully")
-
-    if 'branch' in request.POST and 'employee_update' not in request.POST:
-        branch = request.POST.get('branch')
-        if branch:
-            context['emp_list'] = Logins.objects.filter(Q(job_status='Active', page='Marketing', branch=branch) & (~Q(branch="Test"))).order_by(
-                'branch', 'emp_id')
-
-    else:
-        context['emp_list'] = Logins.objects.filter(Q(job_status='Active', page='Marketing') &(~Q(branch="Test"))).order_by(
-                'branch', 'emp_id')
-
-    if request.method == "GET" and request.is_ajax():
-        emp_id = request.GET.get('emp_id')
-        res = list(Logins.objects.filter(emp_id=emp_id).values())[0]
-        return JsonResponse(res)
-
-    return render(request, 'Employee/employee_list.html', context)
-
-
-@login_required(login_url="/")
 def attendance_list(request):
     context = {
-        # 'attendance': CallReportMaster.objects.all()
     }
     if request.method == 'POST':
         date_d = request.POST.get('date_d')
@@ -1385,13 +1314,13 @@ def attendance_list(request):
         to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
 
         cursor = connection.cursor()
-        cursor.execute("SELECT l.`emp_id`, l.`emp_name`,  crm.`date`, MIN(crm.`time`) AS `first_time`,"
-                       "  MAX(crm.`time`) AS `last_time`,crm.`attendance`, crm.`branch`"
-                       " FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` "
-                       "  WHERE l.`Job_Status` = 'Active' AND l.`Page` = 'Marketing' AND l.`type` != 'Center Head' "
-                       " AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and "
-                       "l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills')"
-                       " GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;".format(fd=from_d, td=to_d))
+        cursor.execute("""SELECT l.`emp_id`, l.`emp_name`,  crm.`date`, MIN(crm.`time`) AS `first_time`,
+                         MAX(crm.`time`) AS `last_time`,crm.`attendance`, crm.`branch`
+                        FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` 
+                         WHERE l.`Job_Status` = 'Active' AND l.`Page` = 'Marketing' AND l.`type` != 'Center Head' 
+                        AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and 
+                       l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills')
+                        GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;""".format(fd=from_d, td=to_d))
         call = cursor.description
         context['attendance'] = [
             dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()
@@ -1527,19 +1456,6 @@ def n_day_report(request):
 
 
 @login_required(login_url="/")
-def champion(request):
-    return render(request, 'call/champion.html')
-
-
-@login_required(login_url="/")
-def admission_breakup(request):
-    if request.method == 'POST':
-        date = request.POST.get('date')
-
-    return render(request, 'call/admission_breakup.html')
-
-
-@login_required(login_url="/")
 def camp_report(request):
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
@@ -1554,14 +1470,15 @@ def camp_report(request):
 
         data = connection.cursor()
         if filter_date:
-            data.execute("SELECT `camp_create`.`sno`,`camp_create`.`empid`,`camp_create`.`empname`,`camp_create`.`state`,"
-                         "`camp_create`.`zone`,`camp_create`.`area`,`camp_create`.`colonyname`,`camp_create`.`camptype`,"
-                         "`camp_create`.`transid`,`camp_create`.`branch`,DATE_FORMAT(`camp_create`.`date_time`,'%d-%m-%Y') "
-                         "AS date_time,`camp_create`.`status`,COUNT(`camp_reg`.`transid`) AS registration FROM `camp_create` "
-                         "INNER JOIN `camp_reg` ON `camp_create`.`transid` = `camp_reg`.`transid` WHERE"
-                         " DATE_FORMAT(`camp_create`.`date_time`,'%Y-%m-%d') BETWEEN '{fd}' AND '{td}' and `camp_create`.`branch` !='Test' GROUP BY "
-                         "`camp_reg`.`transid` ORDER BY `camp_create`.`date_time` ASC;".format(
-                fd=fdate, td=tdate))
+            data.execute(
+                "SELECT `camp_create`.`sno`,`camp_create`.`empid`,`camp_create`.`empname`,`camp_create`.`state`,"
+                "`camp_create`.`zone`,`camp_create`.`area`,`camp_create`.`colonyname`,`camp_create`.`camptype`,"
+                "`camp_create`.`transid`,`camp_create`.`branch`,DATE_FORMAT(`camp_create`.`date_time`,'%d-%m-%Y') "
+                "AS date_time,`camp_create`.`status`,COUNT(`camp_reg`.`transid`) AS registration FROM `camp_create` "
+                "INNER JOIN `camp_reg` ON `camp_create`.`transid` = `camp_reg`.`transid` WHERE"
+                " DATE_FORMAT(`camp_create`.`date_time`,'%Y-%m-%d') BETWEEN '{fd}' AND '{td}' and `camp_create`.`branch` !='Test' GROUP BY "
+                "`camp_reg`.`transid` ORDER BY `camp_create`.`date_time` ASC;".format(
+                    fd=fdate, td=tdate))
         desc = data.description
         context['camp'] = [
             dict(zip([i[0] for i in desc], row)) for row in data.fetchall()
@@ -1770,7 +1687,6 @@ def search_uid(request):
 
 @login_required(login_url="/")
 def utr_update(request):
-
     if request.method == "POST" or request.method == "FILES ":
         # file = request.FILES['upload_csv_file']
         # filename = file.save()
@@ -1780,10 +1696,11 @@ def utr_update(request):
 
         for row in reader:
             if row["Sno"]:
-                UtrUpdate(sno=int(row["Sno"]),invoice_no=row["Invoice_No"], patient_name=row["Patient_Name"],
-                                branch=row["Branch"],service_name=row["Service_Name"], grossamount=row["Gross Bill Amount"],
-                                discount=row["Discount Amount"],netamount=row["Net Bill Amount"],referralamount=row["Referral Amount"],
-                                utr_no=row["UTR_No"], utr_date=row["UTR_Date"],utr_created_by=request.user.emp_id).save()
+                UtrUpdate(sno=int(row["Sno"]), invoice_no=row["Invoice_No"], patient_name=row["Patient_Name"],
+                          branch=row["Branch"], service_name=row["Service_Name"], grossamount=row["Gross Bill Amount"],
+                          discount=row["Discount Amount"], netamount=row["Net Bill Amount"],
+                          referralamount=row["Referral Amount"],
+                          utr_no=row["UTR_No"], utr_date=row["UTR_Date"], utr_created_by=request.user.emp_id).save()
 
                 PatientData.objects.filter(sno=int(row["Sno"])).update(utr_on=row["UTR_Date"], utr_no=row["UTR_No"])
         messages.success(request, "upload successfully....")
@@ -1945,72 +1862,6 @@ def neft_return_list(request):
     return render(request, 'neft.html', context)
 
 
-class PDFS(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 10)
-
-        self.ln(15)
-
-    def footer(self):
-        self.set_y(-37)
-        self.line(10, 300, 220, 300)
-        self.cell(1, 7, f"Page No. {self.page_no()}", align="c")
-
-
-def pdf(request):
-    # emp = DoctorAgentList.objects.all()
-
-    pdf = PDFS()
-    pdf.add_page()
-    pdf.set_fill_color(240, 200, 185)
-    pdf.title = "Payslip"
-    pdf.ln(5)
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(1, 7, "", 0, 0)
-    pdf.cell(100, 8, "", 1, 0)
-    pdf.cell(50, 8, "", 1, 0)
-    pdf.cell(40, 8, "Growth%", 1, 1, 'C')
-    pdf.set_font('Arial', 'B', 8)
-    pdf.cell(1, 6, "", 0, 0)
-    pdf.set_fill_color(240, 200, 185)
-    pdf.cell(10, 7, "S.NO", 1, 0, 'C', fill=True)
-    pdf.cell(20, 7, "Unit", 1, 0, 'C', fill=True)
-    pdf.cell(20, 7, "Target", 1, 0, 'C', fill=True)
-    pdf.cell(25, 7, "Admissions", 1, 0, 'C', fill=True)
-    pdf.cell(25, 7, "Percentage ", 1, 0, 'C', fill=True)
-    pdf.cell(25, 7, "Admissions", 1, 0, 'C', fill=True)
-    pdf.cell(25, 7, "Percentage", 1, 0, 'C', fill=True)
-    pdf.cell(40, 7, "From", 1, 1)
-    pdf.cell(1, 6, "", 0, 0)
-
-    pdf.set_fill_color(210, 100, 135)
-    pdf.cell(10, 6, "", 1, 0)
-    pdf.cell(20, 6, "", 1, 0)
-    pdf.set_fill_color(240, 245, 200)
-    pdf.cell(20, 6, "", 1, 0, fill=True)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.set_fill_color(250, 195, 230)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.cell(40, 6, "", 1, 1)
-    pdf.cell(1, 6, "", 0, 0)
-
-    pdf.cell(30, 6, "Grand Total", 1, 0)
-    pdf.set_fill_color(240, 245, 200)
-    pdf.cell(20, 6, "", 1, 0, fill=True)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.set_fill_color(250, 195, 230)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.cell(25, 6, "", 1, 0, fill=True)
-    pdf.cell(40, 6, "", 1, 1)
-    pdf.cell(1, 6, "", 0, 0)
-    pdf.output("svs.pdf")
-    filepath = os.path.join('svs.pdf')
-    return FileResponse(open(filepath, 'rb'))
-
-
 @login_required(login_url="/")
 def cash_payment(request):
     context = {
@@ -2026,7 +1877,6 @@ def cash_payment(request):
             context['cash'] = PatientData.objects.filter(paymentmode='Cash', branch=branch, referralstatus='Yes')
 
     return render(request, 'cash_payment.html', context)
-
 
 
 @login_required(login_url="/")
@@ -2071,7 +1921,6 @@ def functional_approval_list(request):
             context['cluster'] = PatientData.objects.filter(referralstatus='Yes', chapproval="")
         else:
             context['cluster'] = PatientData.objects.filter(referralstatus='Yes', branch=branch_name, chapproval="")
-
 
     return render(request, 'fucntional_aprroval_list.html', context)
 
@@ -2196,67 +2045,6 @@ def pending_payment_csv(request):
         writer.writerow(i)
     return response
 
-#
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status
-# from rest_framework import permissions
-# from .models import PatientData
-# from .serializers import PatientDataSerializer
-#
-#
-# from rest_framework import generics
-# from .serializers import PatientDataSerializer
-# from .models import PatientData
-#
-# class PaymentListAPIView(generics.ListAPIView):
-#     serializer_class = PatientDataSerializer
-#
-#     def get_queryset(self):
-#             queryset = PatientData.objects.filter(referralstatus='Yes', chapproval='approved')
-#             return queryset
-#
-#     def list(self, request, *args, **kwargs):
-#         queryset = self.get_queryset()
-#         serializer = self.get_serializer(queryset, many=True)
-#         return Response(serializer.data)
-# from django.views.generic import TemplateView
-#
-#
-# class PaymentListView(TemplateView):
-#     template_name = 'emp_list.html'
-#
-#     branch_name = BranchListDum.objects.all()
-#     def get_context_data(self, **kwargs):
-#         branch_name = self.request.GET.get('branch')
-#         if branch_name == 'All':
-#             queryset = PatientData.objects.filter(referralstatus='Yes', chapproval='approved')
-#         else:
-#             queryset = PatientData.objects.filter(referralstatus='Yes', branch=branch_name, chapproval='approved')
-#         serializer = PatientDataSerializer(queryset, many=True)
-#         context = super().get_context_data(**kwargs)
-#         context['query'] = serializer.data
-#         return context
-#
-#
-# import pandas as pd
-# from django.db import connection
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-#
-# class MyAPIView(APIView):
-#     def get(self, request):
-#         with connection.cursor() as cursor:
-#             cursor.execute("SELECT  `emp_id`,`ref_type`,`unique_id`,`name`,`design` FROM `call_report_master`;")
-#             result = cursor.fetchall()
-#         df = pd.DataFrame(result)
-#
-#
-#         table_html = df.to_html(index=False)
-#
-#         context = {'table_html': table_html}
-#         return render(request, 'emp_list.html', context)
-
 
 def coverage_report(request):
     context = {}
@@ -2287,7 +2075,8 @@ def coverage_report(request):
         result = []
         for emp in results:
             emp_id = emp.emp_id
-            call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date).values('area', 'city', 'state', 'pincode')
+            call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date).values('area', 'city', 'state',
+                                                                                              'pincode')
             total = call_report_qs.aggregate(TOTAL=Count('unique_id'))
             qua = call_report_qs.filter(ref_type__contains='QUALIFIED').aggregate(QUA=Count('unique_id'))
             reg = call_report_qs.filter(ref_type__contains='REGISTERED PRACTIONER').aggregate(REG=Count('unique_id'))
@@ -2318,7 +2107,6 @@ def coverage_report(request):
             'date': date_obj,
         }
     context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
-
 
     # if request.method == 'POST':
     #     branch = request.POST.get('branch', '')
@@ -2354,54 +2142,6 @@ def coverage_report(request):
     return render(request, 'coverage_report.html', context)
 
 
-# def emp_map_data(request):
-#     context = {
-#         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-#     }
-#
-#     if request.method == "POST":
-#         branch = request.POST.get('branch')
-#         date_str = request.POST.get('date')
-#         if not date_str:
-#             return HttpResponse("Date not provided.")
-#         date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-#         date = date_obj.strftime('%Y-%m-%d')
-#         cursor = connection.cursor()
-#         if date and branch and branch != 'All':
-#             cursor.execute(
-#                 """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,
-#                 `call_report_master`.`attendance`,
-#                     COUNT(`call_report_master`.`unique_id`) AS TOTAL,
-#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
-#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
-#                     IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
-#                     FROM `logins`
-#                     INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
-#                     WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Branch` = '{b}' AND `logins`.`Job_Status` = 'Active'
-#                     AND `call_report_master`.`date` = '{d}'
-#                     GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
-#                     """.format(d=date, b=branch))
-#         elif date and branch == 'All':
-#             cursor.execute(
-#                 """SELECT `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`, DATE_FORMAT(`call_report_master`.`date`, '%Y-%m-%d') as Last_date,  `call_report_master`.`attendance`,
-#                     COUNT(`call_report_master`.`unique_id`) AS TOTAL,
-#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'RMP' THEN 1 ELSE 0 END) AS RMP,
-#                     SUM(CASE WHEN `call_report_master`.`ref_type` = 'DOCTOR' THEN 1 ELSE 0 END) AS doctor,
-#                     IF(MIN(`call_report_master`.`time`) != '', MIN(`call_report_master`.`time`), '-') AS MINTIME
-#                     FROM `logins`
-#                     INNER JOIN `call_report_master` ON `logins`.`Emp_ID` = `call_report_master`.`emp_id`
-#                     WHERE `logins`.`Page` = 'Marketing' AND `logins`.`Job_Status` = 'Active'
-#                     AND `call_report_master`.`date` = '{d}'
-#                     GROUP BY `logins`.`Emp_ID`, `logins`.`Emp_name`, `logins`.`Branch`;
-#                     """.format(d=date))
-#         desc = cursor.description
-#         context['data'] = [
-#             dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
-#         ]
-#
-#     return render(request, 'map_report.html', context)
-
-
 def map_data(request):
     context = {}
 
@@ -2410,10 +2150,10 @@ def map_data(request):
         date = request.POST.get('date')
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         query = Logins.objects.filter(
-                Q(page='Marketing') &
-                ~Q(branch='Test') &
-                Q(job_status='Active') &
-                ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
+            Q(page='Marketing') &
+            ~Q(branch='Test') &
+            Q(job_status='Active') &
+            ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
         ).distinct()
 
         results = query.extra(
@@ -2481,9 +2221,6 @@ def map_maker(request):
             'no_data_found': True
         }
         return render(request, 'map_maker.html', context)
-        # else:
-    #     messages.error(request, "No Data Found!")
-    #     return redirect('map_maker')
 
 
 def live_location(request):
@@ -2514,5 +2251,4 @@ def live_location(request):
 
 
 def ucid_creation(request):
-    
     return render(request, 'ucid_creation.html')

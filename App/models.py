@@ -248,7 +248,6 @@ class BranchListDum(models.Model):
     status = models.IntegerField()
 
     class Meta:
-        managed = False
         db_table = 'branch_list_dum'
 
 
@@ -429,7 +428,7 @@ class HomeSampleVisits(models.Model):
 
 
 class LoginPermissions(models.Model):
-    sno = models.IntegerField()
+    sno = models.AutoField(primary_key=True)
     designation = models.CharField(max_length=50)
     menu = models.CharField(max_length=60)
     submenu = models.CharField(max_length=100)

@@ -34,7 +34,6 @@
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <span id="check-empname"></span>
                                     <label class="col-form-label">Employee Name:</label>
                                     <input type="text" class="form-control form-control-sm" name="empname" placeholder="Full Name" required="true">
                                     <div class="">
@@ -48,11 +47,10 @@
                                 </div>
                             </div>
                             <div class="col-md-3">
-
                                 <div class="form-group">
                                     <label class="col-form-label">Mobile No:</label>
                                     <div class="">
-                                        <input type="number" name="mobile" class="form-control form-control-sm" placeholder="10 Digits Number" required="true">
+                                        <input type="text" name="mobile" class="form-control form-control-sm" maxlength="10" pattern="[0-9]{10}" placeholder="10 Digits Number" required="true" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
                                 </div>
                             </div>
@@ -60,7 +58,7 @@
                                 <div class="form-group">
                                     <label class="col-form-label">Designation:</label>
                                     <select class="form-control form-control-sm" name="designation" required="true">
-                                        <option value="--Select Category Type--">--Select Designation--</option>
+                                        <option value="--Select Designation--">--Select Designation--</option>
                                         <option value="Cluster head">Cluster head</option>
                                         <option value="Center Head">Center Head</option>
                                         <option value="Senior Manager">Senior Manager</option>
@@ -74,6 +72,7 @@
                                         <option value="Executive">Executive</option>
                                         <option value="Team Lead">Team Lead</option>
                                         <option value="Management Trainee">Management Trainee</option>
+                                        <option value="Trainee">Trainee</option>
                                     </select>
                                 </div>
                             </div>
@@ -85,7 +84,6 @@
                                         <option value="">--Select Working Location--</option>
                                         {% for list in branch %}
                                             <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
-{#                                            <option value="">{{ list.branch_name }}</option>#}
 
                                         {% endfor %}
                                     </select>
@@ -95,9 +93,15 @@
                                 <div class="form-group">
                                     <label class="col-form-label">Department:</label>
                                     <select class="form-control form-control-sm" name="department" required="true">
-                                        <option value="">--Select Department Type--</option>
+                                        <option value="--Select Department--">--Select Department--</option>
                                         <option value="Admin">Admin</option>
                                         <option value="Center Head">Center Head</option>
+                                        <option value="Amb. Coordinator">Amb. Coordinator</option>
+                                        <option value="Cashier">Cashier</option>
+                                        <option value="District Team">District Team</option>
+                                        <option value="Neighbourhood">Neighbourhood</option>
+                                        <option value="Private Corporate">Private Corporate</option>
+                                        <option value="Public Corporate">Public Corporate</option>
                                         <option value="Trade">Trade</option>
                                         <option value="Cluster head">Cluster head</option>
                                         <option value="Marketing Head">Marketing Head</option>
@@ -110,10 +114,16 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label class="col-form-label">Category:</label>
-                                    <select class="form-control form-control-sm" name="catogery" required="true">
+                                    <select class="form-control form-control-sm" name="category" required="true">
                                         <option value="--Select Type--">--Select Category Type--</option>
                                         <option value="Admin">Admin</option>
                                         <option value="Center Head">Center Head</option>
+                                        <option value="Amb. Coordinator">Amb. Coordinator</option>
+                                        <option value="Cashier">Cashier</option>
+                                        <option value="District Team">District Team</option>
+                                        <option value="Neighbourhood">Neighbourhood</option>
+                                        <option value="Private Corporate">Private Corporate</option>
+                                        <option value="Public Corporate">Public Corporate</option>
                                         <option value="Trade">Trade</option>
                                         <option value="Cluster head">Cluster head</option>
                                         <option value="Marketing Head">Marketing Head</option>
@@ -122,6 +132,7 @@
                                         <option value="Registered">Registered</option>
                                         <option value="Corporate">Corporate</option>
                                         <option value="Management Trainee">Management Trainee</option>
+                                        <option value="Trainee">Trainee</option>
                                     </select>
                                 </div>
                             </div>
@@ -191,14 +202,7 @@
                                                 <label class="custom-control-label" for="active2">Inactive</label>
                                             </div>
                                         </div>
-{#                                        <div class="radio">#}
-{#                                            <div class="custom-control custom-radio custom-radio-1 mb-3 d-flex">#}
-{#                                                <input type="radio" name="status" class="custom-control-input" id="active1" value="Active">#}
-{#                                                <label class="custom-control-label" for="active1">Active</label>#}
-{#                                                <input type="radio" name="status" class="custom-control-input" id="active2" value="Inactive">#}
-{#                                                <label class="custom-control-label" for="active2">Inactive</label>#}
-{#                                            </div>#}
-{#                                        </div>#}
+
                                     </div>
                                     <div class="panel-footer text-right">
                                         <button type="Submit" name="Submit" class="btn btn-success mr-3">Update</button>

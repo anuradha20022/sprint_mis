@@ -115,7 +115,7 @@ WSGI_APPLICATION = 'sprint_mis.wsgi.application'
 #     }
 # }
 
-
+#
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

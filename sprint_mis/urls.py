@@ -31,14 +31,12 @@ urlpatterns = [
     path('logout/', views.logout_user, name='logout'),
     path('search_emp/', views.search_emp, name='search_emp'),
     path('doctor_search/', views.doctor_search, name='doctor_search'),
-    path('emp_list/', views.emp_list, name='emp_list'),
     path('bank_details/', views.bank_details, name='bank_details'),
     path('wrong_bank_details/', views.wrong_bank_details, name='wrong_bank_details'),
     path('pending_payment/', views.pending_payment, name='pending_payment'),
     path('payment_list/', views.payment_list, name='payment_list'),
+    path('transfer_doctor_search/', views.transfer_doctor_search, name='transfer_doctor_search'),
 
-    path('update_activity/', views.update_activity, name='update_activity'),
-    path('ref_dashboard/', views.ref_dashboard, name='ref_dashboard'),
     path('processed_ref/', views.processed_ref, name='processed_ref'),
     path('doctor_agent_list/', views.doctor_agent_list, name='doctor_agent_list'),
     path('doctor_agent_list_dt/', views.doctor_agent_list_dt, name='doctor_agent_list_dt'),
@@ -49,9 +47,6 @@ urlpatterns = [
     path('search_id/', views.search_id, name='search_id'),
     path('s_id/', views.s_id, name='s_id'),
     path('search_uid/', views.search_uid, name='search_uid'),
-    path('pdf/', views.pdf, name='pdf'),
-    path('pdf/', views.pdf, name='pdf'),
-
 
 
     # path('change_pwd/', views.change_pwd, name='change_pwd'),
@@ -66,7 +61,6 @@ urlpatterns = [
     path('search_reff/', views.search_reff, name='search_reff'),
     path('patient_referral/', views.patient_referral, name='patient_referral'),
     path('incomplete_referral/', views.incomplete_referral, name='incomplete_referral'),
-    path('abc_report/', views.abc_report, name='abc_report'),
     path('allowance_report/', views.allowance_report, name='allowance_report'),
     path('inactive_allowance_report/', views.inactive_allowance_report, name='inactive_allowance_report'),
     path('bill_list/', views.bill_list, name='bill_list'),
@@ -91,9 +85,6 @@ urlpatterns = [
     path('day_report/', views.day_report, name='day_report'),
     path('day_reports/', views.day_reports, name='day_reports'),
     path('n_day_report/', views.n_day_report, name='n_day_report'),
-    path('champion/', views.champion, name='champion'),
-    path('admission_breakup/', views.admission_breakup, name='admission_breakup'),
-    # path('search_upi/', views.search_upi, name='search_upi'),
     path('edit_list/', views.edit_list, name='edit_list'),
 
 
