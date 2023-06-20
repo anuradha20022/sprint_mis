@@ -19,7 +19,6 @@ from django.urls import path, include
 
 from App import views
 from sprint_mis import settings
-# from App.views import PaymentListAPIView, PaymentListView, MyAPIView
 
 urlpatterns = [
     # path('__debug__/', include('debug_toolbar.urls')),
