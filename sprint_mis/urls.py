@@ -68,6 +68,7 @@ urlpatterns = [
 
 #Employee Details
     path('register/', views.register, name='register'),
+    path('inactive_emp/', views.inactive_emp, name='inactive_emp'),
     path('employee_list/', views.employee_list, name='employee_list'),
     path('attendance_list/', views.attendance_list, name='attendance_list'),
     path('employee_leave_list/', views.employee_leave_list, name='employee_leave_list'),

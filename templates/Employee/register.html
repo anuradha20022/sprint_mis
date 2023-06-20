@@ -158,7 +158,7 @@
             <div class="panel-head">
                 <h5 class="panel-title">Add New Branch</h5>
             </div>
-            <form action="" method="POST">
+            <form action="{% url 'inactive_emp' %}" method="POST">
                 {% csrf_token %}
                 <div class="panel-body">
                     <div class="form-group mb-1">
@@ -183,7 +183,7 @@
                                 <div class="panel-head">
                                     <h5 class="panel-title">Activate Status</h5>
                                 </div>
-                                <form action="" method="POST">
+                                <form action="{% url 'inactive_emp' %}" method="POST">
                                     {% csrf_token %}
                                     <div class="panel-body py-1">
                                        <div class="form-group mb-1">

@@ -81,6 +81,7 @@ def register(request):
                 {'branch': branch['branch'], 'count': CallReportMaster.objects.filter(branch=branch['branch']).count()})
 
     if 'empname' in request.POST:
+        print(request.POST)
         empname = request.POST.get('empname')
         empid = request.POST.get('empid')
         mobile = request.POST.get('mobile')
@@ -299,13 +300,24 @@ def register(request):
         messages.success(request, 'Employee Account has been created')
         return redirect('register')
 
+    context = {
+        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch_wise_count': result,
+        'total_count': CallReportMaster.objects.count(),
+    }
+    return render(request, 'Employee/register.html', context)
+
+
+@login_required(login_url="/")
+def inactive_emp(request):
+
     if 'branch_name' in request.POST:
         branch = request.POST.get('branch_name')
-        BranchListDum.objects.create(branch_name=branch).save()
+        BranchListDum.objects.create(branch_name=branch)
         messages.success(request, "branch added")
         return redirect('register')
 
-    if 'emp_search' in request.POST:
+    if 'emp_search' in request.POST and 'branch_name' not in request.POST:
         emp_search = request.POST.get('emp_search')
         status = request.POST.get('status')
         current_date = timezone.now().date()
@@ -321,11 +333,8 @@ def register(request):
 
     context = {
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-        'branch_wise_count': result,
-        'total_count': CallReportMaster.objects.count(),
     }
     return render(request, 'Employee/register.html', context)
-
 
 @login_required(login_url="/")
 def employee_list(request):
