@@ -308,10 +308,11 @@ def register(request):
     if 'emp_search' in request.POST:
         emp_search = request.POST.get('emp_search')
         status = request.POST.get('status')
+        current_date = timezone.now().date()
         try:
             user = Logins.objects.get(emp_id=emp_search)
             user.job_status = status
-            user.inactive_dt = date.today()
+            user.inactive_dt = current_date
             user.save()
             messages.success(request, "updated successfully..")
         except Logins.DoesNotExist:
@@ -1445,9 +1446,6 @@ def daily_call_report(request):
     if 'date' in request.POST:
         date = request.POST.get('date')
 
-        # from_d, to_d = date_d.split(' - ')
-        # from_d = datetime.strptime(str(from_d), '%m/%d/%Y')
-        # to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
 
         cursor = connection.cursor()
 
