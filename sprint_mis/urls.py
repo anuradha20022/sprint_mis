@@ -65,13 +65,13 @@ urlpatterns = [
     path('bill_list/', views.bill_list, name='bill_list'),
     path('admission_list_filter/', views.admission_list_filter, name='admission_list_filter'),
     path('admission/', views.admission, name='admission'),
+    path('abc_report/', views.abc_report, name='abc_report'),
 
 #Employee Details
     path('register/', views.register, name='register'),
     path('inactive_emp/', views.inactive_emp, name='inactive_emp'),
     path('employee_list/', views.employee_list, name='employee_list'),
     path('attendance_list/', views.attendance_list, name='attendance_list'),
-    path('employee_leave_list/', views.employee_leave_list, name='employee_leave_list'),
 
 
 #call report
@@ -86,6 +86,7 @@ urlpatterns = [
     path('day_reports/', views.day_reports, name='day_reports'),
     path('n_day_report/', views.n_day_report, name='n_day_report'),
     path('edit_list/', views.edit_list, name='edit_list'),
+    path('employee_leave_list/', views.employee_leave_list, name='employee_leave_list'),
 
 
 

@@ -7,9 +7,9 @@
     <form action="" method="post">
     {% csrf_token %}
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="input-group">
-                    <input type="text" name="datee" class="form-control mb-2 daterange-shawCalRanges">
+                    <input type="text" name="date" class="form-control mb-2 daterange-shawCalRanges">
                     <div class="input-group-append">
                       <input class="btn btn-primary btn-sm form-control form-control" type="submit" name="submit" value="Go">
                     </div>
@@ -37,18 +37,20 @@
 
                                 </thead>
                                 <tbody>
+                                {% for i in data %}
                                 <tr>
                                     <td class="py-2 text-left">{{ forloop.counter }}</td>
-                                    <td class="py-2">{{ agents.emp_id }}</td>
-                                    <td class="py-2">{{ agents.emp_name}}</td>
-                                    <td class="py-2">{{ agents.leave_type }}</td>
-                                    <td class="py-2">{{ agents.applied_on }}</td>
-                                    <td class="py-2">{{ agents.from_date }}</td>
-                                    <td class="py-2">{{ agents.to_date }}</td>
-                                    <td class="py-2">{{ agents.reason }}</td>
-                                    <td class="py-2">{{ agents.status }}</td>
-                                    <td class="py-2">{{ agents.branch }}</td>
+                                    <td class="py-2">{{ i.user_id_id }}</td>
+                                    <td class="py-2">{{ i.name}}</td>
+                                    <td class="py-2">{{ i.leave_type }}</td>
+                                    <td class="py-2">{{ i.applied_on }}</td>
+                                    <td class="py-2">{{ i.from_date }}</td>
+                                    <td class="py-2">{{ i.to_date }}</td>
+                                    <td class="py-2">{{ i.reason }}</td>
+                                    <td class="py-2">{{ i.status }}</td>
+                                    <td class="py-2">{{ i.branch }}</td>
                                 </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>

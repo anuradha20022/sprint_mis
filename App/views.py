@@ -1,3 +1,4 @@
+import json
 from builtins import UnicodeDecodeError
 from datetime import date
 import ast
@@ -5,12 +6,13 @@ import csv
 import os
 
 import bcrypt
+import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import connection
-from django.db.models import Q, Count, Min
+from django.db.models import Q, Count, Min, Sum
 from django.http import JsonResponse, HttpResponse, FileResponse, HttpResponseRedirect, response
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -75,13 +77,40 @@ def logout_user(request):
 def register(request):
     result = []
     for branch in list(CallReportMaster.objects.values('branch').distinct()):
-        # for branch in list(CallReportMaster.objects.values('branch').filter(date=datetime.today().date()).distinct()):
         if branch['branch']:
             result.append(
                 {'branch': branch['branch'], 'count': CallReportMaster.objects.filter(branch=branch['branch']).count()})
 
+    for emp in Logins.objects.all():
+        try:
+            WebLogins.objects.get(emp_id=emp.emp_id)
+        except WebLogins.DoesNotExist:
+            print(emp.emp_id)
+            WebLogins.objects.create(emp_name=emp.emp_name, emp_id=emp.emp_id, password=make_password(emp.password),
+                                     mpassword=emp.mpassword,
+                                     personal_number=emp.personal_number, office_number=emp.office_number,
+                                     branch=emp.branch,
+                                     old_branch=emp.old_branch,
+                                     page=emp.page, designation=emp.designation, original_type=emp.original_type,
+                                     orginal_design=emp.orginal_design,
+                                     head=emp.head, type=emp.type, branch_access=emp.branch_access,
+                                     new_type=emp.new_type,
+                                     date=emp.date, time=emp.time,
+                                     join_date=emp.join_date,
+                                     visibility=emp.visibility,
+                                     job_status=emp.job_status, levels=emp.levels, bank_acc=emp.bank_acc, ifsc=emp.ifsc,
+                                     pan=emp.pan,
+                                     last_location=emp.last_location,
+                                     last_loc_datetime=emp.last_loc_datetime, allow=emp.allow,
+                                     img_link=emp.img_link, is_staff=True,
+                                     model=emp.model, version=emp.version, firebase_token=emp.firebase_token,
+                                     deviceid=emp.deviceid, accesskey=emp.accesskey, state=emp.state,
+                                     ref_count=emp.ref_count,
+                                     androidpermissions=emp.androidpermissions,
+                                     androidsubmenu=emp.androidsubmenu,
+                                     loginstatus=emp.loginstatus)
+
     if 'empname' in request.POST:
-        print(request.POST)
         empname = request.POST.get('empname')
         empid = request.POST.get('empid')
         mobile = request.POST.get('mobile')
@@ -91,11 +120,13 @@ def register(request):
         category = request.POST.get('category')
         reporting_to = request.POST.get('reporting_to')
         old_branch = Logins.objects.filter(branch=branch).exclude(branch='').first()
+
         password = mobile.encode('utf-8')
         salt = bcrypt.gensalt()
         hashed_password_bytes = bcrypt.hashpw(password, salt)
         hashed_password = hashed_password_bytes.decode('utf-8')
         current_date = timezone.now().date()
+
         if designation == 'Executive' or designation == 'Senior Executive':
             get_menu_details = LoginPermissions.objects.filter(designation__contains='Executive').first()
             if get_menu_details:
@@ -130,7 +161,7 @@ def register(request):
                                          job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
                                          last_location='',
                                          last_loc_datetime=timezone.now(), allow='0',
-                                         img_link='',is_staff=True,
+                                         img_link='', is_staff=True,
                                          model='', version='', firebase_token='',
                                          deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
                                          androidsubmenu=submenu,
@@ -161,7 +192,7 @@ def register(request):
                 WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile),
                                          mpassword=mobile,
                                          personal_number=mobile, office_number=mobile, branch=branch,
-                                         old_branch=old_branch.old_branch,is_staff=True,
+                                         old_branch=old_branch.old_branch, is_staff=True,
                                          page='Marketing', designation='Manager', original_type=department,
                                          orginal_design=designation,
                                          head=reporting_to, type=department, branch_access=branch, new_type=category,
@@ -209,7 +240,7 @@ def register(request):
                                          join_date=current_date,
                                          visibility='Hidden',
                                          job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
-                                         last_location='',is_staff=True,
+                                         last_location='', is_staff=True,
                                          last_loc_datetime=timezone.now(), allow='0',
                                          img_link='',
                                          model='', version='', firebase_token='',
@@ -243,7 +274,7 @@ def register(request):
                                          personal_number=mobile, office_number=mobile, branch=branch,
                                          old_branch=old_branch.old_branch,
                                          page='Marketing', designation='Center Head', original_type=department,
-                                         orginal_design=designation,is_staff=True,
+                                         orginal_design=designation, is_staff=True,
                                          head=reporting_to, type=department, branch_access=branch, new_type=category,
                                          date=timezone.now().date(), time=timezone.now().time(),
                                          join_date=current_date,
@@ -283,7 +314,7 @@ def register(request):
                                          personal_number=mobile, office_number=mobile, branch=branch,
                                          old_branch=old_branch.old_branch,
                                          page=department, designation=designation, original_type=department,
-                                         orginal_design=designation,is_staff=True,
+                                         orginal_design=designation, is_staff=True,
                                          head=reporting_to, type=department, branch_access=branch, new_type=category,
                                          date=timezone.now().date(), time=timezone.now().time(),
                                          join_date=current_date,
@@ -310,7 +341,6 @@ def register(request):
 
 @login_required(login_url="/")
 def inactive_emp(request):
-
     if 'branch_name' in request.POST:
         branch = request.POST.get('branch_name')
         BranchListDum.objects.create(branch_name=branch)
@@ -331,10 +361,6 @@ def inactive_emp(request):
             messages.error(request, "You have entered incorrect Emp_ID")
         return redirect('register')
 
-    context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
-    }
-    return render(request, 'Employee/register.html', context)
 
 @login_required(login_url="/")
 def employee_list(request):
@@ -1433,16 +1459,24 @@ def attendance_list(request):
 
 @login_required(login_url="/")
 def employee_leave_list(request):
-    context = {
-        'daily_call': CallReportMaster.objects.all()
-    }
-    # if request.method == 'POST':
-    #     filter_date = request.POST.get('date')
-    #
-    #     fdate, tdate = filter_date.split(' - ')
-    #     fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
-    #     tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
+    url = f'http://3.6.104.94/api/employee-leaves/?from_date={timezone.now().date()}&to_date={timezone.now().date()}'
+    response = requests.get(url)
+    response = json.loads(response.text)
 
+    if request.method == 'POST':
+        filter_date = request.POST.get('date')
+
+        fdate, tdate = filter_date.split(' - ')
+        fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
+        tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
+
+        url = f'http://3.6.104.94/api/employee-leaves/?from_date={fdate}&to_date={tdate}'
+        response = requests.get(url)
+        response = json.loads(response.text)
+
+    context = {
+        'data': response,
+    }
     return render(request, 'Employee/employee_leave_list.html', context)
 
 
@@ -1452,11 +1486,9 @@ def daily_call_report(request):
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
         # 'ref_type': CallReportMaster.objects.filter(Q(ref_type='ref_type'))
     }
+    cursor = connection.cursor()
     if 'date' in request.POST:
         date = request.POST.get('date')
-
-
-        cursor = connection.cursor()
 
         cursor.execute(
             "SELECT `logins`.`emp_id`, `logins`.`Emp_name`, `call_report_master`.`ref_type`,"
@@ -1900,6 +1932,389 @@ def incomplete_referral(request):
                 dict(zip([i[0] for i in emp], report)) for report in cur.fetchall()
             ]
     return render(request, 'referral/incomplete_referral.html', context)
+
+
+@login_required(login_url="/")
+def abc_report(request):
+    context = { 'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),}
+    if request.method == "POST":
+        branch = request.POST.get('branch')
+        filter_date = request.POST.get('date')
+
+        fdate, tdate = filter_date.split(' - ')
+        fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
+        tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
+        cur = connection.cursor()
+        cur.execute("""SELECT `Emp_name`,`Emp_ID`,`Branch`,(SELECT COUNT(`unique_id`) FROM `doctor_agent_list` WHERE `emp_id` = `logins`.`Emp_ID`
+                     AND `category` = 'A') AS aTotalcount, (SELECT COUNT(`unique_id`)
+                     FROM `doctor_agent_list` WHERE `emp_id` = `logins`.`Emp_ID` AND `category` = 'B') AS bTotalcount,
+                     (SELECT COUNT(`unique_id`) FROM `doctor_agent_list` WHERE `emp_id` = `logins`.`Emp_ID` AND `category` = 'C') 
+                    AS cTotalcount, (SELECT COALESCE(SUM(av1),0) FROM (SELECT IF(COUNT(`call_report_master`.`unique_id`) = 1, 1, 0) 
+                    AS av1 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'A'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS av1) AS AV1,
+                    (SELECT COALESCE(SUM(bv1),0) FROM (
+                      SELECT IF(COUNT(`call_report_master`.`unique_id`) = 1, 1, 0) AS bv1
+                      FROM `call_report_master`
+                      INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'B'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS av1) AS BV1,
+                    (SELECT COALESCE(SUM(cv1),0) FROM (
+                      SELECT IF(COUNT(`call_report_master`.`unique_id`) = 1, 1, 0) AS cv1
+                      FROM `call_report_master`
+                      INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'C'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS av1) AS CV1,
+                     (SELECT COALESCE(SUM(av2),0) FROM (
+                       SELECT IF(COUNT(`call_report_master`.`unique_id`) = 2, 1, 0) AS av2
+                       FROM `call_report_master`
+                       INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                      WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'A'
+                      AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                      AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS av2) AS AV2,
+                    (SELECT COALESCE(SUM(bv2),0) FROM (
+                      SELECT IF(COUNT(`call_report_master`.`unique_id`) = 2, 1, 0) AS bv2
+                      FROM `call_report_master`
+                      INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'B'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS bv2) AS BV2,
+                    (SELECT COALESCE(SUM(cv2),0) FROM (
+                      SELECT IF(COUNT(`call_report_master`.`unique_id`) = 2, 1, 0) AS cv2
+                      FROM `call_report_master`
+                      INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'C'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS cv2) AS CV2,
+                    (SELECT COALESCE(SUM(av3),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS av3 FROM `call_report_master`
+                      INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'A'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS av3) AS AV3,
+                     (SELECT COALESCE(SUM(bv3),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS bv3 FROM `call_report_master`
+                      INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'B'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                     GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS bv3) AS BV3,
+                     (SELECT COALESCE(SUM(cv3),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS cv3 FROM `call_report_master`
+                      INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'C'
+                     AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' 
+                     AND `call_report_master`.`unique_id` != ''
+                      GROUP BY `call_report_master`.`unique_id`
+                      ORDER BY `call_report_master`.`emp_id` ASC
+                    ) AS cv3) AS CV3,
+                      (SELECT COALESCE(SUM(eav1), 0)FROM (SELECT IF(COUNT(`unique_id`) = 1, 1, 0) AS eav1 FROM `call_report_master`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'A'
+                          AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS eav1 ) AS EAV1,
+                          (SELECT COALESCE(SUM(ebv1), 0)FROM (SELECT IF(COUNT(`unique_id`) = 1, 1, 0) AS ebv1 FROM `call_report_master`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'B'
+                          AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS ebv1 ) AS EBV1,
+                          (SELECT COALESCE(SUM(ecv1), 0)FROM (SELECT IF(COUNT(`unique_id`) = 1, 1, 0) AS ecv1 FROM `call_report_master`
+                     WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'C'
+                           AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS ecv1 ) AS ECV1,
+                            (SELECT COALESCE(SUM(eav2), 0)FROM (SELECT IF(COUNT(`unique_id`) = 2, 1, 0) AS eav2 FROM `call_report_master`
+                      WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'A'
+                           AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS eav2 ) AS EAV2,
+                       (SELECT COALESCE(SUM(ebv2), 0)FROM (SELECT IF(COUNT(`unique_id`) = 2, 1, 0) AS ebv2 FROM `call_report_master`
+                      WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'B'
+                           AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS ebv2 ) AS EBV2,
+                    (SELECT COALESCE(SUM(ecv2), 0)FROM (SELECT IF(COUNT(`unique_id`) = 2, 1, 0) AS ecv2 FROM 
+                    `call_report_master` 
+                    WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'C'
+                         AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS ecv2 ) AS ECV2,
+                         (SELECT COALESCE(SUM(eav3),0) FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS eav3 FROM call_report_master
+                    WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'A'
+                         AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS eav3 ) AS EAV3,
+                         (SELECT COALESCE(SUM(ebv3),0) FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS ebv3 FROM call_report_master
+                    WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'B'
+                         AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS ebv3 ) AS EBV3,
+                         (SELECT COALESCE(SUM(ecv3),0) FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS ecv3 FROM call_report_master
+                    WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID` AND `call_report_master`.`category` = 'C'
+                         AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'  AND `unique_id` != '' GROUP BY `call_report_master`.`unique_id` ORDER BY  `call_report_master`.`emp_id` ASC) AS ecv3 ) AS ECV3,
+                             (SELECT COALESCE(SUM(aothers1), 0) FROM (SELECT IF(doctor_agent_list.emp_id != call_report_master.emp_id, 1, 0) AS aothers1 FROM  `call_report_master`
+                       INNER JOIN doctor_agent_list ON  `call_report_master`.unique_id = doctor_agent_list.unique_id WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID`
+                        AND  `call_report_master`.category = 'A'
+                        AND  `call_report_master`.date BETWEEN '{fd}' AND '{td}' 
+                        AND  `call_report_master`.unique_id != ''
+                       GROUP BY  `call_report_master`.unique_id
+                       ORDER BY  `call_report_master`.emp_id ASC
+                     ) AS aothers1) AS aothers1,
+                     (SELECT COALESCE(SUM(bothers1), 0) FROM (SELECT IF(doctor_agent_list.emp_id != call_report_master.emp_id, 1, 0) AS bothers1 FROM  `call_report_master` INNER JOIN doctor_agent_list ON  `call_report_master`.unique_id = doctor_agent_list.unique_id WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID`
+                          AND  `call_report_master`.category = 'B'
+                          AND  `call_report_master`.date BETWEEN '{fd}' AND '{td}' 
+                          AND  `call_report_master`.unique_id != ''
+                         GROUP BY  `call_report_master`.unique_id
+                         ORDER BY  `call_report_master`.emp_id ASC
+                       ) AS bothers1
+                     ) AS bothers1,
+                    (SELECT COALESCE(SUM(cothers1), 0) FROM (SELECT IF(doctor_agent_list.emp_id != call_report_master.emp_id, 1, 0) AS cothers1 FROM  `call_report_master`
+                     INNER JOIN doctor_agent_list ON  `call_report_master`.unique_id = doctor_agent_list.unique_id WHERE `call_report_master`.`emp_id` = `logins`.`Emp_ID`
+                          AND  `call_report_master`.category = 'C'
+                          AND  `call_report_master`.date BETWEEN '{fd}' AND '{td}' 
+                          AND  `call_report_master`.unique_id != ''
+                         GROUP BY  `call_report_master`.unique_id
+                         ORDER BY  `call_report_master`.emp_id ASC) AS cothers1) AS cothers1 FROM `logins` WHERE `Page` = 'Marketing'
+                    AND `Job_Status` = 'Active'
+                    AND `branch` = '{b}';""".format(fd=fdate, td=tdate, b=branch))
+
+        desc = cur.description
+        context['abc'] = [
+            dict(zip([i[0] for i in desc], row)) for row in cur.fetchall()
+        ]
+        for i in context['abc']:
+            i['atotal'] = i['aTotalcount'] + i['aothers1']
+            i['btotal'] = i['bTotalcount'] + i['bothers1']
+            i['ctotal'] = i['cTotalcount'] + i['cothers1']
+
+            i['nvav1'] = (i['atotal'])-(i['EAV2'] + i['EAV3'])-i['EAV1']
+            i['nvbv1'] = (i['btotal'])-(i['EBV2'] + i['EBV3'])-i['EBV1']
+            i['nvcv1'] = (i['ctotal'])-(i['ECV2'] + i['ECV3'])-i['ECV1']
+
+            i['nvav2'] = (i['atotal'])-(i['ECV3'] + i['ECV1'])-i['EAV3']
+            i['nvbv2'] = (i['btotal'])-(i['ECV3'] + i['ECV1'])-i['EBV3']
+            i['nvcv2'] = (i['ctotal'])-(i['ECV3'] + i['ECV1'])-i['ECV3']
+
+            i['nvav3'] = (i['atotal'])-(i['ECV1'] + i['ECV2'])-i['EAV3']
+            i['nvbv3'] = (i['btotal'])-(i['ECV1'] + i['ECV2'])-i['EBV3']
+            i['nvcv3'] = (i['ctotal'])-(i['ECV1'] + i['ECV2'])-i['ECV3']
+
+    return render(request, 'abc_report.html', context)
+
+# @login_required(login_url="/")
+# def abc_report(request):
+#     context = { 'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),}
+#     if request.method == "POST":
+#         branch = request.POST.get('branch')
+#         filter_date = request.POST.get('date')
+#
+#         fdate, tdate = filter_date.split(' - ')
+#         fd = datetime.strptime(str(fdate), '%m/%d/%Y').date()
+#         td = datetime.strptime(str(tdate), '%m/%d/%Y').date()
+#         employee_ids = tuple(Logins.objects.filter(branch=branch, page='Marketing', job_status='Active').values_list('emp_id', flat=True))
+#         data = connection.cursor()
+#         data.execute(f"""SELECT (SELECT count(`unique_id`) FROM `doctor_agent_list` WHERE `emp_id` IN {employee_ids} AND `category`='A' )
+#                         AS aTotalcount,(SELECT count(`unique_id`) FROM `doctor_agent_list` WHERE `emp_id` IN {employee_ids} AND `category`='B' )
+#                         AS bTotalcount,(SELECT count(`unique_id`) FROM `doctor_agent_list` WHERE `emp_id` IN {employee_ids} AND `category`='C' ) AS cTotalcount,
+#                         (SELECT COALESCE(SUM(av1),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=1,1,0) AS av1 FROM `call_report_master` INNER JOIN
+#                          `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE
+#                           `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='A' AND `call_report_master`.`date`
+#                           BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!=''
+#                            GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS av1) AS AV1, (SELECT COALESCE(SUM(bv1),0) FROM
+#                            (SELECT if(COUNT(`call_report_master`.`unique_id`)=1,1,0) AS bv1 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON
+#                            `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids} AND
+#                            `call_report_master`.`category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date`
+#                            BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY
+#                            `call_report_master`.`emp_id` ASC) AS bv1) AS BV1, (SELECT COALESCE(SUM(cv1),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=1,1,0)
+#                            AS cv1 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+#                            WHERE `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='C' AND `call_report_master`.`date`
+#                            BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!=''
+#                            GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS cv1) AS CV1,(SELECT COALESCE(SUM(av2),0)
+#                             FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=2,1,0) AS av2 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON
+#                             `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids} AND
+#                              `call_report_master`.`category`='A' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date`
+#                              BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY
+#                              `call_report_master`.`emp_id` ASC) AS av2) AS AV2, (SELECT COALESCE(SUM(bv2),0) FROM
+#                              (SELECT if(COUNT(`call_report_master`.`unique_id`)=2,1,0) AS bv2 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON
+#                              `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids} AND
+#                               `call_report_master`.`category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date`
+#                                BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY
+#                                 `call_report_master`.`emp_id` ASC) AS bv2) AS BV2, (SELECT COALESCE(SUM(cv2),0)
+#                                 FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=2,1,0) AS cv2 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON
+#                                  `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids} AND
+#                                   `call_report_master`.`category`='C' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date`
+#                                    BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY
+#                                     `call_report_master`.`emp_id` ASC) AS cv2) AS CV2,(SELECT COALESCE(SUM(av3),0)
+#                                     FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS av3 FROM `call_report_master` INNER JOIN `doctor_agent_list`
+#                                      ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids}
+#                                      AND `call_report_master`.`category`='A' AND `call_report_master`.`date` BETWEEN'{fd}' AND '{td}'
+#                                      AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY
+#                                      `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS av3) AS AV3, (SELECT COALESCE(SUM(bv3),0) FROM
+#                                      (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS bv3 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON
+#                                      `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids}
+#                                       AND `call_report_master`.`category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND
+#                                       `doctor_agent_list`.`date` BETWEEN'{fd}' AND '{td}' AND`call_report_master`.`unique_id`!=''
+#                                       GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS bv3) AS BV3,
+#                                 (SELECT COALESCE(SUM(cv3),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS cv3 FROM
+#                                 `call_report_master` INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+#                                  WHERE `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='C' AND `call_report_master`.`date`
+#                                   BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN'{fd}' AND '{td}'
+#                                     AND`call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC)
+#                                      AS cv3) AS CV3,(SELECT COALESCE(SUM(eav1),0) FROM (SELECT if(COUNT(`unique_id`)=1,1,0) AS eav1 FROM call_report_master WHERE
+#                                      `emp_id` IN {employee_ids} AND `category`='A' AND `call_report_master`.`date` BETWEEN'{fd}' AND '{td}' AND
+#                                       `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS eav1) AS EAV1,(SELECT COALESCE(SUM(ebv1),0) FROM
+#                                       (SELECT if(COUNT(`unique_id`)=1,1,0) AS ebv1 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND
+#                                        `category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY
+#                                        `unique_id` ORDER BY `emp_id` ASC) AS ebv1) AS EBV1,(SELECT COALESCE(SUM(ecv1),0) FROM (SELECT if(COUNT(`unique_id`)=1,1,0)
+#                                        AS ecv1 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND `category`='C' AND `call_report_master`.`date`
+#                                        BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS ecv1) AS ECV1,
+#                                        (SELECT COALESCE(SUM(eav2),0) FROM (SELECT if(COUNT(`unique_id`)=2,1,0) AS eav2 FROM call_report_master WHERE
+#                                        `emp_id` IN {employee_ids} AND `category`='A' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND
+#                                         `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS eav2) AS EAV2,(SELECT COALESCE(SUM(ebv2),0) FROM
+#                                         (SELECT if(COUNT(`unique_id`)=2,1,0) AS ebv2 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND
+#                                         `category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY
+#                                         `unique_id` ORDER BY `emp_id` ASC) AS ebv2) AS EBV2,(SELECT COALESCE(SUM(ecv2),0) FROM (SELECT if(COUNT(`unique_id`)=2,1,0)
+#                                         AS ecv2 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND `category`='C' AND `call_report_master`.`date`
+#                                          BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS ecv2)
+#                                          AS ECV2,(SELECT COALESCE(SUM(eav3),0) FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS eav3 FROM call_report_master
+#                                           WHERE `emp_id` IN {employee_ids} AND `category`='A' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS eav3) AS EAV3,(SELECT COALESCE(SUM(ebv3),0)
+#                                            FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS ebv3 FROM call_report_master WHERE `emp_id` IN {employee_ids}
+#                  AND `category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY
+#                  `unique_id` ORDER BY `emp_id` ASC) AS ebv3) AS EBV3,(SELECT COALESCE(SUM(ecv3),0) FROM (SELECT if(COUNT(`unique_id`)>2,1,0)
+#                  AS ecv3 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND `category`='C' AND `call_report_master`.`date`
+#                   BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS ecv3) AS ECV3,
+#                     (SELECT COALESCE(SUM(aothers1),0) FROM (SELECT if((`doctor_agent_list`.`emp_id`!=`call_report_master`.`emp_id`),1,0)
+#                     AS aothers1 FROM `call_report_master` INNER JOIN `doctor_agent_list`
+#                     on `call_report_master`.`unique_id`= `doctor_agent_list`.`unique_id` WHERE
+#                     `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='A' AND
+#                     `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `call_report_master`.`unique_id`!='' GROUP BY
+#                     `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) as aothers1) AS aothers1,
+#                     (SELECT COALESCE(SUM(bothers1),0) FROM (SELECT if((`doctor_agent_list`.`emp_id`!=`call_report_master`.`emp_id`),1,0)
+#                      AS bothers1 FROM `call_report_master` INNER JOIN `doctor_agent_list` on
+#                      `call_report_master`.`unique_id`= `doctor_agent_list`.`unique_id` WHERE `call_report_master`.
+#                      `emp_id` IN {employee_ids} AND `call_report_master`.`category`='B' AND `call_report_master`.`date` BETWEEN
+#                      '{fd}' AND '{td}' AND `call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY
+#                        `call_report_master`.`emp_id` ASC) as bothers1) AS bothers1,(SELECT COALESCE(SUM(cothers1),0)
+#                        FROM (SELECT if((`doctor_agent_list`.`emp_id`!=`call_report_master`.`emp_id`),1,0) AS cothers1 FROM
+#                        `call_report_master` INNER JOIN `doctor_agent_list` on
+#                         `call_report_master`.`unique_id`= `doctor_agent_list`.`unique_id` WHERE `call_report_master`.
+#                         `emp_id` IN {employee_ids} AND `call_report_master`.`category`='C' AND `call_report_master`.`date` BETWEEN
+#                         '{fd}' AND '{td}' AND `call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY
+#                          `call_report_master`.`emp_id` ASC) as cothers1) AS cothers1;""")
+#         result = data.fetchone()
+#         context['abc'] = result
+#         print(context['abc'])
+#
+#     return render(request, 'abc_report.html', context)
+#
+#
+# # data.execute("""SELECT (SELECT count(`unique_id`) FROM `doctor_agent_list` WHERE `emp_id` IN {employee_ids} AND
+# #             `category`='A' ) AS aTotalcount,(SELECT count(`unique_id`) FROM `doctor_agent_list`
+# #                WHERE `emp_id` IN {employee_ids} AND `category`='B' ) AS bTotalcount,(SELECT count(`unique_id`)
+# #              (SELECT COALESCE(SUM(av1),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=1,1,0) AS av1 FROM"
+# #               `call_report_master` INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+# #             WHERE `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='A' AND
+# #                `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}'
+# #           AND`call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY
+# #           `call_report_master`.`emp_id` ASC) AS av1) AS AV1, (SELECT COALESCE(SUM(bv1),0) FROM
+# #            (SELECT if(COUNT(`call_report_master`.`unique_id`)=1,1,0) AS bv1 FROM `call_report_master` INNER JOIN
+# #           `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+# #              WHERE `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='B' AND
+# #              `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN
+# #         '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id`
+# #               ORDER BY `call_report_master`.`emp_id` ASC) AS bv1) AS BV1, (SELECT COALESCE(SUM(cv1),0)
+# #             FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=1,1,0) AS cv1 FROM `call_report_master`
+# #            INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+# #           WHERE `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='C' AND
+# #      `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date`
+# #         BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY
+# #        `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS cv1) AS CV1,
+# #       (SELECT COALESCE(SUM(av2),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=2,1,0) AS av2 FROM
+# #        `call_report_master` INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id`
+# #      WHERE `call_report_master`.`emp_id` IN {employee_ids} AND
+# #        `call_report_master`.`category`='A' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND
+# #       `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!=''
+# #        GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS av2) AS AV2,
+# #        (SELECT COALESCE(SUM(bv2),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=2,1,0)
+# #        AS bv2 FROM `call_report_master` INNER JOIN `doctor_agent_list` ON
+# #        `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids}
+# #      AND `call_report_master`.`category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND
+# #         `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!='' GROUP BY
+# #           `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS bv2) AS BV2, (SELECT COALESCE(SUM(cv2),0)
+# #         FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)=2,1,0) AS cv2 FROM `call_report_master` INNER JOIN `doctor_agent_list`
+# #      ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE `call_report_master`.`emp_id` IN {employee_ids}
+# #      AND `call_report_master`.`category`='C' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'
+# #      AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!=''
+# #       GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS cv2) AS CV2,
+# #        (SELECT COALESCE(SUM(av3),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS av3 FROM `call_report_master`
+# #          INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE
+# #             `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='A' AND `call_report_master`.`date`
+# #         BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND
+# #         `call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS av3)
+# #          AS AV3, (SELECT COALESCE(SUM(bv3),0) FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS bv3 FROM `call_report_master`
+# #         INNER JOIN `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE
+# #          `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='B' AND `call_report_master`.`date`
+# #        BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND`call_report_master`.`unique_id`!=''
+# #          GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS bv3) AS BV3, (SELECT COALESCE(SUM(cv3),0)
+# #          FROM (SELECT if(COUNT(`call_report_master`.`unique_id`)>2,1,0) AS cv3 FROM `call_report_master` INNER JOIN
+# #        `doctor_agent_list` ON `doctor_agent_list`.`unique_id` = `call_report_master`.`unique_id` WHERE
+# #         `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='C' AND `call_report_master`.`date`
+# #           "BETWEEN '{fd}' AND '{td}' AND `doctor_agent_list`.`date` BETWEEN '{fd}' AND '{td}' AND
+# #        `call_report_master`.`unique_id`!='' GROUP BY `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) AS cv3) AS CV3,
+# #         (SELECT COALESCE(SUM(eav1),0) FROM (SELECT if(COUNT(`unique_id`)=1,1,0) AS eav1 FROM call_report_master WHERE
+# #        `emp_id` IN {employee_ids} AND `category`='A' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND
+# #        `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS eav1) AS EAV1,(SELECT COALESCE(SUM(ebv1),0) FROM
+# #       (SELECT if(COUNT(`unique_id`)=1,1,0) AS ebv1 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND
+# #       `category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY
+# #        `unique_id` ORDER BY `emp_id` ASC) AS ebv1) AS EBV1,(SELECT COALESCE(SUM(ecv1),0) FROM (SELECT if(COUNT(`unique_id`)=1,1,0)
+# #         AS ecv1 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND `category`='C' AND `call_report_master`.`date`
+# #        BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS ecv1) AS ECV1,
+# #       (SELECT COALESCE(SUM(eav2),0) FROM (SELECT if(COUNT(`unique_id`)=2,1,0) AS eav2 FROM call_report_master WHERE
+# #      `emp_id` IN {employee_ids} AND `category`='A' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}'
+# #       AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS eav2) AS EAV2,(SELECT COALESCE(SUM(ebv2),0)
+# #       FROM (SELECT if(COUNT(`unique_id`)=2,1,0) AS ebv2 FROM call_report_master WHERE `emp_id` IN {employee_ids}
+# #       AND `category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY
+# #          `unique_id` ORDER BY `emp_id` ASC) AS ebv2) AS EBV2,(SELECT COALESCE(SUM(ecv2),0) FROM (SELECT if(COUNT(`unique_id`)=2,1,0)
+# #         AS ecv2 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND `category`='C' AND `call_report_master`.`date`
+# #        BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS ecv2) AS ECV2,
+# #     (SELECT COALESCE(SUM(eav3),0) FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS eav3 FROM call_report_master WHERE
+# #        `emp_id` IN {employee_ids} AND `category`='A' AND `call_report_master`.`date` BETWEEN '{fd}' AND
+# #       '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS eav3) AS EAV3,(SELECT COALESCE(SUM(ebv3),0)
+# #      FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS ebv3 FROM call_report_master WHERE `emp_id` IN {employee_ids} AND
+# #         `category`='B' AND `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `unique_id`!='' GROUP BY `unique_id`
+# #        ORDER BY `emp_id` ASC) AS ebv3) AS EBV3,(SELECT COALESCE(SUM(ecv3),0) FROM (SELECT if(COUNT(`unique_id`)>2,1,0) AS ecv3 FROM
+# #      call_report_master WHERE `emp_id` IN {employee_ids} AND `category`='C' AND `call_report_master`.`date` BETWEEN '{fd}'
+# #       AND '{td}' AND `unique_id`!='' GROUP BY `unique_id` ORDER BY `emp_id` ASC) AS ecv3) AS ECV3,(SELECT COALESCE(SUM(aothers1),0)
+# #        FROM (SELECT if((`doctor_agent_list`.`emp_id`!=`call_report_master`.`emp_id`),1,0) AS aothers1 FROM `call_report_master`
+# #       INNER JOIN `doctor_agent_list` on `call_report_master`.`unique_id`= `doctor_agent_list`.`unique_id` WHERE
+# #       `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='A' AND
+# #        `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `call_report_master`.`unique_id`!='' GROUP BY
+# #      `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) as aothers1) AS aothers1,
+# #     (SELECT COALESCE(SUM(bothers1),0) FROM (SELECT if((`doctor_agent_list`.`emp_id`!=`call_report_master`.`emp_id`),1,0) AS bothers1
+# #        FROM `call_report_master` INNER JOIN `doctor_agent_list` on `call_report_master`.`unique_id`= `doctor_agent_list`.`unique_id`
+# #       WHERE `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='B' AND
+# #     `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `call_report_master`.`unique_id`!='' GROUP BY
+# #      `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) as bothers1) AS bothers1,
+# #      (SELECT COALESCE(SUM(cothers1),0) FROM (SELECT if((`doctor_agent_list`.`emp_id`!=`call_report_master`.`emp_id`),1,0) AS
+# #        cothers1 FROM `call_report_master` INNER JOIN `doctor_agent_list` on `call_report_master`.`unique_id`= `doctor_agent_list`.`unique_id`
+# #        WHERE `call_report_master`.`emp_id` IN {employee_ids} AND `call_report_master`.`category`='C' AND
+# #      `call_report_master`.`date` BETWEEN '{fd}' AND '{td}' AND `call_report_master`.`unique_id`!='' GROUP BY
+# #      `call_report_master`.`unique_id` ORDER BY `call_report_master`.`emp_id` ASC) as cothers1) AS
+# #       cothers1);""".format(fd=fdate, td=tdate, emp=emp_id))
 
 
 @login_required(login_url="/")
