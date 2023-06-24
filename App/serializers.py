@@ -1,6 +1,5 @@
 
-from rest_framework import serializers
-from .models import Logins
+from .models import Logins,HomeSampleVisits
 from rest_framework import serializers
 from .models import PatientData
 
@@ -25,3 +24,8 @@ class PatientDataSerializer(serializers.ModelSerializer):
         model = PatientData
         fields = '__all__'
 
+
+class HomeSampleVisitsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HomeSampleVisits
+        fields = '__all__'

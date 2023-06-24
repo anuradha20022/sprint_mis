@@ -6,6 +6,8 @@ import csv
 import os
 
 import bcrypt
+import numpy as np
+import pandas as pd
 import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -18,6 +20,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics
+
+from App.serializers import HomeSampleVisitsSerializer
 from .models import *
 
 
@@ -81,34 +86,36 @@ def register(request):
             result.append(
                 {'branch': branch['branch'], 'count': CallReportMaster.objects.filter(branch=branch['branch']).count()})
 
-    for emp in Logins.objects.all():
-        try:
-            WebLogins.objects.get(emp_id=emp.emp_id)
-        except WebLogins.DoesNotExist:
-            print(emp.emp_id)
-            WebLogins.objects.create(emp_name=emp.emp_name, emp_id=emp.emp_id, password=make_password(emp.password),
-                                     mpassword=emp.mpassword,
-                                     personal_number=emp.personal_number, office_number=emp.office_number,
-                                     branch=emp.branch,
-                                     old_branch=emp.old_branch,
-                                     page=emp.page, designation=emp.designation, original_type=emp.original_type,
-                                     orginal_design=emp.orginal_design,
-                                     head=emp.head, type=emp.type, branch_access=emp.branch_access,
-                                     new_type=emp.new_type,
-                                     date=emp.date, time=emp.time,
-                                     join_date=emp.join_date,
-                                     visibility=emp.visibility,
-                                     job_status=emp.job_status, levels=emp.levels, bank_acc=emp.bank_acc, ifsc=emp.ifsc,
-                                     pan=emp.pan,
-                                     last_location=emp.last_location,
-                                     last_loc_datetime=emp.last_loc_datetime, allow=emp.allow,
-                                     img_link=emp.img_link, is_staff=True,
-                                     model=emp.model, version=emp.version, firebase_token=emp.firebase_token,
-                                     deviceid=emp.deviceid, accesskey=emp.accesskey, state=emp.state,
-                                     ref_count=emp.ref_count,
-                                     androidpermissions=emp.androidpermissions,
-                                     androidsubmenu=emp.androidsubmenu,
-                                     loginstatus=emp.loginstatus)
+    # for emp in Logins.objects.all():
+    #     try:
+    #         WebLogins.objects.get(emp_id=emp.emp_id)
+    #     except WebLogins.DoesNotExist:
+    #         print(emp.emp_id)
+    #         WebLogins.objects.create(emp_name=emp.emp_name, emp_id=emp.emp_id, password=make_password(emp.password),
+    #                                  mpassword=emp.mpassword,
+    #                                  personal_number=emp.personal_number, office_number=emp.office_number,
+    #                                  branch=emp.branch,
+    #                                  old_branch=emp.old_branch,
+    #                                  page=emp.page, designation=emp.designation, original_type=emp.original_type,
+    #                                  orginal_design=emp.orginal_design,
+    #                                  head=emp.head, type=emp.type, branch_access=emp.branch_access,
+    #                                  new_type=emp.new_type,
+    #                                  # date=emp.date,
+    #                                  time=emp.time,
+    #                                  # join_date=emp.join_date,
+    #                                  visibility=emp.visibility,
+    #                                  job_status=emp.job_status, levels=emp.levels, bank_acc=emp.bank_acc, ifsc=emp.ifsc,
+    #                                  pan=emp.pan,
+    #                                  last_location=emp.last_location,
+    #                                  # last_loc_datetime=emp.last_loc_datetime,
+    #                                  allow=emp.allow,
+    #                                  img_link=emp.img_link, is_staff=True,
+    #                                  model=emp.model, version=emp.version, firebase_token=emp.firebase_token,
+    #                                  deviceid=emp.deviceid, accesskey=emp.accesskey, state=emp.state,
+    #                                  ref_count=emp.ref_count,
+    #                                  androidpermissions=emp.androidpermissions,
+    #                                  androidsubmenu=emp.androidsubmenu,
+    #                                  loginstatus=emp.loginstatus)
 
     if 'empname' in request.POST:
         empname = request.POST.get('empname')
@@ -1030,7 +1037,7 @@ def allowance_report(request):
                  COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00
                   WHEN `logins`.`allow` = 250 THEN 21  ELSE 0.00  END As TOTAL FROM `call_report_master`
                  INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE
-                `call_report_master`.`date` BETWEEN '{from_d}' AND '{to_d}'
+                `call_report_master`.`date` BETWEEN '{from_d}' AND '{to_d}'  and `logins`.`Branch` != 'Test'
                  AND `logins`.`Job_Status` = 'Active' AND `logins`.`Designation` != 'Center Head'
                  AND `logins`.`Page` = 'Marketing' AND `logins`.`type` != 'Admin' GROUP BY
                 `call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;""".format(fd=from_d, td=to_d))
@@ -1044,7 +1051,7 @@ def allowance_report(request):
                 " COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00"
                 "  WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00  END As TOTAL FROM `call_report_master`"
                 " INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE"
-                "`call_report_master`.`date` BETWEEN '{fd}' AND '{td}' and `logins`.`Branch` = '{bn}'"
+                "`call_report_master`.`date` BETWEEN '{fd}' AND '{td}' and `logins`.`Branch` = '{bn}'  and `logins`.`Branch` != 'Test'"
                 " AND `logins`.`Job_Status` = 'Active' AND `logins`.`Designation` != 'Center Head'"
                 " AND `logins`.`Page` = 'Marketing' AND `logins`.`type` != 'Admin' GROUP BY"
                 "`call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;".format(fd=from_d, td=to_d, bn=branch))
@@ -1447,7 +1454,7 @@ def attendance_list(request):
                         FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` 
                          WHERE l.`Job_Status` = 'Active' AND l.`Page` = 'Marketing' AND l.`type` != 'Center Head' 
                         AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and 
-                       l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills')
+                       l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills', 'Corporate')
                         GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;""".format(fd=from_d, td=to_d))
         call = cursor.description
         context['attendance'] = [
@@ -1560,10 +1567,10 @@ def day_report(request):
                        "COUNT(*) AS `call_count`, l.`ref_count`, l.`type` FROM `call_report_master` crm "
                        "JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
                        "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
-                       "(l.`type` != 'Center Head' or l.type != 'Cluster Head') AND crm.`date` "
+                       "(l.`type` != 'Center Head') AND crm.`date` "
                        "BETWEEN '{fd}' AND '{td}' AND "
                        "(`Orginal_Design` = 'Executive' OR `Orginal_Design` = 'General Manager') "
-                       " AND l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills')"
+                       " AND l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills', 'Corporate')"
                        " AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
                        " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
         day = cursor.description
@@ -2584,8 +2591,11 @@ def coverage_report(request):
                 'Branch': '`logins`.`Branch`',
             }
         )
-        if branch != 'All':
+        if branch == 'All':
+            results = results.order_by('branch')
+        else:
             results = results.filter(branch=branch)
+
         result = []
         for emp in results:
             emp_id = emp.emp_id
@@ -2765,4 +2775,21 @@ def live_location(request):
 
 
 def ucid_creation(request):
+    # url = f'http://127.0.0.1:8000/api/category/'
+    # response = requests.get(url)
+    # response = json.loads(response.text)
+
+    # context = {
+    #     'data': response,
+    # }
+    # #
+    health_data = CampCreate.objects.values()
+    df = pd.DataFrame.from_records(health_data)
+
+    df.info()
     return render(request, 'ucid_creation.html')
+
+
+class HomeSampleVisitsListAPIView(generics.ListAPIView):
+    queryset = HomeSampleVisits.objects.all()
+    serializer_class = HomeSampleVisitsSerializer

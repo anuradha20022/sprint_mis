@@ -345,7 +345,6 @@ class Category(models.Model):
     camp = models.TextField()
 
     class Meta:
-        managed = False
         db_table = 'category'
 
 

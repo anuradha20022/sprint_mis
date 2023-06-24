@@ -5,23 +5,11 @@
 
 {% block script %}
 <script>
-    $(document).ready(
-        $('#method').bind('change',
-            function () {
-                var method = $('option:selected', this).text();
-                if (method === "Admin"){
-                    $('#ID').text("Employee ID:");
-                    $('#empid').attr('type', 'text');
-                }else if (method === "Center Head"){
-                    $('#ID').text("Heda");
-                    $('#empid').attr('type', 'text');
-                }
-            }
-        )
-    );
+
 </script>
 {% endblock %}
 {% block body %}
+
     <div class="row">
         <div class="col-md-12">
             <div class="panel">
@@ -93,20 +81,19 @@
                                 </div>
                                 <div class="radio py-4 px-lg-4">
                                     <div class="custom-control custom-radio custom-radio-1 mb-3">
-                                        <input type="radio" name="status" class="custom-control-input" id="active1" value="Active">
+                                        <input type="radio" name="status" class="custom-control-input" id="active1">
                                         <label class="custom-control-label" for="active1">A - More than 10 referrals(High potential)</label>
                                     </div>
                                     <div class="custom-control custom-radio custom-radio-1 mb-3">
-                                        <input type="radio" name="status" class="custom-control-input" id="active2" value="Inactive">
+                                        <input type="radio" name="status" class="custom-control-input" id="active2">
                                         <label class="custom-control-label" for="active2">B - 5 to 10 referrals (Moderate potential)</label>
                                     </div>
                                     <div class="custom-control custom-radio custom-radio-1 mb-3">
-                                        <input type="radio" name="status" class="custom-control-input" id="active3" value="Inactive">
-                                        <label class="custom-control-label" for="active2">C - 1 to 10 referrals (Low potential)</label>
+                                        <input type="radio" name="status" class="custom-control-input" id="active3">
+                                        <label class="custom-control-label" for="active3">C - 1 to 10 referrals (Low potential)</label>
                                     </div>
                                 </div>
                             </div>
-
                         <div class="panel-footer text-right">
                             <button type="submit" name="Submit" class="btn btn-success mr-2">Create Now</button>
                         </div>
