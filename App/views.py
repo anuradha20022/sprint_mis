@@ -2793,3 +2793,32 @@ def ucid_creation(request):
 class HomeSampleVisitsListAPIView(generics.ListAPIView):
     queryset = HomeSampleVisits.objects.all()
     serializer_class = HomeSampleVisitsSerializer
+
+
+def master_list(request):
+    context = {
+        'branch': BranchListDum.objects.exclude(branch_name='Test')
+    }
+
+    if request.method == "POST":
+        branch = request.POST.get('branch')
+        cur = connection.cursor()
+        if branch == "All":
+            cur.execute("SELECT CONCAT(sprint_mis.doctor_agent_list.emp_id) As emp_id, logins.Emp_name, unique_id,"
+                        " agent_name, doctor_agent_list.mobile, agent_type, logins.branch, "
+                        "category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` "
+                        "ON doctor_agent_list.emp_id = logins.Emp_ID WHERE Job_Status = 'Active' AND "
+                        "logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test';")
+        else:
+            cur.execute("SELECT CONCAT(sprint_mis.doctor_agent_list.emp_id) As emp_id, logins.Emp_name, "
+                        "unique_id, agent_name, doctor_agent_list.mobile, agent_type, logins.branch,"
+                        " category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` ON"
+                        " doctor_agent_list.emp_id = logins.Emp_ID WHERE Job_Status = 'Active' AND logins.emp_id "
+                        "NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(b=branch))
+
+        desc = cur.description
+        context['doctor_agent_list'] = [
+            dict(zip([i[0] for i in desc], row)) for row in cur.fetchall()
+        ]
+
+    return render(request, 'master_list.html', context)
