@@ -2795,6 +2795,7 @@ class HomeSampleVisitsListAPIView(generics.ListAPIView):
     serializer_class = HomeSampleVisitsSerializer
 
 
+@login_required(login_url="/")
 def master_list(request):
     context = {
         'branch': BranchListDum.objects.exclude(branch_name='Test')
