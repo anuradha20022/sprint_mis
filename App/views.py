@@ -358,14 +358,12 @@ def inactive_emp(request):
         emp_search = request.POST.get('emp_search')
         status = request.POST.get('status')
         current_date = timezone.now().date()
-        try:
-            user = Logins.objects.get(emp_id=emp_search)
-            user.job_status = status
-            user.inactive_dt = current_date
-            user.save()
+        user = Logins.objects.filter(emp_id=emp_search).update(job_status=status, inactive_dt=current_date)
+        if user:
             messages.success(request, "updated successfully..")
-        except Logins.DoesNotExist:
+        else:
             messages.error(request, "You have entered incorrect Emp_ID")
+
         return redirect('register')
 
 
