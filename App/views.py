@@ -21,6 +21,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
+from rest_framework.decorators import permission_classes, api_view
+from rest_framework.permissions import IsAuthenticated
 
 from App.serializers import HomeSampleVisitsSerializer
 from .models import *
@@ -51,6 +53,8 @@ def loginuser(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     return render(request, 'login.html')
+
+from django.core import serializers
 
 
 @login_required(login_url="/")
@@ -648,6 +652,7 @@ def call_reports(request):
             'contact': emp['contact'],
             'date': emp['date'],
             'time': emp['time'],
+            'location': emp['location'],
             'area': emp['area'],
             'city': emp['city'],
             'state': emp['state'],
