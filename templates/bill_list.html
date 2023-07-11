@@ -35,7 +35,8 @@ if ($.fn.DataTable.isDataTable('#bill_list')) {
                     {data: "sno"},
                     {data: "edit",
                         render: function(data, type, row) {
-                        return '<a class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal" onclick="editAdmission('+row.sno+')" ></a>'
+                        return '<a class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" ' +
+                            'data-target="#admissionModal" onclick="editAdmission('+row.sno+')" ></a>'
                             {#+#}
                             {#'<a href="/admission_list/?delete='+row.sno+'" class="btn btn-sm btn-danger reject-payment"><i class="icon-trash" aria-hidden="true"></i></a>'#}
                         }

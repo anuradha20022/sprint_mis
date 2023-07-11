@@ -12,6 +12,7 @@ import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import check_password
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import connection
 from django.db.models import Q, Count, Min, Sum
@@ -50,11 +51,7 @@ def loginuser(request):
         else:
             messages.error(request, 'invalid emp_id and password')
             return redirect('loginuser')
-    if request.user.is_authenticated:
-        return redirect('dashboard')
     return render(request, 'login.html')
-
-from django.core import serializers
 
 
 @login_required(login_url="/")
@@ -153,7 +150,7 @@ def register(request):
                                       join_date=current_date,
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='0',
+                                      last_loc_datetime=timezone.now(), allow='250',
                                       img_link='',
                                       model='', version='', firebase_token='',
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -171,7 +168,7 @@ def register(request):
                                          visibility='Hidden',
                                          job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
                                          last_location='',
-                                         last_loc_datetime=timezone.now(), allow='0',
+                                         last_loc_datetime=timezone.now(), allow='250',
                                          img_link='', is_staff=True,
                                          model='', version='', firebase_token='',
                                          deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -194,7 +191,7 @@ def register(request):
                                       join_date=current_date,
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='0',
+                                      last_loc_datetime=timezone.now(), allow='300',
                                       img_link='',
                                       model='', version='', firebase_token='',
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -212,7 +209,7 @@ def register(request):
                                          visibility='Hidden',
                                          job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
                                          last_location='',
-                                         last_loc_datetime=timezone.now(), allow='0',
+                                         last_loc_datetime=timezone.now(), allow='300',
                                          img_link='',
                                          model='', version='', firebase_token='',
                                          deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -234,7 +231,7 @@ def register(request):
                                       join_date=current_date,
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='0',
+                                      last_loc_datetime=timezone.now(), allow='300',
                                       img_link='',
                                       model='', version='', firebase_token='',
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -252,7 +249,7 @@ def register(request):
                                          visibility='Hidden',
                                          job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
                                          last_location='', is_staff=True,
-                                         last_loc_datetime=timezone.now(), allow='0',
+                                         last_loc_datetime=timezone.now(), allow='300',
                                          img_link='',
                                          model='', version='', firebase_token='',
                                          deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -274,7 +271,7 @@ def register(request):
                                       join_date=current_date,
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='0',
+                                      last_loc_datetime=timezone.now(), allow='300',
                                       img_link='',
                                       model='', version='', firebase_token='',
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -292,7 +289,7 @@ def register(request):
                                          visibility='Hidden',
                                          job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
                                          last_location='',
-                                         last_loc_datetime=timezone.now(), allow='0',
+                                         last_loc_datetime=timezone.now(), allow='300',
                                          img_link='',
                                          model='', version='', firebase_token='',
                                          deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -314,7 +311,7 @@ def register(request):
                                       join_date=current_date,
                                       visibility='Hidden',
                                       job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='0',
+                                      last_loc_datetime=timezone.now(), allow='250',
                                       img_link='',
                                       model='', version='', firebase_token='',
                                       deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -332,7 +329,7 @@ def register(request):
                                          visibility='Hidden',
                                          job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
                                          last_location='',
-                                         last_loc_datetime=timezone.now(), allow='0',
+                                         last_loc_datetime=timezone.now(), allow='250',
                                          img_link='',
                                          model='', version='', firebase_token='',
                                          deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
@@ -586,89 +583,88 @@ def doctor_agent_list_dt(request):
 @login_required(login_url="/")
 def call_report(request):
     context = {
-        'report': CallReportMaster.objects.all(),
+        # 'report': CallReportMaster.objects.all(),
     }
     if request.method == "POST":
-        date_range_str = request.POST.get('date_d')
-        if date_range_str:
-            start_date_str, end_date_str = date_range_str.split(' - ')
+        f_date = request.POST.get('date_d')
 
-            # Convert the start and end dates to datetime objects
-            start_date_obj = datetime.strptime(start_date_str, '%m/%d/%Y')
-            end_date_obj = datetime.strptime(end_date_str, '%m/%d/%Y')
+        from_d, to_d = f_date.split(' - ')
+        from_d = datetime.strptime(str(from_d), '%m/%d/%Y').date()
+        to_d = datetime.strptime(str(to_d), '%m/%d/%Y').date()
 
-            # Convert the datetime objects to strings in the desired format
-            start_date_formatted = start_date_obj.strftime('%Y-%m-%d')
-            end_date_formatted = end_date_obj.strftime('%Y-%m-%d')
-
-            # Use the formatted dates to filter the CallReportMaster objects
-            context["call_report"] = CallReportMaster.objects.filter(
-                date__range=[start_date_formatted, end_date_formatted])
-
-            context["date_range"] = date_range_str
+        call = connection.cursor()
+        if f_date:
+            call.execute(
+                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.category,
+                    call_report_master.ref_type, call_report_master.design,  call_report_master.contact, call_report_master.date,
+                     call_report_master.location, call_report_master.branch
+                FROM logins
+                INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
+                WHERE call_report_master.date BETWEEN '{fd}' AND '{td}'
+                AND call_report_master.branch != 'Test'""".format(fd=from_d, td=to_d)
+            )
+        else:
+            call.execute(
+                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.category,
+                    call_report_master.ref_type, call_report_master.design,  call_report_master.contact, call_report_master.date,
+                     call_report_master.location, call_report_master.branch
+                FROM logins
+                INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
+                WHERE call_report_master.branch != 'Test'""")
+        desc = call.description
+        context['call_report'] = [
+            dict(zip([i[0] for i in desc], row)) for row in call.fetchall()
+        ]
 
     return render(request, 'call/call_report.html', context)
 
-
-@csrf_exempt
-@login_required(login_url="/")
-def call_reports(request):
-    # print(request.POST)
-    draw = int(request.POST.get('draw'))
-    length = int(request.POST.get('length'))
-    start = int(request.POST.get('start'))
-    search = request.POST.get('search[value]')
-    colindex = request.POST.get("order[0][column]")
-    # print(draw, length, search, colindex, )
-    records_total = CallReportMaster.objects.all().order_by('emp_id').count()
-    records_filtered = records_total
-    call_data = CallReportMaster.objects.all().order_by('emp_id').values()[start:length + start]
-
-    if search:
-        call_data = CallReportMaster.objects.filter(Q(emp_id__icontains=search) | Q(name__icontains=search)
-                                                    ).order_by('emp_id').values()[start:length + start]
-        records_total = call_data.count()
-        records_filtered = records_total
-
-    # paginator = Paginator(call_data, length)
-    #
-    # try:
-    #     object_list = paginator.page(draw).object_list
-    # except PageNotAnInteger:
-    #     object_list = paginator.page(draw).object_list
-    # except EmptyPage:
-    #     object_list = paginator.page(paginator.num_pages).object_list
-
-    data = [
-        {
-            'sno': "",
-            # 'input': '<input type="checkbox" class="" name="' + str(emp['emp_id']) + '" value="">',
-            'emp_id': emp['emp_id'],
-            'unique_id': emp['unique_id'],
-            'name': emp['name'],
-            'category': emp['category'],
-            'ref_type': emp['ref_type'],
-            'design': emp['design'],
-            'contact': emp['contact'],
-            'date': emp['date'],
-            'time': emp['time'],
-            'location': emp['location'],
-            'area': emp['area'],
-            'city': emp['city'],
-            'state': emp['state'],
-            'pincode': emp['pincode'],
-            'station': emp['station'],
-            'branch': emp['branch'],
-            'source': emp['source'],
-            'attendance': emp['attendance'],
-            'type': emp['type'],
-
-            # 'employee_id': '<a href="/profile/?i=' + str(emp['employee_id']) + '">' + str(emp['employee_id']) + '</a>',
-        } for emp in call_data
-    ]
-    return JsonResponse(
-        {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered,
-         "iTotalDisplayRecords": records_total, "aaData": data}, safe=False)
+#
+# @csrf_exempt
+# @login_required(login_url="/")
+# def call_reports(request):
+#     # print(request.POST)
+#     draw = int(request.POST.get('draw'))
+#     length = int(request.POST.get('length'))
+#     start = int(request.POST.get('start'))
+#     search = request.POST.get('search[value]')
+#     colindex = request.POST.get("order[0][column]")
+#     records_total = CallReportMaster.objects.all().count()
+#     records_filtered = records_total
+#     call_data = CallReportMaster.objects.all().values()[start:length + start]
+#
+#     if search:
+#         call_data = CallReportMaster.objects.filter(Q(name__icontains=search)
+#                                                     ).values()[start:length + start]
+#         records_total = call_data.count()
+#         records_filtered = records_total
+#
+#     data = [
+#         {
+#             'sno': "",
+#             'input': '<input type="checkbox" class="" name="' + str(emp['emp_id']) + '" value="">',
+#             'emp_id': emp['emp_id'],
+#             'unique_id': emp['unique_id'],
+#             'name': emp['name'],
+#             'category': emp['category'],
+#             'ref_type': emp['ref_type'],
+#             'design': emp['design'],
+#             'contact': emp['contact'],
+#             'date': emp['date'],
+#             'time': emp['time'],
+#             'location': emp['location'],
+#             'area': emp['area'],
+#             'city': emp['city'],
+#             'state': emp['state'],
+#             'pincode': emp['pincode'],
+#             'station': emp['station'],
+#             'branch': emp['branch'],
+#             'type': emp['type'],
+#
+#         } for emp in call_data
+#     ]
+#     return JsonResponse(
+#         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered,
+#          "iTotalDisplayRecords": records_total, "aaData": data}, safe=False)
 
 
 @login_required(login_url="/")
@@ -1944,7 +1940,7 @@ def incomplete_referral(request):
 
 @login_required(login_url="/")
 def abc_report(request):
-    context = { 'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),}
+    context = {'branch': BranchListDum.objects.filter(~Q(branch_name='Test')), }
     if request.method == "POST":
         branch = request.POST.get('branch')
         filter_date = request.POST.get('date')
@@ -2109,19 +2105,20 @@ def abc_report(request):
             i['btotal'] = i['bTotalcount'] + i['bothers1']
             i['ctotal'] = i['cTotalcount'] + i['cothers1']
 
-            i['nvav1'] = (i['atotal'])-(i['EAV2'] + i['EAV3'])-i['EAV1']
-            i['nvbv1'] = (i['btotal'])-(i['EBV2'] + i['EBV3'])-i['EBV1']
-            i['nvcv1'] = (i['ctotal'])-(i['ECV2'] + i['ECV3'])-i['ECV1']
+            i['nvav1'] = (i['atotal']) - (i['EAV2'] + i['EAV3']) - i['EAV1']
+            i['nvbv1'] = (i['btotal']) - (i['EBV2'] + i['EBV3']) - i['EBV1']
+            i['nvcv1'] = (i['ctotal']) - (i['ECV2'] + i['ECV3']) - i['ECV1']
 
-            i['nvav2'] = (i['atotal'])-(i['ECV3'] + i['ECV1'])-i['EAV3']
-            i['nvbv2'] = (i['btotal'])-(i['ECV3'] + i['ECV1'])-i['EBV3']
-            i['nvcv2'] = (i['ctotal'])-(i['ECV3'] + i['ECV1'])-i['ECV3']
+            i['nvav2'] = (i['atotal']) - (i['ECV3'] + i['ECV1']) - i['EAV3']
+            i['nvbv2'] = (i['btotal']) - (i['ECV3'] + i['ECV1']) - i['EBV3']
+            i['nvcv2'] = (i['ctotal']) - (i['ECV3'] + i['ECV1']) - i['ECV3']
 
-            i['nvav3'] = (i['atotal'])-(i['ECV1'] + i['ECV2'])-i['EAV3']
-            i['nvbv3'] = (i['btotal'])-(i['ECV1'] + i['ECV2'])-i['EBV3']
-            i['nvcv3'] = (i['ctotal'])-(i['ECV1'] + i['ECV2'])-i['ECV3']
+            i['nvav3'] = (i['atotal']) - (i['ECV1'] + i['ECV2']) - i['EAV3']
+            i['nvbv3'] = (i['btotal']) - (i['ECV1'] + i['ECV2']) - i['EBV3']
+            i['nvcv3'] = (i['ctotal']) - (i['ECV1'] + i['ECV2']) - i['ECV3']
 
     return render(request, 'abc_report.html', context)
+
 
 # @login_required(login_url="/")
 # def abc_report(request):
@@ -2816,7 +2813,8 @@ def master_list(request):
                         "unique_id, agent_name, doctor_agent_list.mobile, agent_type, logins.branch,"
                         " category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` ON"
                         " doctor_agent_list.emp_id = logins.Emp_ID WHERE Job_Status = 'Active' AND logins.emp_id "
-                        "NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(b=branch))
+                        "NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(
+                b=branch))
 
         desc = cur.description
         context['doctor_agent_list'] = [
