@@ -2822,3 +2822,4 @@ def master_list(request):
         ]
 
     return render(request, 'master_list.html', context)
+
