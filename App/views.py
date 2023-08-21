@@ -1565,11 +1565,9 @@ def day_report(request):
                        "MIN(crm.`time`) AS `first_time`, MAX(crm.`time`) AS `last_time`, "
                        "COUNT(*) AS `call_count`, l.`ref_count`, l.`type` FROM `call_report_master` crm "
                        "INNER JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
-                       # "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
-                       # "(l.`Designation` != 'Center Head') AND 
-                       "crm.`date` "
-                       "BETWEEN '{fd}' AND '{td}' "
-                       # "l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
+                       "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
+                       "(l.`Designation` != 'Center Head') AND crm.`date` BETWEEN '{fd}' AND '{td}' and "
+                       "l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
                         " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` "
                        "ASC;".format(fd=from_d, td=to_d))
         day = cursor.description
@@ -2674,9 +2672,9 @@ def map_data(request):
         date = request.POST.get('date')
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         query = Logins.objects.filter(
-            # Q(page='Marketing') &
-            # ~Q(branch='Test') &
-            # Q(job_status='Active') &
+            Q(page='Marketing') &
+            ~Q(branch='Test') &
+            Q(job_status='Active') &
             ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
         ).distinct()
         results = query.extra(
