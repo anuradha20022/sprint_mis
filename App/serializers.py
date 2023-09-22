@@ -1,7 +1,7 @@
 
 from .models import Logins,HomeSampleVisits
 from rest_framework import serializers
-from .models import PatientData
+from .models import PatientDataOlddata
 
 
 class LoginsSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class LoginsSerializer(serializers.ModelSerializer):
 
 class PatientDataSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PatientData
+        model = PatientDataOlddata
         fields = '__all__'
 
 

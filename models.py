@@ -1,146 +1,11 @@
-from datetime import datetime
-
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import PermissionsMixin, AbstractUser, User
+# This is an auto-generated Django model module.
+# You'll have to do the following manually to clean this up:
+#   * Rearrange models' order
+#   * Make sure each model has one field with primary_key=True
+#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
+#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
-from django.utils.timezone import now
-
-
-class UserManager(BaseUserManager):
-    use_in_migrations = True
-
-    def _create_user(self, emp_id, password, **extra_fields):
-        """
-        Creates and saves a User with the given email and password.
-        """
-        user = self.model(emp_id=emp_id, **extra_fields)
-        # user.set_password(password)
-        user.password = make_password(password)
-        # user.make_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_user(self, emp_id,  password=None, **extra_fields):
-        extra_fields.setdefault('is_active', False)
-        extra_fields.setdefault('is_superuser', False)
-        return self._create_user(emp_id, password, **extra_fields)
-
-    def create_superuser(self, emp_id, password=None, **extra_fields):
-        extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_active') is not True:
-            raise ValueError('Superuser must have is_active=True.')
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-
-        return self._create_user(emp_id, password, **extra_fields)
-
-
-class WebLogins(AbstractBaseUser, PermissionsMixin):
-    emp_name = models.CharField(db_column='Emp_name', max_length=30, blank=True, null=True)
-    personal_number = models.BigIntegerField(db_column='Personal_Number', null=True)
-    office_number = models.BigIntegerField(db_column='Office_number', null=True)
-    designation = models.TextField(db_column='Designation', null=True)
-    emp_id = models.CharField(max_length=50, db_column='Emp_ID', unique=True, null=True)
-    branch = models.TextField(db_column='Branch', null=True)
-    old_branch = models.CharField(max_length=50, null=True)
-    page = models.TextField(db_column='Page', null=True, default='Marketing')
-    orginal_design = models.TextField(db_column='Orginal_Design', null=True)
-    original_type = models.TextField(db_column='Original_Type', null=True)
-    last_location = models.CharField(db_column='Last_Location', max_length=50, null=True)
-    last_loc_datetime = models.DateTimeField(null=True)
-    date = models.DateField(db_column='Date', null=True)
-    time = models.TimeField(db_column='Time', null=True)
-    head = models.TextField(db_column='Head', null=True)
-    type = models.CharField(max_length=50, null=True)
-    join_date = models.DateField(db_column='Join_Date', null=True)
-    visibility = models.TextField(db_column='Visibility', null=True, default='Hidden')
-    job_status = models.CharField(db_column='Job_Status', max_length=50, null=True, default='Active')
-    levels = models.IntegerField(null=True)
-    bank_acc = models.TextField(null=True)
-    ifsc = models.CharField(max_length=20, null=True)
-    pan = models.CharField(max_length=20, null=True)
-    allow = models.IntegerField(null=True)
-    img_link = models.CharField(max_length=300, null=True)
-    model = models.CharField(max_length=50, null=True)
-    version = models.CharField(max_length=50, null=True)
-    firebase_token = models.CharField(max_length=3000, null=True)
-    deviceid = models.CharField(max_length=50, null=True)
-    accesskey = models.CharField(max_length=100, null=True)
-    state = models.TextField(null=True)
-    branch_access = models.TextField(null=True)
-    new_type = models.TextField(null=True)
-    ref_count = models.IntegerField(null=True, default=0)
-    mpassword = models.CharField(max_length=100, blank=True, null=True)
-    androidpermissions = models.CharField(max_length=100, blank=True, null=True)
-    inactive_dt = models.DateField(null=True)
-    androidsubmenu = models.CharField(max_length=100, blank=True, null=True)
-    loginstatus = models.CharField(max_length=100, blank=True, null=True)
-
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-
-    USERNAME_FIELD = 'emp_id'
-    REQUIRED_FIELDS = ['emp_name']
-    objects = UserManager()
-
-    class Meta:
-        db_table = 'web_logins'
-
-    def __str__(self):
-        return self.emp_name or ' '
-
-
-# class Logins(models.Model):
-#     emp_name = models.CharField(db_column='Emp_name', max_length=30, blank=True, null=True)  # Field name made lowercase.
-#     personal_number = models.BigIntegerField(db_column='Personal_Number')  # Field name made lowercase.
-#     office_number = models.BigIntegerField(db_column='Office_number')  # Field name made lowercase.
-#     designation = models.TextField(db_column='Designation')  # Field name made lowercase.
-#     emp_id = models.CharField(db_column='Emp_ID', max_length=20)  # Field name made lowercase.
-#     password = models.CharField(db_column='Password', max_length=50)  # Field name made lowercase.
-#     branch = models.TextField(db_column='Branch')  # Field name made lowercase.
-#     old_branch = models.CharField(max_length=50)
-#     page = models.TextField(db_column='Page')  # Field name made lowercase.
-#     orginal_design = models.TextField(db_column='Orginal_Design')  # Field name made lowercase.
-#     original_type = models.TextField(db_column='Original_Type')  # Field name made lowercase.
-#     last_location = models.CharField(db_column='Last_Location', max_length=50)  # Field name made lowercase.
-#     last_loc_datetime = models.DateTimeField()
-#     date = models.DateField(db_column='Date')  # Field name made lowercase.
-#     time = models.TimeField(db_column='Time')  # Field name made lowercase.
-#     head = models.TextField(db_column='Head')  # Field name made lowercase.
-#     type = models.CharField(max_length=50)
-#     join_date = models.DateField(db_column='Join_Date')  # Field name made lowercase.
-#     visibility = models.TextField(db_column='Visibility')  # Field name made lowercase.
-#     job_status = models.CharField(db_column='Job_Status', max_length=50)  # Field name made lowercase.
-#     levels = models.IntegerField()
-#     bank_acc = models.TextField()
-#     ifsc = models.CharField(max_length=20)
-#     pan = models.CharField(max_length=20)
-#     allow = models.IntegerField()
-#     img_link = models.CharField(max_length=300)
-#     model = models.CharField(max_length=50)
-#     version = models.CharField(max_length=50)
-#     firebase_token = models.CharField(max_length=3000)
-#     deviceid = models.CharField(max_length=50)
-#     accesskey = models.CharField(max_length=100)
-#     state = models.TextField()
-#     branch_access = models.TextField()
-#     new_type = models.TextField()
-#     ref_count = models.IntegerField()
-#     mpassword = models.CharField(max_length=100, blank=True, null=True)
-#     androidpermissions = models.CharField(max_length=100, blank=True, null=True)
-#     inactive_dt = models.DateField()
-#     androidsubmenu = models.CharField(max_length=100, blank=True, null=True)
-#     loginstatus = models.CharField(max_length=100, blank=True, null=True)
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'logins'
 
 
 class AbcReport(models.Model):
@@ -172,6 +37,26 @@ class AbcReport(models.Model):
         db_table = 'abc_report'
 
 
+class AdmissionDummyTable(models.Model):
+    sno = models.AutoField(primary_key=True)
+    branch = models.CharField(max_length=50)
+    plan = models.IntegerField()
+    adm = models.IntegerField()
+    ach = models.IntegerField()
+    gap = models.IntegerField()
+    mtd = models.IntegerField()
+    clustername = models.TextField()
+    clustername2 = models.CharField(max_length=50)
+    cluster_empid = models.CharField(max_length=50)
+    cname = models.CharField(max_length=50)
+    view_branch = models.CharField(max_length=30)
+    status = models.CharField(max_length=10)
+
+    class Meta:
+        managed = False
+        db_table = 'admission_dummy_table'
+
+
 class AdmissionType(models.Model):
     sno = models.AutoField(primary_key=True)
     type = models.TextField()
@@ -184,7 +69,7 @@ class AdmissionType(models.Model):
 
 
 class AndroidPermissions(models.Model):
-    sno = models.IntegerField()
+    sno = models.AutoField(primary_key=True)
     menu = models.CharField(max_length=50)
     submenu = models.CharField(max_length=100)
     titlename = models.CharField(max_length=50)
@@ -201,6 +86,36 @@ class AndroidPermissions(models.Model):
     class Meta:
         managed = False
         db_table = 'android_permissions'
+
+
+class AuthGroup(models.Model):
+    name = models.CharField(unique=True, max_length=150)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group'
+
+
+class AuthGroupPermissions(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    group_id = models.IntegerField()
+    permission_id = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group_permissions'
+        unique_together = (('group_id', 'permission_id'),)
+
+
+class AuthPermission(models.Model):
+    name = models.CharField(max_length=255)
+    content_type_id = models.IntegerField()
+    codename = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_permission'
+        unique_together = (('content_type_id', 'codename'),)
 
 
 class BankDetails(models.Model):
@@ -232,6 +147,29 @@ class BankDetails(models.Model):
         db_table = 'bank_details'
 
 
+class BankLogsNew(models.Model):
+    sno = models.AutoField(primary_key=True)
+    ucid = models.CharField(max_length=20, db_collation='latin1_swedish_ci')
+    empid = models.CharField(max_length=10, db_collation='latin1_swedish_ci')
+    pan = models.CharField(max_length=20, db_collation='latin1_swedish_ci')
+    account = models.CharField(max_length=25, db_collation='latin1_swedish_ci')
+    ifsc = models.CharField(max_length=20, db_collation='latin1_swedish_ci')
+    branchname = models.CharField(max_length=25, db_collation='latin1_swedish_ci')
+    createdon = models.DateTimeField()
+    remarks = models.CharField(max_length=100, blank=True, null=True)
+    bankholdername = models.CharField(max_length=60, blank=True, null=True)
+    panattachments = models.CharField(max_length=200)
+    bankattachments = models.CharField(max_length=200)
+    bank_upd_remarks = models.CharField(max_length=150, blank=True, null=True)
+    approval_remarks = models.CharField(max_length=100, blank=True, null=True)
+    approval_data = models.CharField(max_length=60, blank=True, null=True)
+    upino = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'bank_logs_new'
+
+
 class Banner(models.Model):
     sno = models.AutoField(primary_key=True)
     name = models.TextField()
@@ -242,12 +180,24 @@ class Banner(models.Model):
         db_table = 'banner'
 
 
+class BranchList(models.Model):
+    id = models.IntegerField()
+    branch_name = models.CharField(max_length=50)
+    status = models.IntegerField()
+    branch_code = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'branch_list'
+
+
 class BranchListDum(models.Model):
-    id = models.IntegerField(primary_key=True, null=False)
+    id = models.IntegerField(primary_key=True)
     branch_name = models.CharField(max_length=50)
     status = models.IntegerField()
 
     class Meta:
+        managed = False
         db_table = 'branch_list_dum'
 
 
@@ -345,7 +295,53 @@ class Category(models.Model):
     camp = models.TextField()
 
     class Meta:
+        managed = False
         db_table = 'category'
+
+
+class DjangoAdminLog(models.Model):
+    action_time = models.DateTimeField()
+    object_id = models.TextField(blank=True, null=True)
+    object_repr = models.CharField(max_length=200)
+    action_flag = models.PositiveSmallIntegerField()
+    change_message = models.TextField()
+    content_type_id = models.IntegerField(blank=True, null=True)
+    user_id = models.BigIntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_admin_log'
+
+
+class DjangoContentType(models.Model):
+    app_label = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'django_content_type'
+        unique_together = (('app_label', 'model'),)
+
+
+class DjangoMigrations(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    app = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    applied = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_migrations'
+
+
+class DjangoSession(models.Model):
+    session_key = models.CharField(primary_key=True, max_length=40)
+    session_data = models.TextField()
+    expire_date = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_session'
 
 
 class DoctorAgentList(models.Model):
@@ -357,7 +353,7 @@ class DoctorAgentList(models.Model):
     reg_no = models.TextField()
     designation = models.TextField()
     department = models.TextField()
-    mobile = models.CharField(max_length=13)
+    mobile = models.BigIntegerField()
     landline = models.TextField()
     company = models.TextField()
     pancard = models.TextField()
@@ -387,10 +383,23 @@ class DoctorAgentList(models.Model):
     last_pername_referral = models.CharField(max_length=10)
     include_phar_consum = models.CharField(max_length=10)
     bank_details_updatedby = models.CharField(max_length=30)
+    bankattachments = models.CharField(max_length=50)
+    panattachments = models.CharField(max_length=50)
+    audit_stat = models.CharField(max_length=50)
+    upino = models.CharField(max_length=100)
 
     class Meta:
         managed = False
         db_table = 'doctor_agent_list'
+
+
+class Dummy(models.Model):
+    oldemp = models.CharField(max_length=100, blank=True, null=True)
+    newemp = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'dummy'
 
 
 class DummyDoctorAgentList(models.Model):
@@ -427,7 +436,7 @@ class HomeSampleVisits(models.Model):
 
 
 class LoginPermissions(models.Model):
-    sno = models.AutoField(primary_key=True)
+    sno = models.IntegerField()
     designation = models.CharField(max_length=50)
     menu = models.CharField(max_length=60)
     submenu = models.CharField(max_length=100)
@@ -450,7 +459,7 @@ class Logins(models.Model):
     orginal_design = models.TextField(db_column='Orginal_Design')  # Field name made lowercase.
     original_type = models.TextField(db_column='Original_Type')  # Field name made lowercase.
     last_location = models.CharField(db_column='Last_Location', max_length=50)  # Field name made lowercase.
-    last_loc_datetime = models.DateTimeField(null=True, blank=True)
+    last_loc_datetime = models.DateTimeField(blank=True, null=True)
     date = models.DateField(db_column='Date')  # Field name made lowercase.
     time = models.TimeField(db_column='Time')  # Field name made lowercase.
     head = models.TextField(db_column='Head')  # Field name made lowercase.
@@ -475,7 +484,7 @@ class Logins(models.Model):
     ref_count = models.IntegerField()
     mpassword = models.CharField(max_length=100, blank=True, null=True)
     androidpermissions = models.CharField(max_length=100, blank=True, null=True)
-    inactive_dt = models.DateField()
+    inactive_dt = models.DateField(blank=True, null=True)
     androidsubmenu = models.CharField(max_length=100, blank=True, null=True)
     loginstatus = models.CharField(max_length=100, blank=True, null=True)
 
@@ -502,6 +511,20 @@ class MisStatus(models.Model):
         db_table = 'mis_status'
 
 
+class MyFifty(models.Model):
+    sno = models.AutoField(primary_key=True)
+    emp_id = models.CharField(max_length=35)
+    ucid = models.CharField(max_length=25)
+    doctor_name = models.CharField(max_length=35)
+    designation = models.CharField(max_length=20)
+    mobile = models.BigIntegerField()
+    area = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'my_fifty'
+
+
 class OwnershipDummy(models.Model):
     s_no = models.IntegerField(db_column='s.no')  # Field renamed to remove unsuitable characters.
     empid = models.CharField(max_length=100)
@@ -510,6 +533,104 @@ class OwnershipDummy(models.Model):
     class Meta:
         managed = False
         db_table = 'ownership_dummy'
+
+
+class PatientData(models.Model):
+    sno = models.AutoField(primary_key=True)
+    ipno = models.CharField(unique=True, max_length=50)
+    umr = models.CharField(max_length=50)
+    pname = models.TextField()
+    adate = models.DateField()
+    time = models.TimeField()
+    isbilldone = models.CharField(max_length=15)
+    mobile = models.BigIntegerField()
+    alt_mobile = models.BigIntegerField()
+    branch = models.CharField(max_length=20)
+    admntype = models.TextField()
+    consultant = models.CharField(max_length=80)
+    department = models.TextField()
+    wardname = models.CharField(max_length=50)
+    deptcode = models.CharField(max_length=50)
+    organization = models.CharField(max_length=80)
+    admpurpose = models.CharField(max_length=50)
+    last_login = models.DateTimeField()
+    discharge_datetime = models.DateTimeField()
+    whatsapstatus = models.TextField()
+    ip_no = models.CharField(max_length=100)
+    os_version = models.CharField(max_length=200)
+    model = models.CharField(max_length=200)
+    udid = models.CharField(max_length=200)
+    accesskey = models.TextField()
+    token = models.TextField()
+    referralstatus = models.TextField()
+    admissiontype = models.TextField(db_column='Admissiontype')  # Field name made lowercase.
+    referralname = models.TextField()
+    referraldepartment = models.TextField()
+    referralmobile = models.TextField()
+    referralremarks = models.TextField()
+    referralpercentage = models.FloatField()
+    referralpercentagename = models.CharField(max_length=10)
+    referral_cal_by = models.CharField(max_length=50)
+    referral_cal_on = models.DateTimeField()
+    paymentmode = models.CharField(max_length=25)
+    acc_holdername = models.CharField(max_length=80)
+    accnumber = models.TextField()
+    ifsccode = models.TextField()
+    pancard = models.TextField()
+    clashstatus = models.TextField()
+    clashremarks = models.TextField()
+    referralcreatedon = models.DateTimeField()
+    referralcreatedby = models.TextField()
+    mhapproval = models.TextField()
+    mh_approved_on = models.DateTimeField()
+    chapproval = models.TextField()
+    chapproval_by = models.CharField(max_length=50)
+    ch_approved_on = models.DateTimeField()
+    billamount = models.FloatField()
+    referralamount = models.FloatField()
+    referralmode = models.TextField()
+    assign_empid = models.TextField()
+    referralcode = models.TextField()
+    discounts = models.FloatField()
+    netbill = models.IntegerField()
+    phar_consum_billamount = models.FloatField()
+    consultantentry = models.TextField()
+    consultantremarks = models.TextField()
+    doctor_dateon = models.DateTimeField()
+    ucid = models.CharField(db_column='UCID', max_length=50)  # Field name made lowercase.
+    cluster_approval = models.TextField()
+    cluster_approval_by = models.CharField(max_length=50)
+    cluster_approved_on = models.DateTimeField()
+    fh_approval = models.CharField(max_length=35)
+    fh_by = models.CharField(max_length=30)
+    fh_on = models.DateTimeField()
+    referral_type = models.TextField()
+    marketing_executive = models.CharField(db_column='Marketing_executive', max_length=50)  # Field name made lowercase.
+    sms_jobid = models.CharField(db_column='sms_jobId', max_length=20)  # Field name made lowercase.
+    psms_status = models.TextField()
+    dsms_iobid = models.IntegerField()
+    dsms_status = models.TextField()
+    api_status = models.TextField()
+    orgconcession = models.FloatField()
+    labsamount = models.FloatField()
+    lastinsert_on = models.DateTimeField()
+    last_discharge_time = models.DateTimeField()
+    utr_no = models.CharField(max_length=300)
+    utrcreated_by = models.CharField(max_length=50)
+    utr_on = models.DateTimeField()
+    remarks = models.CharField(max_length=50)
+    dummy_status = models.CharField(max_length=50)
+    discharge_status = models.CharField(max_length=50)
+    branch_cluster = models.CharField(max_length=30)
+    old_status = models.IntegerField()
+    new_referral_status = models.IntegerField()
+    panattachments = models.CharField(max_length=200, blank=True, null=True)
+    bankattachments = models.CharField(max_length=200, blank=True, null=True)
+    ref_country = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'patient_data'
 
 
 class PatientDataOlddata(models.Model):
@@ -666,7 +787,75 @@ class PatientReferrals(models.Model):
         db_table = 'patient_referrals'
 
 
+class PatientReferralsLogs(models.Model):
+    sno = models.AutoField(primary_key=True)
+    ipno = models.CharField(max_length=50)
+    ucid = models.CharField(max_length=50)
+    referral_doctorname = models.CharField(max_length=60)
+    agent_type = models.CharField(max_length=50)
+    category = models.CharField(max_length=3)
+    referrralstatus = models.CharField(max_length=20)
+    executivename = models.CharField(max_length=35)
+    empid = models.CharField(max_length=35)
+    remarks = models.CharField(max_length=100)
+    created_by = models.CharField(max_length=50)
+    created_by_name = models.CharField(max_length=50)
+    created_designation = models.CharField(max_length=50)
+    created_on = models.DateTimeField()
+    source = models.CharField(max_length=50)
+    ref_sno = models.IntegerField()
+    status = models.CharField(max_length=50)
+    referral_amount = models.FloatField()
+    referral_percentage = models.FloatField()
+    referral_per_type = models.CharField(max_length=50)
+    paymentmode = models.CharField(max_length=50)
+    include_pharm = models.CharField(max_length=50)
+    item_deletestatus = models.IntegerField()
+    modified_by = models.CharField(max_length=50)
+    modified_on = models.DateTimeField()
+    utr_no = models.CharField(max_length=300)
+    referral_mobile = models.BigIntegerField()
+    bank_ac = models.CharField(max_length=20)
+    ifsc = models.CharField(max_length=20)
+    pancard = models.CharField(max_length=20)
+
+    class Meta:
+        managed = False
+        db_table = 'patient_referrals_logs'
+
+
+class PatientReferralsNew(models.Model):
+    sno = models.AutoField(primary_key=True)
+    pname = models.TextField(db_collation='latin1_swedish_ci')
+    pmobile = models.BigIntegerField()
+    executive_name = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    empid = models.TextField(db_collation='latin1_swedish_ci')
+    ref_doc_ucid = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    ref_doc_name = models.CharField(max_length=100, db_collation='latin1_swedish_ci')
+    category = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    agent_type = models.CharField(max_length=30, db_collation='latin1_swedish_ci')
+    consultant = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    speciality = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    remarks = models.CharField(max_length=100, db_collation='latin1_swedish_ci')
+    ipno = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    mapped_by = models.CharField(max_length=40)
+    mapped_on = models.DateTimeField()
+    status = models.TextField(db_collation='latin1_swedish_ci')
+    created_by = models.CharField(max_length=40, db_collation='utf8mb4_unicode_ci')
+    created_on = models.DateTimeField()
+    branch = models.CharField(max_length=50)
+    agent_mobile = models.BigIntegerField()
+    executive_mobile = models.BigIntegerField()
+    paymentmode = models.CharField(max_length=50)
+    source = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'patient_referrals_new'
+
+
 class Patientdatasanhar(models.Model):
+    sno = models.AutoField(primary_key=True)
     facility_name = models.CharField(max_length=50)
     registration_number = models.CharField(max_length=50)
     encounterno = models.CharField(max_length=30)
@@ -736,6 +925,8 @@ class Patientdatasanhar(models.Model):
     moudiscount = models.FloatField()
     insuranceapproved = models.IntegerField()
     primarybillcode = models.CharField(db_column='PrimaryBillCode', max_length=40)  # Field name made lowercase.
+    branch_subcode = models.CharField(max_length=80)
+    last_updatedon = models.DateTimeField()
 
     class Meta:
         managed = False
@@ -844,6 +1035,57 @@ class RecoveryDetails(models.Model):
     class Meta:
         managed = False
         db_table = 'recovery_details'
+
+
+class ReferralLogins(models.Model):
+    emp_name = models.CharField(db_column='Emp_name', max_length=30, db_collation='latin1_swedish_ci', blank=True, null=True)  # Field name made lowercase.
+    personal_number = models.BigIntegerField(db_column='Personal_Number')  # Field name made lowercase.
+    office_number = models.BigIntegerField(db_column='Office_number')  # Field name made lowercase.
+    designation = models.CharField(db_column='Designation', max_length=50, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    emp_id = models.CharField(db_column='Emp_ID', max_length=20, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    password = models.CharField(db_column='Password', max_length=50, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    mpassword = models.CharField(max_length=100, db_collation='latin1_swedish_ci')
+    branch = models.CharField(db_column='Branch', max_length=30, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    old_branch = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    page = models.CharField(db_column='Page', max_length=20, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    orginal_design = models.TextField(db_column='Orginal_Design', db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    original_type = models.TextField(db_column='Original_Type', db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    last_location = models.CharField(db_column='Last_Location', max_length=50, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    last_loc_datetime = models.DateTimeField()
+    date = models.DateField(db_column='Date')  # Field name made lowercase.
+    time = models.TimeField(db_column='Time')  # Field name made lowercase.
+    head = models.TextField(db_column='Head', db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    type = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    join_date = models.DateField(db_column='Join_Date')  # Field name made lowercase.
+    visibility = models.TextField(db_column='Visibility', db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    job_status = models.CharField(db_column='Job_Status', max_length=50, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    levels = models.IntegerField()
+    bank_acc = models.TextField(db_collation='latin1_swedish_ci')
+    ifsc = models.CharField(max_length=20, db_collation='latin1_swedish_ci')
+    pan = models.CharField(max_length=20, db_collation='latin1_swedish_ci')
+    allow = models.IntegerField()
+    img_link = models.CharField(max_length=300, db_collation='latin1_swedish_ci')
+    model = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    version = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    firebase_token = models.CharField(max_length=3000, db_collation='latin1_swedish_ci')
+    deviceid = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+    accesskey = models.CharField(max_length=100, db_collation='latin1_swedish_ci')
+    state = models.TextField(db_collation='latin1_swedish_ci')
+    branch_access = models.TextField(db_collation='latin1_swedish_ci')
+    new_type = models.TextField(db_collation='latin1_swedish_ci')
+    ref_count = models.IntegerField()
+    inactive_dt = models.DateField()
+    up_bank_details = models.IntegerField()
+    androidpermissions = models.CharField(max_length=100, db_collation='latin1_swedish_ci')
+    androidsubmenu = models.CharField(max_length=100, db_collation='latin1_swedish_ci')
+    loginstatus = models.IntegerField()
+    old_status = models.IntegerField()
+    last_location_tt = models.CharField(db_column='Last_Location_tt', max_length=80, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    branch_cluster = models.CharField(max_length=50, db_collation='latin1_swedish_ci')
+
+    class Meta:
+        managed = False
+        db_table = 'referral_logins'
 
 
 class ReferralLogs(models.Model):
@@ -971,18 +1213,83 @@ class TourPlanReferral(models.Model):
 
 
 class UtrUpdate(models.Model):
-    sno = models.AutoField(primary_key=True)
-    invoice_no = models.CharField(max_length=30)
-    patient_name = models.CharField(max_length=150)
-    branch = models.CharField(max_length=40)
-    service_name = models.TextField(blank=True)
-    grossamount = models.CharField(max_length=50, null=True)
-    discount = models.CharField(max_length=50, null=True)
-    netamount = models.CharField(max_length=50, null=True)
-    referralamount = models.CharField(max_length=50, null=True)
-    utr_no = models.CharField(max_length=50, null=True)
-    utr_created_by = models.CharField(max_length=50, null=True)
-    utr_date = models.DateField(auto_now_add=now)
+    id = models.BigAutoField(primary_key=True)
+    upload_csv_file = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        db_table = "utrupdate"
+        managed = False
+        db_table = 'utr_update'
+
+
+class WebLogins(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    password = models.CharField(max_length=128)
+    last_login = models.DateTimeField(blank=True, null=True)
+    is_superuser = models.IntegerField()
+    emp_name = models.CharField(db_column='Emp_name', max_length=30, blank=True, null=True)  # Field name made lowercase.
+    personal_number = models.BigIntegerField(db_column='Personal_Number', blank=True, null=True)  # Field name made lowercase.
+    office_number = models.BigIntegerField(db_column='Office_number', blank=True, null=True)  # Field name made lowercase.
+    designation = models.TextField(db_column='Designation', blank=True, null=True)  # Field name made lowercase.
+    emp_id = models.CharField(db_column='Emp_ID', unique=True, max_length=50, blank=True, null=True)  # Field name made lowercase.
+    branch = models.TextField(db_column='Branch', blank=True, null=True)  # Field name made lowercase.
+    old_branch = models.CharField(max_length=50, blank=True, null=True)
+    page = models.TextField(db_column='Page', blank=True, null=True)  # Field name made lowercase.
+    orginal_design = models.TextField(db_column='Orginal_Design', blank=True, null=True)  # Field name made lowercase.
+    original_type = models.TextField(db_column='Original_Type', blank=True, null=True)  # Field name made lowercase.
+    last_location = models.CharField(db_column='Last_Location', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    last_loc_datetime = models.DateTimeField(blank=True, null=True)
+    date = models.DateField(db_column='Date', blank=True, null=True)  # Field name made lowercase.
+    time = models.TimeField(db_column='Time', blank=True, null=True)  # Field name made lowercase.
+    head = models.TextField(db_column='Head', blank=True, null=True)  # Field name made lowercase.
+    type = models.CharField(max_length=50, blank=True, null=True)
+    join_date = models.DateField(db_column='Join_Date', blank=True, null=True)  # Field name made lowercase.
+    visibility = models.TextField(db_column='Visibility', blank=True, null=True)  # Field name made lowercase.
+    job_status = models.CharField(db_column='Job_Status', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    levels = models.IntegerField(blank=True, null=True)
+    bank_acc = models.TextField(blank=True, null=True)
+    ifsc = models.CharField(max_length=20, blank=True, null=True)
+    pan = models.CharField(max_length=20, blank=True, null=True)
+    allow = models.IntegerField(blank=True, null=True)
+    img_link = models.CharField(max_length=300, blank=True, null=True)
+    model = models.CharField(max_length=50, blank=True, null=True)
+    version = models.CharField(max_length=50, blank=True, null=True)
+    firebase_token = models.CharField(max_length=3000, blank=True, null=True)
+    deviceid = models.CharField(max_length=50, blank=True, null=True)
+    accesskey = models.CharField(max_length=100, blank=True, null=True)
+    state = models.TextField(blank=True, null=True)
+    branch_access = models.TextField(blank=True, null=True)
+    new_type = models.TextField(blank=True, null=True)
+    ref_count = models.IntegerField(blank=True, null=True)
+    mpassword = models.CharField(max_length=100, blank=True, null=True)
+    androidpermissions = models.CharField(max_length=100, blank=True, null=True)
+    inactive_dt = models.DateField(blank=True, null=True)
+    androidsubmenu = models.CharField(max_length=100, blank=True, null=True)
+    loginstatus = models.CharField(max_length=100, blank=True, null=True)
+    is_staff = models.IntegerField()
+    is_active = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'web_logins'
+
+
+class WebLoginsGroups(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    weblogins_id = models.BigIntegerField()
+    group_id = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'web_logins_groups'
+        unique_together = (('weblogins_id', 'group_id'),)
+
+
+class WebLoginsUserPermissions(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    weblogins_id = models.BigIntegerField()
+    permission_id = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'web_logins_user_permissions'
+        unique_together = (('weblogins_id', 'permission_id'),)

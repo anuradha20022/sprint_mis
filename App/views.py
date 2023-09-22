@@ -469,9 +469,9 @@ def pending_payment(request):
     branch_name = request.POST.get('branch')
     print(branch_name)
     if branch_name == 'All':
-        filtered_data = PatientData.objects.filter(Q(common_filter) & (~Q(paymentmode=None)))
+        filtered_data = PatientDataOlddata.objects.filter(Q(common_filter) & (~Q(paymentmode=None)))
     else:
-        filtered_data = PatientData.objects.filter(Q(common_filter, branch=branch_name) & (~Q(paymentmode=None)))
+        filtered_data = PatientDataOlddata.objects.filter(Q(common_filter, branch=branch_name) & (~Q(paymentmode=None)))
     status = filtered_data
     cash = filtered_data.filter(Q(paymentmode='CASH') & (~Q(paymentmode=None)))
     upi = filtered_data.filter(Q(paymentmode='UPI') & (~Q(paymentmode=None)))
@@ -1157,7 +1157,7 @@ def bill_list(request):
                 doctor_agent.pancard = pancard
                 doctor_agent.save()
             # print(sno)
-            PatientData.objects.filter(sno=sno).update(ucid=unique_id,
+            PatientDataOlddata.objects.filter(sno=sno).update(ucid=unique_id,
                                                        referral_cal_by=request.user.emp_id,
                                                        referralcreatedby=request.user.emp_id,
                                                        ucidcreatedon=timezone.now(),
@@ -1177,7 +1177,7 @@ def bill_list(request):
 
         else:
             # print(doctor_agent.unique_id)
-            PatientData.objects.filter(sno=sno).update(ucid=unique_id,
+            PatientDataOlddata.objects.filter(sno=sno).update(ucid=unique_id,
                                                        referral_cal_by=request.user.emp_id,
                                                        referralcreatedby=request.user.emp_id,
                                                        ucidcreatedon=timezone.now(),
@@ -1199,12 +1199,12 @@ def bill_list(request):
 
     if request.method == "GET" and request.is_ajax():
         sno = int(request.GET.get('sno'))
-        res = list(PatientData.objects.filter(sno=sno).values())[0]
+        res = list(PatientDataOlddata.objects.filter(sno=sno).values())[0]
         return JsonResponse(res)
 
     if 'delete_sno' in request.GET and request.is_ajax():
         delete_sno = request.GET.get('delete_sno')
-        PatientData.objects.get(sno=delete_sno)
+        PatientDataOlddata.objects.get(sno=delete_sno)
         messages.success(request, 'Deleted succesfully')
         return JsonResponse({"success": True})
 
@@ -1230,7 +1230,7 @@ def bill(request):
             end_date_formatted = end_date_obj.strftime('%Y-%m-%d')
 
             # Use the formatted dates to filter the CallReportMaster objects
-            context["admission"] = PatientData.objects.filter(
+            context["admission"] = PatientDataOlddata.objects.filter(
                 invoice_date__range=[start_date_formatted, end_date_formatted])
 
             context["date_range"] = date_range_str
@@ -1248,24 +1248,24 @@ def admission_list_filter(request):
     colindex = request.GET.get("order[0][column]")
 
     if date is not None:
-        records_total = PatientData.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
+        records_total = PatientDataOlddata.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
                                                    referralstatus='').order_by('sno').count()
         records_filtered = records_total
-        agent_data = PatientData.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
+        agent_data = PatientDataOlddata.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
                                                 referralstatus='').order_by('sno').values()[
                      start:length + start]
         if search:
-            agent_data = PatientData.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
+            agent_data = PatientDataOlddata.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
                 'sno').values()
             records_total = agent_data.count()
             records_filtered = records_total
 
     else:
-        records_total = PatientData.objects.filter(referralstatus='').order_by('sno').count()
+        records_total = PatientDataOlddata.objects.filter(referralstatus='').order_by('sno').count()
         records_filtered = records_total
-        agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()
+        agent_data = PatientDataOlddata.objects.filter(referralstatus='').order_by('sno').values()
         if search:
-            agent_data = PatientData.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
+            agent_data = PatientDataOlddata.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
                 'sno').values()
 
             records_total = agent_data.count()
@@ -1285,7 +1285,6 @@ def admission_list_filter(request):
             'invoice_no': emp['invoice_no'],
             'invoice_date': emp['invoice_date'],
             'branch': emp['branch'],
-            'patient_name': emp['patient_name'],
             'service_name': emp['service_name'],
             'department_name': emp['department_name'],
             'grossamount': emp['grossamount'],
@@ -1307,11 +1306,11 @@ def admission(request):
     length = int(request.POST.get('length'))
     search = request.POST.get('search[value]')
     colindex = request.POST.get("order[0][column]")
-    records_total = PatientData.objects.filter(referralstatus='').order_by('sno').count()
+    records_total = PatientDataOlddata.objects.filter(referralstatus='').order_by('sno').count()
     records_filtered = records_total
-    agent_data = PatientData.objects.filter(referralstatus='').order_by('sno').values()[start:length + start]
+    agent_data = PatientDataOlddata.objects.filter(referralstatus='').order_by('sno').values()[start:length + start]
     if search:
-        agent_data = PatientData.objects.filter(Q(sno=search) & Q(referralstatus='')).order_by('sno').values()[
+        agent_data = PatientDataOlddata.objects.filter(Q(sno=search) & Q(referralstatus='')).order_by('sno').values()[
                      start:length + start]
         records_total = agent_data.count()
         records_filtered = records_total
@@ -1335,7 +1334,6 @@ def admission(request):
             'invoice_no': emp['invoice_no'],
             'invoice_date': emp['invoice_date'],
             'branch': emp['branch'],
-            'patient_name': emp['patient_name'],
             'marketing_executive': emp['marketing_executive'],
             'referral_type': emp['referral_type'],
             'referralpercentage': emp['referralpercentage'],
@@ -1566,9 +1564,10 @@ def day_report(request):
                        "COUNT(*) AS `call_count`, l.`ref_count`, l.`type` FROM `call_report_master` crm "
                        "INNER JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
                        "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
-                       "(l.`Designation` != 'Center Head') AND crm.`date` BETWEEN '{fd}' AND '{td}' and "
-                       "l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
-                        " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` "
+                       "(l.`Designation` != 'Center Head') AND crm.`date` BETWEEN '{fd}' AND '{td}'"
+                       # " and l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
+                       #  " GROUP BY crm.`date`, crm.`emp_id` 
+                       "ORDER BY crm.`date` "
                        "ASC;".format(fd=from_d, td=to_d))
         day = cursor.description
         context['report'] = [
@@ -1837,7 +1836,7 @@ def utr_update(request):
                           referralamount=row["Referral Amount"],
                           utr_no=row["UTR_No"], utr_date=row["UTR_Date"], utr_created_by=request.user.emp_id).save()
 
-                PatientData.objects.filter(sno=int(row["Sno"])).update(utr_on=row["UTR_Date"], utr_no=row["UTR_No"])
+                PatientDataOlddata.objects.filter(sno=int(row["Sno"])).update(utr_on=row["UTR_Date"], utr_no=row["UTR_No"])
         messages.success(request, "upload successfully....")
         return redirect('utr_update')
     return render(request, 'utr.html')
@@ -1854,7 +1853,7 @@ def utr_csv(request):
         'Discount Amount', 'Net Bill Amount', 'Referral Amount',
         'UTR_No', 'UTR_Date'
     ])
-    # utr = PatientData.objects.all()
+    # utr = PatientDataOlddata.objects.all()
     # for i in utr:
     #     writer.writerow([
     #         i.sno, i.invoice_no, i.patient_name, i.branch, i.service_name, i.grossamount
@@ -2332,9 +2331,9 @@ def reject(request):
     if request.method == "POST":
         branch = request.POST.get('branch')
         if branch == 'All':
-            context['rejected_list'] = PatientData.objects.filter(referralstatus='Yes', chapproval="No")
+            context['rejected_list'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="No")
         else:
-            context['rejected_list'] = PatientData.objects.filter(referralstatus='Yes', chapproval="No", branch=branch)
+            context['rejected_list'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="No", branch=branch)
 
     return render(request, 'reject.html', context)
 
@@ -2391,9 +2390,9 @@ def cash_payment(request):
         branch = request.POST.get('branch')
 
         if branch == 'All':
-            context['cash'] = PatientData.objects.filter(paymentmode='Cash', referralstatus='Yes')
+            context['cash'] = PatientDataOlddata.objects.filter(paymentmode='Cash', referralstatus='Yes')
         else:
-            context['cash'] = PatientData.objects.filter(paymentmode='Cash', branch=branch, referralstatus='Yes')
+            context['cash'] = PatientDataOlddata.objects.filter(paymentmode='Cash', branch=branch, referralstatus='Yes')
 
     return render(request, 'cash_payment.html', context)
 
@@ -2403,19 +2402,19 @@ def cash_payment(request):
 def functional_approval_list(request):
     context = {
         'branch_name': BranchListDum.objects.filter(~Q(branch_name='Test')),
-        'cluster': PatientData.objects.filter(referralstatus='Yes', chapproval="")
+        'cluster': PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="")
     }
     if 'approval_value' in request.POST:
         data_list = request.POST.get('approval_value')
         try:
             for sno in ast.literal_eval(data_list):
                 print(sno)
-                PatientData.objects.filter(sno=sno).update(chapproval="approved", chapproval_by=request.user.emp_id,
+                PatientDataOlddata.objects.filter(sno=sno).update(chapproval="approved", chapproval_by=request.user.emp_id,
                                                            ch_approved_on=timezone.now())
             messages.success(request, 'Approved successfully')
 
         except TypeError:
-            PatientData.objects.filter(sno=data_list).update(chapproval="approved", chapproval_by=request.user.emp_id,
+            PatientDataOlddata.objects.filter(sno=data_list).update(chapproval="approved", chapproval_by=request.user.emp_id,
                                                              ch_approved_on=timezone.now())
             messages.success(request, 'Approved successfully')
         return redirect('functional_approval_list')
@@ -2424,11 +2423,11 @@ def functional_approval_list(request):
         data_list = request.POST.get('reject_value')
         try:
             for sno in ast.literal_eval(data_list):
-                PatientData.objects.filter(sno=sno).update(chapproval="No", chapproval_by=request.user.emp_id,
+                PatientDataOlddata.objects.filter(sno=sno).update(chapproval="No", chapproval_by=request.user.emp_id,
                                                            ch_approved_on=timezone.now())
             messages.success(request, 'Rejected successfully')
         except TypeError:
-            PatientData.objects.filter(sno=data_list).update(chapproval="No", chapproval_by=request.user.emp_id,
+            PatientDataOlddata.objects.filter(sno=data_list).update(chapproval="No", chapproval_by=request.user.emp_id,
                                                              ch_approved_on=timezone.now())
             messages.success(request, 'Rejected successfully')
         return redirect('functional_approval_list')
@@ -2437,9 +2436,9 @@ def functional_approval_list(request):
         branch_name = request.POST.get('branch')
 
         if branch_name == 'All':
-            context['cluster'] = PatientData.objects.filter(referralstatus='Yes', chapproval="")
+            context['cluster'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="")
         else:
-            context['cluster'] = PatientData.objects.filter(referralstatus='Yes', branch=branch_name, chapproval="")
+            context['cluster'] = PatientDataOlddata.objects.filter(referralstatus='Yes', branch=branch_name, chapproval="")
 
     return render(request, 'fucntional_aprroval_list.html', context)
 
@@ -2449,7 +2448,7 @@ def s_id(request):
     if 'term' in request.GET:
         result = []
         term = request.GET.get('term')
-        new = PatientData.objects.filter(Q(registration_number__istartswith=term) | Q(patient_name__istartswith=term))
+        new = PatientDataOlddata.objects.filter(Q(registration_number__istartswith=term) | Q(patient_name__istartswith=term))
         for emp in new:
             result.append({'registration_number': emp.registration_number, 'patient_name': emp.patient_name,
                            'invoice_no': emp.invoice_no})
@@ -2525,10 +2524,10 @@ def payment_list(request):
         branch_name = request.POST.get('branch')
 
         if branch_name == 'All':
-            context['status'] = PatientData.objects.filter(referralstatus='Yes', chapproval="approved")
+            context['status'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="approved")
 
         else:
-            context['status'] = PatientData.objects.filter(referralstatus='Yes', branch=branch_name,
+            context['status'] = PatientDataOlddata.objects.filter(referralstatus='Yes', branch=branch_name,
                                                            chapproval="approved")
 
     return render(request, 'payment_list.html', context)
@@ -2545,16 +2544,16 @@ def pending_payment_csv(request):
         'Bill Date',
         'Mobile _Number',
         'Department_Name',
-        'Service_Name', ' Bill_type', 'Payment_Mode', 'Branch', 'Patient_Name',
+        'Service_Name', ' Bill_type', 'Payment_Mode', 'Branch',
         'Referral_Name', 'Referral_Type', 'Referral_Percentage', 'Referral_Percentage_Name',
         'Gross Bill Amount', 'Discount Amount', 'Net Bill Amount', 'Referral Amount', 'Referral updated on',
         'Referral created_by',
         'Functional_Approval', 'Functional approved on', 'UCID', 'Agent / doctor name', 'bank account',
         'IFSC', 'PANCARD', 'UTR No', 'UTR Date'
     ])
-    data = PatientData.objects.all().values_list('sno', 'invoice_no', 'invoice_date', 'referralmobile',
+    data = PatientDataOlddata.objects.all().values_list('sno', 'invoice_no', 'invoice_date', 'referralmobile',
                                                  'department_name', 'service_name', 'admissiontype', 'paymentmode',
-                                                 'branch', 'patient_name', 'referralname', 'referral_type',
+                                                 'branch', 'referralname', 'referral_type',
                                                  'referralpercentage', 'referralpercentagename',
                                                  'grossamount', 'discount', 'netamount', 'referralamount',
                                                  'referralcreatedon', 'referralcreatedby', 'chapproval',
