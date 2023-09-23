@@ -1565,10 +1565,8 @@ def day_report(request):
                        "INNER JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
                        "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
                        "(l.`Designation` != 'Center Head') AND crm.`date` BETWEEN '{fd}' AND '{td}'"
-                       # " and l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
-                       #  " GROUP BY crm.`date`, crm.`emp_id` 
-                       "ORDER BY crm.`date` "
-                       "ASC;".format(fd=from_d, td=to_d))
+                       " and l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
+                        " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
         day = cursor.description
         context['report'] = [
             dict(zip([i[0] for i in day], rep)) for rep in cursor.fetchall()

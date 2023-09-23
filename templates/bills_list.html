@@ -101,7 +101,7 @@ $('#cus-responsive-datatable').DataTable({
         {#console.log(edit_value);#}
         {#$('#update_form').trigger('reset');#}
         $.ajax({
-            url: '{% url 'bi`ll_list' %}',
+            url: '{% url 'bill_list' %}',
             data: {sno: edit_value},
             success: function (response) {
                 $('#sno').html(response.sno);
