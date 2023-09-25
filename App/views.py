@@ -595,7 +595,7 @@ def call_report(request):
         call = connection.cursor()
         if f_date:
             call.execute(
-                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.category,
+                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
                     call_report_master.ref_type,call_report_master.name, call_report_master.design,  call_report_master.contact, call_report_master.date,
                      call_report_master.location, call_report_master.branch
                 FROM logins
@@ -605,7 +605,7 @@ def call_report(request):
             )
         else:
             call.execute(
-                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.category,
+                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
                     call_report_master.ref_type, call_report_master.name, call_report_master.design,  call_report_master.contact, call_report_master.date,
                      call_report_master.location, call_report_master.branch
                 FROM logins
