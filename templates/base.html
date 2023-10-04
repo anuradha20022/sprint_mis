@@ -585,7 +585,7 @@
     {% endfor %}
 
     $('#transfer_search_id1').autocomplete({
-        source:'{% url 'transfer_doctor_search' %}',
+        source:'{% url 'search_emp' %}',
         minLength: 2,
         focus: function (event, ui) {
                 if (ui.item.id !== "") {
@@ -615,7 +615,7 @@
 
     });
     $('#transfer_search_id2').autocomplete({
-        source:'{% url 'transfer_doctor_search' %}',
+        source:'{% url 'search_emp' %}',
         minLength: 2,
         focus: function (event, ui) {
                 if (ui.item.id !== "") {
