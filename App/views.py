@@ -78,15 +78,6 @@ def logout_user(request):
     logout(request)
     return redirect('loginuser')
 
-
-@login_required(login_url="/")
-def register(request):
-    result = []
-    for branch in list(CallReportMaster.objects.values('branch').distinct()):
-        if branch['branch']:
-            result.append(
-                {'branch': branch['branch'], 'count': CallReportMaster.objects.filter(branch=branch['branch']).count()})
-
     # for emp in Logins.objects.all():
     #     try:
     #         WebLogins.objects.get(emp_id=emp.emp_id)
@@ -117,6 +108,14 @@ def register(request):
     #                                  androidpermissions=emp.androidpermissions,
     #                                  androidsubmenu=emp.androidsubmenu,
     #                                  loginstatus=emp.loginstatus)
+
+@login_required(login_url="/")
+def register(request):
+    result = []
+    for branch in list(CallReportMaster.objects.values('branch').distinct()):
+        if branch['branch']:
+            result.append(
+                {'branch': branch['branch'], 'count': CallReportMaster.objects.filter(branch=branch['branch']).count()})
 
     if 'empname' in request.POST:
         empname = request.POST.get('empname')
@@ -617,6 +616,7 @@ def call_report(request):
         ]
 
     return render(request, 'call/call_report.html', context)
+
 
 #
 # @csrf_exempt
@@ -1158,41 +1158,41 @@ def bill_list(request):
                 doctor_agent.save()
             # print(sno)
             PatientDataOlddata.objects.filter(sno=sno).update(ucid=unique_id,
-                                                       referral_cal_by=request.user.emp_id,
-                                                       referralcreatedby=request.user.emp_id,
-                                                       ucidcreatedon=timezone.now(),
-                                                       referralcreatedon=timezone.now(),
-                                                       patient_name=patient_name,
-                                                       referralname=agent_name,
-                                                       referralpercentagename=calculationtype,
-                                                       referralpercentage=referralpercentage,
-                                                       referralamount=referralamount,
-                                                       referral_type=ref_type,
-                                                       paymentmode=paymentmode,
-                                                       accnumber=accnumber,
-                                                       ifsccode=ifsccode,
-                                                       pancard=pancard, upinumber=upinumber,
-                                                       referralstatus='Yes')
+                                                              referral_cal_by=request.user.emp_id,
+                                                              referralcreatedby=request.user.emp_id,
+                                                              ucidcreatedon=timezone.now(),
+                                                              referralcreatedon=timezone.now(),
+                                                              patient_name=patient_name,
+                                                              referralname=agent_name,
+                                                              referralpercentagename=calculationtype,
+                                                              referralpercentage=referralpercentage,
+                                                              referralamount=referralamount,
+                                                              referral_type=ref_type,
+                                                              paymentmode=paymentmode,
+                                                              accnumber=accnumber,
+                                                              ifsccode=ifsccode,
+                                                              pancard=pancard, upinumber=upinumber,
+                                                              referralstatus='Yes')
             messages.success(request, "Updated successfully")
 
         else:
             # print(doctor_agent.unique_id)
             PatientDataOlddata.objects.filter(sno=sno).update(ucid=unique_id,
-                                                       referral_cal_by=request.user.emp_id,
-                                                       referralcreatedby=request.user.emp_id,
-                                                       ucidcreatedon=timezone.now(),
-                                                       referralcreatedon=timezone.now(),
-                                                       patient_name=patient_name,
-                                                       referralname=agent_name,
-                                                       referralpercentagename=calculationtype,
-                                                       referralpercentage=referralpercentage,
-                                                       referralamount=referralamount,
-                                                       referral_type=ref_type,
-                                                       paymentmode=paymentmode,
-                                                       accnumber=doctor_agent.bank_ac,
-                                                       ifsccode=doctor_agent.ifsc,
-                                                       pancard=doctor_agent.pancard, upinumber=upinumber,
-                                                       referralstatus='Yes')
+                                                              referral_cal_by=request.user.emp_id,
+                                                              referralcreatedby=request.user.emp_id,
+                                                              ucidcreatedon=timezone.now(),
+                                                              referralcreatedon=timezone.now(),
+                                                              patient_name=patient_name,
+                                                              referralname=agent_name,
+                                                              referralpercentagename=calculationtype,
+                                                              referralpercentage=referralpercentage,
+                                                              referralamount=referralamount,
+                                                              referral_type=ref_type,
+                                                              paymentmode=paymentmode,
+                                                              accnumber=doctor_agent.bank_ac,
+                                                              ifsccode=doctor_agent.ifsc,
+                                                              pancard=doctor_agent.pancard, upinumber=upinumber,
+                                                              referralstatus='Yes')
 
             messages.success(request, "Updated successfully")
         return redirect('bill_list')
@@ -1249,13 +1249,14 @@ def admission_list_filter(request):
 
     if date is not None:
         records_total = PatientDataOlddata.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
-                                                   referralstatus='').order_by('sno').count()
+                                                          referralstatus='').order_by('sno').count()
         records_filtered = records_total
         agent_data = PatientDataOlddata.objects.filter(invoice_date__lte=date, invoice_date__gte=date,
-                                                referralstatus='').order_by('sno').values()[
+                                                       referralstatus='').order_by('sno').values()[
                      start:length + start]
         if search:
-            agent_data = PatientDataOlddata.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
+            agent_data = PatientDataOlddata.objects.filter(
+                Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
                 'sno').values()
             records_total = agent_data.count()
             records_filtered = records_total
@@ -1265,7 +1266,8 @@ def admission_list_filter(request):
         records_filtered = records_total
         agent_data = PatientDataOlddata.objects.filter(referralstatus='').order_by('sno').values()
         if search:
-            agent_data = PatientDataOlddata.objects.filter(Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
+            agent_data = PatientDataOlddata.objects.filter(
+                Q(invoice_date__lte=search, invoice_date__gte=search)).order_by(
                 'sno').values()
 
             records_total = agent_data.count()
@@ -1566,7 +1568,7 @@ def day_report(request):
                        "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
                        "(l.`Designation` != 'Center Head') AND crm.`date` BETWEEN '{fd}' AND '{td}'"
                        " and l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
-                        " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
+                       " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
         day = cursor.description
         context['report'] = [
             dict(zip([i[0] for i in day], rep)) for rep in cursor.fetchall()
@@ -1834,7 +1836,8 @@ def utr_update(request):
                           referralamount=row["Referral Amount"],
                           utr_no=row["UTR_No"], utr_date=row["UTR_Date"], utr_created_by=request.user.emp_id).save()
 
-                PatientDataOlddata.objects.filter(sno=int(row["Sno"])).update(utr_on=row["UTR_Date"], utr_no=row["UTR_No"])
+                PatientDataOlddata.objects.filter(sno=int(row["Sno"])).update(utr_on=row["UTR_Date"],
+                                                                              utr_no=row["UTR_No"])
         messages.success(request, "upload successfully....")
         return redirect('utr_update')
     return render(request, 'utr.html')
@@ -2331,7 +2334,8 @@ def reject(request):
         if branch == 'All':
             context['rejected_list'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="No")
         else:
-            context['rejected_list'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="No", branch=branch)
+            context['rejected_list'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="No",
+                                                                         branch=branch)
 
     return render(request, 'reject.html', context)
 
@@ -2407,13 +2411,14 @@ def functional_approval_list(request):
         try:
             for sno in ast.literal_eval(data_list):
                 print(sno)
-                PatientDataOlddata.objects.filter(sno=sno).update(chapproval="approved", chapproval_by=request.user.emp_id,
-                                                           ch_approved_on=timezone.now())
+                PatientDataOlddata.objects.filter(sno=sno).update(chapproval="approved",
+                                                                  chapproval_by=request.user.emp_id,
+                                                                  ch_approved_on=timezone.now())
             messages.success(request, 'Approved successfully')
-
         except TypeError:
-            PatientDataOlddata.objects.filter(sno=data_list).update(chapproval="approved", chapproval_by=request.user.emp_id,
-                                                             ch_approved_on=timezone.now())
+            PatientDataOlddata.objects.filter(sno=data_list).update(chapproval="approved",
+                                                                    chapproval_by=request.user.emp_id,
+                                                                    ch_approved_on=timezone.now())
             messages.success(request, 'Approved successfully')
         return redirect('functional_approval_list')
 
@@ -2422,11 +2427,11 @@ def functional_approval_list(request):
         try:
             for sno in ast.literal_eval(data_list):
                 PatientDataOlddata.objects.filter(sno=sno).update(chapproval="No", chapproval_by=request.user.emp_id,
-                                                           ch_approved_on=timezone.now())
+                                                                  ch_approved_on=timezone.now())
             messages.success(request, 'Rejected successfully')
         except TypeError:
             PatientDataOlddata.objects.filter(sno=data_list).update(chapproval="No", chapproval_by=request.user.emp_id,
-                                                             ch_approved_on=timezone.now())
+                                                                    ch_approved_on=timezone.now())
             messages.success(request, 'Rejected successfully')
         return redirect('functional_approval_list')
 
@@ -2436,7 +2441,8 @@ def functional_approval_list(request):
         if branch_name == 'All':
             context['cluster'] = PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="")
         else:
-            context['cluster'] = PatientDataOlddata.objects.filter(referralstatus='Yes', branch=branch_name, chapproval="")
+            context['cluster'] = PatientDataOlddata.objects.filter(referralstatus='Yes', branch=branch_name,
+                                                                   chapproval="")
 
     return render(request, 'fucntional_aprroval_list.html', context)
 
@@ -2446,7 +2452,8 @@ def s_id(request):
     if 'term' in request.GET:
         result = []
         term = request.GET.get('term')
-        new = PatientDataOlddata.objects.filter(Q(registration_number__istartswith=term) | Q(patient_name__istartswith=term))
+        new = PatientDataOlddata.objects.filter(
+            Q(registration_number__istartswith=term) | Q(patient_name__istartswith=term))
         for emp in new:
             result.append({'registration_number': emp.registration_number, 'patient_name': emp.patient_name,
                            'invoice_no': emp.invoice_no})
@@ -2526,7 +2533,7 @@ def payment_list(request):
 
         else:
             context['status'] = PatientDataOlddata.objects.filter(referralstatus='Yes', branch=branch_name,
-                                                           chapproval="approved")
+                                                                  chapproval="approved")
 
     return render(request, 'payment_list.html', context)
 
@@ -2550,13 +2557,14 @@ def pending_payment_csv(request):
         'IFSC', 'PANCARD', 'UTR No', 'UTR Date'
     ])
     data = PatientDataOlddata.objects.all().values_list('sno', 'invoice_no', 'invoice_date', 'referralmobile',
-                                                 'department_name', 'service_name', 'admissiontype', 'paymentmode',
-                                                 'branch', 'referralname', 'referral_type',
-                                                 'referralpercentage', 'referralpercentagename',
-                                                 'grossamount', 'discount', 'netamount', 'referralamount',
-                                                 'referralcreatedon', 'referralcreatedby', 'chapproval',
-                                                 'ch_approved_on', 'ucid', 'marketing_executive', 'accnumber',
-                                                 'ifsccode', 'pancard', 'utr_no')
+                                                        'department_name', 'service_name', 'admissiontype',
+                                                        'paymentmode',
+                                                        'branch', 'referralname', 'referral_type',
+                                                        'referralpercentage', 'referralpercentagename',
+                                                        'grossamount', 'discount', 'netamount', 'referralamount',
+                                                        'referralcreatedon', 'referralcreatedby', 'chapproval',
+                                                        'ch_approved_on', 'ucid', 'marketing_executive', 'accnumber',
+                                                        'ifsccode', 'pancard', 'utr_no')
     for i in data:
         writer.writerow(i)
     return response
@@ -2596,6 +2604,7 @@ def coverage_report(request):
             emp_id = emp.emp_id
             call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date).values('area', 'city', 'state',
                                                                                               'pincode')
+
             total = call_report_qs.aggregate(TOTAL=Count('unique_id'))
             qua = call_report_qs.filter(ref_type__contains='QUALIFIED').aggregate(QUA=Count('unique_id'))
             reg = call_report_qs.filter(ref_type__contains='REGISTERED PRACTIONER').aggregate(REG=Count('unique_id'))
@@ -2619,6 +2628,7 @@ def coverage_report(request):
                 'city': call_report_qs[0]['city'] if call_report_qs else None,
                 'state': call_report_qs[0]['state'] if call_report_qs else None,
                 'pincode': call_report_qs[0]['pincode'] if call_report_qs else None,
+
             }
             result.append(values)
         context = {
@@ -2819,3 +2829,33 @@ def master_list(request):
 
     return render(request, 'master_list.html', context)
 
+
+def forgot_password(request):
+    if request.method == "POST":
+        emp_id = request.POST.get('emp_id')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+
+        if not emp_id:
+            messages.error(request, "Employee ID is required.")
+            return render(request, 'forgotpwd.html')
+
+        # Check if the employee ID exists in WebLogins
+        user = WebLogins.objects.filter(emp_id=emp_id).first()
+        if not user:
+            messages.error(request, "Employee ID does not exist.")
+            return render(request, 'forgotpwd.html')
+
+        if password == password2:
+            # Use make_password to securely hash the password
+            hashed_password = make_password(password)
+
+            # Update the password only if the entered passwords match
+            user.password = hashed_password
+            user.save()
+
+            messages.success(request, "Password changed successfully")
+        else:
+            messages.error(request, "Passwords do not match")
+
+    return render(request, 'forgotpwd.html')

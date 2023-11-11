@@ -34,7 +34,7 @@
                         </div>
                     </div>
                     <div class="lgn-forgot text-center">
-{#                        <a href="{% url 'forgot_password' %}">Forgotten Password?</a>#}
+                        <a href="{% url 'forgot_password' %}" class="text-white">Forgotten Password?</a>
                     {% for message in messages %}
                         <span class="text-orange">{{ message }}</span>
                     {%  endfor %}

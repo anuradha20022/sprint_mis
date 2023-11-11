@@ -1,21 +1,124 @@
-{% extends 'base.html' %}
 {% load static %}
-   {%  block content_heading %} Change Password{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login | SPRINT MIS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'logo.png' %}">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{% static 'dist/css/style.css' %}" />
+</head>
+<body>
 
-{% block body %}
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card shadow p-4">
-        <form action="" method="post">
-            {% csrf_token %}
-            <input class="form-control mb-3" type="password" name="old_password" placeholder="Old password*" autofocus="" required="">
-            <input class="form-control mb-3" type="password" name="new_password" placeholder="New password*" required="">
-            <hr>
+    <!-- Page Wrapper -->
+    <div class="lgn-background" style="background-image: url({% static 'user_images/422 .png' %});">
+        <div class="lgn-wrapper card">
+            <div class="lgn-logo text-center">
+                <a><img src="{% static 'logo.png' %}" alt=""></a>
+            </div>
+            <div class="">
+                <form class="" method="post" action="">
+                    {%  csrf_token %}
+                    <div class="lgn-input form-group">
+                        <label class="control-label col-sm-12">Employee ID</label>
+                        <div class="col-sm-12">
+                            <input class="form-control" type="text" name="emp_id" placeholder="Enter your Emp Id" autocomplete="off">
+                        </div>
+                        <span id="emp-id-required-message" class="text-danger"></span>
+                    </div>
+                    <div class="lgn-input form-group">
+                        <label class="control-label col-sm-12">Password</label>
+                        <div class="col-sm-12">
+                            <input type="password" name="password" class="form-control" placeholder="Enter your Password" autocomplete="off">
+                        </div>
+                        <span id="password-length-message" class="text-danger"></span>
+                    </div>
+                    <div class="lgn-input form-group">
+                        <label class="control-label col-sm-12">Re-enter Password</label>
+                        <div class="col-sm-12">
+                            <input type="password" name="password2" class="form-control" placeholder="Enter your Password" autocomplete="off">
+                        </div>
+                        <span id="password-match-message" class="text-danger"></span>
+                    </div>
+                    <div class="lgn-forgot text-center">
+                    {% for message in messages %}
+                        <span class="text-orange">{{ message }}</span>
+                    {%  endfor %}
+                    </div>
+                    <div class="lgn-submit">
+                        <button type="submit" id="lgn-submit" class="btn btn-primary btn-pill btn-lg" name="login">Submit</button>
+                    </div>
+                <div class="lgn-submit">
+                    <a href="{% url 'loginuser' %}" class="text-white"><u>Go to Login Page</u></a>
+                </div>
 
-            <button class=" btn-lg btn-primary" type="submit">Submit</button>
-        </form>
-
+                </form>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const empIdInput = document.querySelector('input[name="emp_id"]');
+        const passwordInput = document.querySelector('input[name="password"]');
+        const confirmPasswordInput = document.querySelector('input[name="password2"]');
+        const passwordMatchMessage = document.querySelector('#password-match-message');
+        const passwordLengthMessage = document.querySelector('#password-length-message');
+        const empIdRequiredMessage = document.querySelector('#emp-id-required-message');
+
+        // Event listener for emp_id input
+        empIdInput.addEventListener('input', function () {
+            const empId = empIdInput.value;
+
+            // Check if emp_id is entered
+            if (!empId) {
+                empIdRequiredMessage.textContent = 'Employee ID is required.';
+            } else {
+                empIdRequiredMessage.textContent = '';
+            }
+        });
+
+        // Event listener for password input
+        passwordInput.addEventListener('input', function () {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Check password length
+            if (password.length < 9) {
+                passwordLengthMessage.textContent = 'Password should be at least 9 characters.';
+            } else {
+                passwordLengthMessage.textContent = '';
+            }
+
+            // Check password match
+            if (confirmPassword && password !== confirmPassword) {
+                passwordMatchMessage.textContent = 'Passwords do not match.';
+            } else {
+                passwordMatchMessage.textContent = '';
+            }
+        });
+
+        // Event listener for confirm password input
+        confirmPasswordInput.addEventListener('input', function () {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Check password match
+            if (password !== confirmPassword) {
+                passwordMatchMessage.textContent = 'Passwords do not match.';
+            } else {
+                passwordMatchMessage.textContent = '';
+            }
+        });
+    });
+</script>    <!-- Include js files -->
+    <!-- jQuery Library -->
+    <script type="text/javascript" src="{% static 'assets/plugin/jquery/jquery-3.3.1.min.js' %}"></script>
+    <!-- Popper Plugin -->
+    <script type="text/javascript" src="{% static 'assets/plugin/popper/popper.min.js' %}"></script>
+    <!-- Bootstrap Framework -->
+    <script type="text/javascript" src="{% static 'assets/plugin/bootstrap/bootstrap.min.js' %}"></script>
+</body>
+</html>
+
+

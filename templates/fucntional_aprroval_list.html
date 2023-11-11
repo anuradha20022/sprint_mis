@@ -274,17 +274,16 @@
                     <form action="" method="post" id="approve_modal_form">
                         {% csrf_token %}
                         <div class="row">
-                            <div class="col-md-12">
                                 <div class="modal-body">
-                                        <h4>Selected Rows Count : <span id="doctor_agent_count"></span> </h4>
-
+                                    <h4>Selected Rows Count : <span id="doctor_agent_count"></span> </h4>
                                 </div>
+                                <div class="form-group">
                                 <input type="text" class="form-control" name="approval_value" id="approval_value" placeholder="Eg. 010215" hidden>
+                                </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal" name="transfer_id">Close</button>
-                                    <button type="submit" class="btn btn-success" name="approve" >Approve</button>
+                                    <button type="submit" class="btn btn-success" name="approve">Approve</button>
                                 </div>
-                            </div>
                         </div>
                     </form>
                 </div>

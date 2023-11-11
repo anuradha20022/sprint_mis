@@ -311,7 +311,9 @@ function validateNumber(event) {
                {%  for adm in admission %}
                  <tr>
 {#                     <td class="py-2 text-right">{{ forloop.counter }}</td>#}
-                     <td class="py-2"> <a href="#"  data-adm="{{ adm.sno }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" onclick="editAdmission()" data-target="#admissionModal" ></a>
+                     <td class="py-2"> <a href="#"  data-adm="{{ adm.sno }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" onclick="editAdmission()" data-target="#
+
+" ></a>
 {#                      <a href="#"  data-adm="{{ adm.sno }}" class="icon-trash text-danger deleteRow" data-target="#deleteRow"></a></td>#}
 
                         <a href="#" data-payment="{{ adm.sno }}" class="icon-trash reject-payment" name="delete">Delete</a>

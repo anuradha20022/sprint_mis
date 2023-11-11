@@ -130,8 +130,7 @@
                                                <td class="py-2">{{ ref.MINTIME|time:'h:i:s'|default:'No Data' }}</td>
                                                <td style="text-align:center;" class="py-2">No Data</td>
                                                <td style="text-align:center;" class="py-2">No Data</td>
-
-                                    </tr>
+                                            </tr>
                                        {% else %}
                                     <tr>
                                         <td class="py-2">{{ forloop.counter }}</td>
@@ -141,7 +140,7 @@
                                         <td class="py-2">{{ ref.MINTIME|time:'h:i:s' }}</td>
                                         <td class="py-2" style='text-align:center;'>{{ ref.TOTAL }} ({{ ref.QUA }} - Qualified, {{ ref.REG }} - Registered, {{ ref.SPC }} - Special)</td>
                                         <td class="py-2">{{ ref.area }},{{ ref.city }},{{ ref.state }},{{ ref.pincode }}</td>
-                                </tr>
+                                    </tr>
                                     {% endif %}
                                 {% endfor %}
                                 </tbody>
