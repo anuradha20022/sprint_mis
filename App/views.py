@@ -6,8 +6,6 @@ import csv
 import os
 
 import bcrypt
-import numpy as np
-import pandas as pd
 import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -45,6 +43,7 @@ def loginuser(request):
         emp_id = request.POST.get('emp_id')
         password = request.POST.get('password')
         user = authenticate(username=emp_id, password=password)
+        print(emp_id, password)
         if user is not None:
             login(request, user)
             return redirect('dashboard')
@@ -1062,8 +1061,6 @@ def allowance_report(request):
     return render(request, 'referral/allowance_report.html', context)
 
 
-# SELECT (SELECT `emp_id`) AS empid,(SELECT `name`) AS empname,IFNULL((SELECT COUNT(DISTINCT `date`) FROM `call_report_master` WHERE (`emp_id` =  `Emp_ID` AND `date` BETWEEN '2021-01-01' AND '2022-04-08' AND `camp` != 'Hospital Visit') AND (`emp_id` = `Emp_ID` AND `date` BETWEEN  '2020-01-01' AND '2022-04-08' AND `camp` != 'Office Work') AND (`emp_id` =  `emp_id` AND `date` BETWEEN  '2019-01-01' AND '2022-04-08' AND `camp` != 'Meeting') GROUP BY `emp_id`),0) AS TOTALDAYS,IFNULL((SELECT COUNT(`date`) FROM `call_report_master` WHERE (`emp_id` = `Emp_ID` AND `date` BETWEEN  '2021-01-01' AND '2022-04-08' AND `camp` != 'Hospital Visit' ) AND (`emp_id` =  `emp_id` AND `date` BETWEEN  '2021-01-01' AND '2022-04-08' AND `camp` != 'Office Work') AND (`emp_id` =  `emp_id` AND `date` BETWEEN  '2021-01-01' AND '2022-04-08' AND `camp` != 'Meeting') GROUP BY `emp_id`),0) AS TOTALCALLS,(SELECT (`logins`.`allow`) FROM `call_report_master` INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE `logins`.`Emp_ID` = `Emp_ID` LIMIT 1) AS ALLOWANCE,(SELECT ROUND((`logins`.`allow`/12),2) FROM `call_report_master` INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE `logins`.`Emp_ID` = `Emp_ID` LIMIT 1) AS PERDAYALLOWNACE,(SELECT IF(TOTALCALLS != '',ROUND(PERDAYALLOWNACE*TOTALCALLS,2),0)) AS TOTALALLOWANCE;
-
 @login_required(login_url="/")
 def inactive_allowance_report(request):
     context = {
@@ -1128,7 +1125,6 @@ def bill_list(request):
         referralamount = request.POST.get('referralamount')
         paymentmode = request.POST.get('paymentmode')
         ref_type = request.POST.get('referral_type')
-        # print(sno)
         if paymentmode == "NetBanking":
             accnumber = request.POST.get("accnumber")
             ifsccode = request.POST.get("ifsccode")

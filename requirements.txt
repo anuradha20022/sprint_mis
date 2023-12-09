@@ -1,4 +1,3 @@
-pandas
 canvas
 django-scheduler
 bcrypt==4.0.1
