@@ -426,7 +426,7 @@ def search_emp(request):
     if 'term' in request.GET:
         result = []
         term = request.GET.get('term')
-        new = Logins.objects.filter(Q(emp_id__istartswith=term) | Q(emp_name__istartswith=term))
+        new = Logins.objects.filter(Q(emp_id__istartswith=term) | Q(emp_name__istartswith=term), job_status='Active')
         for emp in new:
             result.append({'id': emp.emp_id, 'name': emp.emp_name, 'desg': emp.designation})
         if not result:
