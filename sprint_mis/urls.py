@@ -49,6 +49,7 @@ urlpatterns = [
     path('search_uid/', views.search_uid, name='search_uid'),
 
 
+
     # path('change_pwd/', views.change_pwd, name='change_pwd'),
 #Total referral list
 

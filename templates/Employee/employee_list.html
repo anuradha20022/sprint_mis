@@ -8,7 +8,8 @@
 {% block script %}
 <script>
     $('.edit-admission').on('click', function () {
-        let edit_value = $(this).data('ref');
+        let edit_value = parseInt($(this).data('ref'));
+
         console.log(edit_value);
         $.ajax({
             url: '{% url 'employee_list' %}',
@@ -22,7 +23,7 @@
                 $('#bank_ac').val(response.bank_acc);
                 $('#ifsc').val(response.ifsc);
                 $('#pancard').val(response.pan);
-                $('#register_search').val(response.reporting_to);
+                $('#register_search').val(response.head);
                 $('#branch').val(response.branch);
                 $('#department').val(response.original_type);
                 console.log(response)
@@ -115,7 +116,7 @@
                                         </div>
                                        <div class="form-group row">
                                             <div class="col-10">Designation :
-                                                <select class="form-control" name="designation" id="designation" required="true">
+                                                <select class="form-control" name="designation" id="designation" required>
                                         <option value="--Select Category Type--">--Select Designation--</option>
                                         <option value="Cluster head">Cluster head</option>
                                         <option value="Center Head">Center Head</option>
@@ -182,7 +183,6 @@
                                         <option value="Management Trainee">Management Trainee</option>
                                     </select>                                            </div>
                                         </div>
-
                                        <div class="submit-section">
                                            <button type="submit" class="btn btn-success" name="employee_update">Update</button>
                                        </div>

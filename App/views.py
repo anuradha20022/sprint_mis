@@ -43,7 +43,6 @@ def loginuser(request):
         emp_id = request.POST.get('emp_id')
         password = request.POST.get('password')
         user = authenticate(username=emp_id, password=password)
-        print(emp_id, password)
         if user is not None:
             login(request, user)
             return redirect('dashboard')
@@ -374,14 +373,14 @@ def employee_list(request):
         'designation': Logins.objects.all()
     }
 
-    if 'delete' in request.GET:
-        delete = request.GET.get('delete')
-        data = WebLogins.objects.get(emp_id=delete)
-        data.delete()
-        messages.success(request, 'Deleted succesfully')
-        return redirect('employee_list')
+    # if 'delete' in request.GET:
+    #     delete = request.GET.get('delete')
+    #     data = WebLogins.objects.get(emp_id=delete)
+    #     data.delete()
+    #     messages.success(request, 'Deleted succesfully')
+    #     return redirect('employee_list')
 
-    if 'employee_update' in request.POST:
+    if 'emp_id' in request.POST:
         emp_name = request.POST.get("emp_name")
         emp_id = request.POST.get("emp_id")
         designation = request.POST.get("designation")
@@ -416,7 +415,7 @@ def employee_list(request):
     if request.method == "GET" and request.is_ajax():
         emp_id = request.GET.get('emp_id')
         res = list(Logins.objects.filter(emp_id=emp_id).values())[0]
-        return JsonResponse(res)
+        return JsonResponse(res, safe=False)
 
     return render(request, 'Employee/employee_list.html', context)
 
@@ -465,7 +464,6 @@ def transfer_doctor_search(request):
 def pending_payment(request):
     common_filter = Q(referralstatus='Yes', chapproval='approved')
     branch_name = request.POST.get('branch')
-    print(branch_name)
     if branch_name == 'All':
         filtered_data = PatientDataOlddata.objects.filter(Q(common_filter) & (~Q(paymentmode=None)))
     else:
@@ -481,7 +479,6 @@ def pending_payment(request):
         'upi': upi,
         'netbanking': netbanking,
     }
-    print(context)
     return render(request, 'pending_payment.html', context)
 
 
@@ -775,7 +772,7 @@ def total_referral_list(request):
         messages.success(request, 'Updated successfully....')
         return redirect('total_referral_list')
 
-    if request.POST.get('unique_id'):
+    if 'unique_id' in request.POST:
         unique_id = request.POST.get("unique_id")
         emp_id = request.POST.get("emp_id")
         agent_name = request.POST.get("agent_name")
@@ -2808,13 +2805,13 @@ def master_list(request):
             cur.execute("SELECT CONCAT(sprint_mis.doctor_agent_list.emp_id) As emp_id, logins.Emp_name, unique_id,"
                         " agent_name, doctor_agent_list.mobile, agent_type, logins.branch, "
                         "category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` "
-                        "ON doctor_agent_list.emp_id = logins.Emp_ID WHERE Job_Status = 'Active' AND "
+                        "ON doctor_agent_list.emp_id = logins.Emp_ID WHERE "
                         "logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test';")
         else:
             cur.execute("SELECT CONCAT(sprint_mis.doctor_agent_list.emp_id) As emp_id, logins.Emp_name, "
                         "unique_id, agent_name, doctor_agent_list.mobile, agent_type, logins.branch,"
                         " category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` ON"
-                        " doctor_agent_list.emp_id = logins.Emp_ID WHERE Job_Status = 'Active' AND logins.emp_id "
+                        " doctor_agent_list.emp_id = logins.Emp_ID WHERE logins.emp_id "
                         "NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(
                 b=branch))
 
