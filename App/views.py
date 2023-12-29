@@ -2802,18 +2802,17 @@ def master_list(request):
         branch = request.POST.get('branch')
         cur = connection.cursor()
         if branch == "All":
-            cur.execute("SELECT CONCAT(sprint_mis.doctor_agent_list.emp_id) As emp_id, logins.Emp_name, unique_id,"
+            cur.execute("SELECT logins.Emp_ID,logins.Emp_name, unique_id,"
                         " agent_name, doctor_agent_list.mobile, agent_type, logins.branch, "
                         "category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` "
-                        "ON doctor_agent_list.emp_id = logins.Emp_ID WHERE "
-                        "logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test';")
+                        "ON doctor_agent_list.emp_id = logins.Emp_ID WHERE logins.job_status='Active'"
+                        " and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test';")
         else:
-            cur.execute("SELECT CONCAT(sprint_mis.doctor_agent_list.emp_id) As emp_id, logins.Emp_name, "
+            cur.execute("SELECT logins.Emp_name,logins.Emp_ID, "
                         "unique_id, agent_name, doctor_agent_list.mobile, agent_type, logins.branch,"
                         " category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` ON"
-                        " doctor_agent_list.emp_id = logins.Emp_ID WHERE logins.emp_id "
-                        "NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(
-                b=branch))
+                        " doctor_agent_list.emp_id = logins.Emp_ID  WHERE logins.job_status='Active'"
+                        " and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(b=branch))
 
         desc = cur.description
         context['doctor_agent_list'] = [
