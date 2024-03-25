@@ -116,6 +116,7 @@ def register(request):
                 {'branch': branch['branch'], 'count': CallReportMaster.objects.filter(branch=branch['branch']).count()})
 
     if 'empname' in request.POST:
+        print(request.POST)
         empname = request.POST.get('empname')
         empid = request.POST.get('empid')
         mobile = request.POST.get('mobile')
@@ -1485,24 +1486,33 @@ def daily_call_report(request):
         'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
         # 'ref_type': CallReportMaster.objects.filter(Q(ref_type='ref_type'))
     }
-    cursor = connection.cursor()
     if 'date' in request.POST:
         date = request.POST.get('date')
+        emp_ids_marketing = Logins.objects.filter(page='Marketing').order_by('branch').values_list('emp_id', flat=True)
+        # Fetch data using Django ORM with inner join-like filtering
+        daily_data = CallReportMaster.objects.filter(
+            date=date,
+            emp_id__in=emp_ids_marketing
+        )
 
-        cursor.execute(
-            "SELECT `logins`.`emp_id`, `logins`.`Emp_name`, `call_report_master`.`ref_type`,"
-            " `call_report_master`.`unique_id`, `call_report_master`.`name`, `call_report_master`.`camp`,"
-            "`call_report_master`.`date`, `call_report_master`.`time`, `call_report_master`.`location`, "
-            "`call_report_master`.`reason`, `call_report_master`.`Type`, `call_report_master`.`source`,`call_report_master`.`branch` "
-            "FROM `call_report_master` INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`emp_id`"
-            " WHERE `call_report_master`.`date` = '{d}' AND `call_report_master`.`branch` != 'Test' AND `logins`.`Page` = 'Marketing'"
-            " ORDER BY `logins`.`Branch` ASC;".format(d=date))
-
-        call = cursor.description
+        # Retrieve relevant fields from the models
         context['daily'] = [
-            dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()
+            {
+                'emp_id': report.emp_id,
+                'Emp_name': Logins.objects.get(emp_id=report.emp_id).emp_name,
+                'ref_type': report.ref_type,
+                'unique_id': report.unique_id,
+                'name': report.name,
+                'camp': report.camp,
+                'date': report.date,
+                'time': report.time,
+                'location': report.location,
+                'reason': report.reason,
+                'Type': report.type,
+                'source': report.source,
+                'branch': report.branch
+            } for report in daily_data
         ]
-
     elif 'unique_id' in request.POST:
         unique_id = request.POST.get("unique_id")
         emp_id = request.POST.get("emp_id")
