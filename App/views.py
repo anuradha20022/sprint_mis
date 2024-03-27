@@ -1455,12 +1455,12 @@ def attendance_list(request):
         ]
 
     return render(request, 'Employee/attendance_list.html', context)
-
-
 @login_required(login_url="/")
 def employee_leave_list(request):
-    url = f'http://3.6.104.94/api/employee-leaves/?from_date={timezone.now().date()}&to_date={timezone.now().date()}'
-    response = requests.get(url)
+    url = f'https://3.6.104.94/api/employee-leaves/?from_date={timezone.now().date()}&to_date={timezone.now().date()}'
+    print(url)
+    response = requests.get(url, verify=False)
+
     response = json.loads(response.text)
 
     if request.method == 'POST':
@@ -1470,8 +1470,8 @@ def employee_leave_list(request):
         fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
         tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
 
-        url = f'http://3.6.104.94/api/employee-leaves/?from_date={fdate}&to_date={tdate}'
-        response = requests.get(url)
+        url = f'https://3.6.104.94/api/employee-leaves/?from_date={fdate}&to_date={tdate}'
+        response = requests.get(url, verify=False)
         response = json.loads(response.text)
 
     context = {
