@@ -2575,10 +2575,75 @@ def pending_payment_csv(request):
 
 def coverage_report(request):
     context = {}
+    # if request.method == 'POST':
+    #     branch = request.POST.get('branch')
+    #     date = request.POST.get('date')
+    #     date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+    #     query = Logins.objects.filter(
+    #         Q(page='Marketing') &
+    #         ~Q(branch='Test') &
+    #         Q(job_status='Active') &
+    #         ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
+    #     ).distinct()
+    #
+    #     results = query.extra(
+    #         tables=['call_report_master'],
+    #         where=[
+    #             '`call_report_master`.`emp_id` = `logins`.`Emp_ID`',
+    #         ],
+    #         select={
+    #             'Emp_ID': '`logins`.`Emp_ID`',
+    #             'Emp_name': '`logins`.`Emp_name`',
+    #             'Branch': '`logins`.`Branch`',
+    #         }
+    #     )
+    #     if branch == 'All':
+    #         results = results.order_by('branch')
+    #     else:
+    #         results = results.filter(branch=branch)
+    #
+    #     result = []
+    #     for emp in results:
+    #         emp_id = emp.emp_id
+    #         call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date).values('area', 'city', 'state',
+    #                                                                                           'pincode')
+    #
+    #         total = call_report_qs.aggregate(TOTAL=Count('unique_id'))
+    #         qua = call_report_qs.filter(ref_type__contains='QUALIFIED').aggregate(QUA=Count('unique_id'))
+    #         reg = call_report_qs.filter(ref_type__contains='REGISTERED PRACTIONER').aggregate(REG=Count('unique_id'))
+    #         spc = call_report_qs.filter(ref_type__contains='SPECIAL CATEGORY').aggregate(SPC=Count('unique_id'))
+    #         karnataka = call_report_qs.filter(ref_type__contains='KARNATAKA').aggregate(KARNATAKA=Count('unique_id'))
+    #         mintime = call_report_qs.aggregate(MINTIME=Min('time'))
+    #         logins_location = Logins.objects.filter(emp_id=emp_id, last_loc_datetime__date=date).values('last_location')
+    #
+    #         values = {
+    #             'empid': emp_id,
+    #             'name': emp.emp_name,
+    #             'branch': emp.branch,
+    #             'TOTAL': total['TOTAL'] if total['TOTAL'] else 0,
+    #             'QUA': qua['QUA'] if qua['QUA'] else 0,
+    #             'REG': reg['REG'] if reg['REG'] else 0,
+    #             'SPC': spc['SPC'] if spc['SPC'] else 0,
+    #             'KARNATAKA': karnataka['KARNATAKA'] if karnataka['KARNATAKA'] else 0,
+    #             'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else '-',
+    #             'location': logins_location[0]['last_location'] if logins_location else None,
+    #             'area': call_report_qs[0]['area'] if call_report_qs else None,
+    #             'city': call_report_qs[0]['city'] if call_report_qs else None,
+    #             'state': call_report_qs[0]['state'] if call_report_qs else None,
+    #             'pincode': call_report_qs[0]['pincode'] if call_report_qs else None,
+    #
+    #         }
+    #         result.append(values)
+    #     context = {
+    #         'result': result,
+    #         'date': date_obj,
+    #     }
     if request.method == 'POST':
         branch = request.POST.get('branch')
         date = request.POST.get('date')
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+
+        # Fetching all required data in a single query
         query = Logins.objects.filter(
             Q(page='Marketing') &
             ~Q(branch='Test') &
@@ -2597,47 +2662,90 @@ def coverage_report(request):
                 'Branch': '`logins`.`Branch`',
             }
         )
+
         if branch == 'All':
             results = results.order_by('branch')
         else:
             results = results.filter(branch=branch)
 
+        # Fetch all required data from CallReportMaster
+        call_report_qs = CallReportMaster.objects.filter(
+            emp_id__in=[emp.emp_id for emp in results],
+            date=date
+        ).values('emp_id', 'area', 'city', 'state', 'pincode', 'ref_type')
+
+        # Use a dictionary to store call report data by emp_id
+        call_report_data = {}
+        for item in call_report_qs:
+            emp_id = item['emp_id']
+            if emp_id not in call_report_data:
+                call_report_data[emp_id] = {
+                    'area': item['area'],
+                    'city': item['city'],
+                    'state': item['state'],
+                    'pincode': item['pincode'],
+                    'total': 0,
+                    'qua': 0,
+                    'reg': 0,
+                    'spc': 0,
+                    'karnataka': 0,
+                }
+            call_report_data[emp_id]['total'] += 1
+            if 'QUALIFIED' in item['ref_type']:
+                call_report_data[emp_id]['qua'] += 1
+            if 'REGISTERED PRACTITIONER' in item['ref_type']:
+                call_report_data[emp_id]['reg'] += 1
+            if 'SPECIAL CATEGORY' in item['ref_type']:
+                call_report_data[emp_id]['spc'] += 1
+            if 'KARNATAKA' in item['ref_type']:
+                call_report_data[emp_id]['karnataka'] += 1
+
+        # Prepare result list
         result = []
         for emp in results:
-            emp_id = emp.emp_id
-            call_report_qs = CallReportMaster.objects.filter(emp_id=emp_id, date=date).values('area', 'city', 'state',
-                                                                                              'pincode')
+            emp_id = emp.Emp_ID
+            if emp_id in call_report_data:
+                call_report = call_report_data[emp_id]
+            else:
+                call_report = {
+                    'area': None,
+                    'city': None,
+                    'state': None,
+                    'pincode': None,
+                    'total': 0,
+                    'qua': 0,
+                    'reg': 0,
+                    'spc': 0,
+                    'karnataka': 0,
+                }
 
-            total = call_report_qs.aggregate(TOTAL=Count('unique_id'))
-            qua = call_report_qs.filter(ref_type__contains='QUALIFIED').aggregate(QUA=Count('unique_id'))
-            reg = call_report_qs.filter(ref_type__contains='REGISTERED PRACTIONER').aggregate(REG=Count('unique_id'))
-            spc = call_report_qs.filter(ref_type__contains='SPECIAL CATEGORY').aggregate(SPC=Count('unique_id'))
-            karnataka = call_report_qs.filter(ref_type__contains='KARNATAKA').aggregate(KARNATAKA=Count('unique_id'))
-            mintime = call_report_qs.aggregate(MINTIME=Min('time'))
+            # Get other required data
             logins_location = Logins.objects.filter(emp_id=emp_id, last_loc_datetime__date=date).values('last_location')
+            mintime = call_report_qs.filter(emp_id=emp_id).aggregate(MINTIME=Min('time'))
 
             values = {
                 'empid': emp_id,
-                'name': emp.emp_name,
-                'branch': emp.branch,
-                'TOTAL': total['TOTAL'] if total['TOTAL'] else 0,
-                'QUA': qua['QUA'] if qua['QUA'] else 0,
-                'REG': reg['REG'] if reg['REG'] else 0,
-                'SPC': spc['SPC'] if spc['SPC'] else 0,
-                'KARNATAKA': karnataka['KARNATAKA'] if karnataka['KARNATAKA'] else 0,
+                'name': emp.Emp_name,
+                'branch': emp.Branch,
+                'TOTAL': call_report['total'],
+                'QUA': call_report['qua'],
+                'REG': call_report['reg'],
+                'SPC': call_report['spc'],
+                'KARNATAKA': call_report['karnataka'],
                 'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else '-',
                 'location': logins_location[0]['last_location'] if logins_location else None,
-                'area': call_report_qs[0]['area'] if call_report_qs else None,
-                'city': call_report_qs[0]['city'] if call_report_qs else None,
-                'state': call_report_qs[0]['state'] if call_report_qs else None,
-                'pincode': call_report_qs[0]['pincode'] if call_report_qs else None,
-
+                'area': call_report['area'],
+                'city': call_report['city'],
+                'state': call_report['state'],
+                'pincode': call_report['pincode'],
             }
             result.append(values)
+
         context = {
             'result': result,
             'date': date_obj,
         }
+
     context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
 
     # if request.method == 'POST':
