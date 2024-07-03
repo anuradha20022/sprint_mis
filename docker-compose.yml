@@ -79,7 +79,7 @@ services:
 
       volumes:
         - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro # map the nginx config
-        - ./App/static:/static
+        - ./api/static:/static
         - ./staticfiles:/staticfiles
         - ./media:/media
 
