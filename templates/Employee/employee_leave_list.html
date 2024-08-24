@@ -1,0 +1,67 @@
+{% extends 'base.html'%}
+{%  block content_heading %} Employee Leave List {% endblock %}
+{%  block content_subheading %} Employee LeaveList {% endblock %}
+{% block title %} Employee Leave List {% endblock %}
+{% block script %}
+<script>
+     $(document).ready(function () {
+            $("#employee_link").addClass('active subdrop');
+            $("#employee_data_link").addClass('active');
+            $("#employee_submenu_link").css('display', 'block');
+        });
+</script>
+{% endblock %}
+
+{% block body %}
+    <form action="" method="post">
+    {% csrf_token %}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" name="date" class="form-control mb-2 daterange-shawCalRanges">
+                    <div class="input-group-append">
+                      <input class="btn btn-primary btn-sm form-control form-control" type="submit" name="submit" value="Go">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+                        <div class="table-responsive">
+                            <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                                <thead>
+                                <tr role="row" style="background: #3F51B5; color: #fff;">
+                                    <th class="py-2" data-orderable="false">S No</th>
+                                    <th class="py-2" data-orderable="false">Emp ID</th>
+                                    <th class="py-2" data-orderable="false">Employee Name</th>
+                                    <th class="py-2" data-orderable="false">Leave Type</th>
+                                    <th class="py-2" data-orderable="false">Applied on</th>
+                                    <th class="py-2" data-orderable="false">From date</th>
+                                    <th class="py-2" data-orderable="false">To date</th>
+                                    <th class="py-2" data-orderable="false">Reason</th>
+                                    <th class="py-2" data-orderable="false">Status</th>
+                                    <th class="py-2" data-orderable="false">Branch</th>
+                                </tr>
+
+                                </thead>
+                                <tbody>
+                                {% for i in data %}
+                                <tr>
+                                    <td class="py-2 text-left">{{ forloop.counter }}</td>
+                                    <td class="py-2">{{ i.user_id_id }}</td>
+                                    <td class="py-2">{{ i.name}}</td>
+                                    <td class="py-2">{{ i.leave_type }}</td>
+                                    <td class="py-2">{{ i.applied_on }}</td>
+                                    <td class="py-2">{{ i.from_date }}</td>
+                                    <td class="py-2">{{ i.to_date }}</td>
+                                    <td class="py-2">{{ i.reason }}</td>
+                                    <td class="py-2">{{ i.status }}</td>
+                                    <td class="py-2">{{ i.branch }}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+{% endblock %}

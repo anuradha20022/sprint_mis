@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-md-4">
+            <form action="" id="" method="post">
+                {% csrf_token %}
+            <input class="form-control" type="text" id="eid_search" name="search">
+
+            </form>
+        </div>
+    </div>
+
+    <form action="" method="post">
+    {% csrf_token %}
+    <div class="row">
+       <div class="col-md-3">
+           <div class="form-group">
+               <label for="emiId">Unique ID<span class="text-danger"> *</span></label>
+               <input type="text" name="empid" value="{{ agent_list.unique_id }}" class="form-control" placeholder="" readonly="" required>
+           </div>
+       </div>
+      <div class="col-md-3">
+           <div class="form-group">
+               <label for="emiId">Agent Name<span class="text-danger"> *</span></label>
+               <input type="text" value="{{ agent_list.agent_name }}" name="empid" class="form-control" placeholder="" >
+           </div>
+       </div>
+      <div class="col-md-3">
+           <div class="form-group">
+               <label for="emiId">Mobile<span class="text-danger"> *</span></label>
+               <input type="text" value="{{ agent_list.mobile }}" name="empid" class="form-control" placeholder="">
+           </div>
+       </div>
+      <div class="col-md-3">
+           <div class="form-group">
+               <label for="emiId">Designation<span class="text-danger"> *</span></label>
+               <input type="text" value="{{ agent_list.designation }}" name="empid" class="form-control" placeholder="" required>
+           </div>
+       </div>
+      <div class="col-md-3">
+           <div class="form-group">
+               <label for="emiId">Area<span class="text-danger"> *</span></label>
+               <input type="text" value="{{ agent_list.area }}" name="empid" class="form-control" placeholder=""  required>
+           </div>
+       </div>
+      <div class="col-md-3">
+           <div class="form-group">
+               <label for="emiId">Email ID<span class="text-danger"> *</span></label>
+               <input type="text" name="empid" value="{{ agent_list.email }}" class="form-control" placeholder="" required>
+           </div>
+       </div>
+    </div>
+            <button class="btn btn-primary " type="submit">Submit</button>
+    </form>
+{%  endblock %}

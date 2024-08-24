@@ -1,0 +1,122 @@
+{% extends 'base.html'%}
+{%  block content_heading %} Master List {% endblock %}
+{%  block content_subheading %} Master List {% endblock %}
+{% block title %} Master List {% endblock %}
+{% block script %}
+<script>
+ $(document).ready(function () {
+            $("#referral_link").addClass('active subdrop');
+            $("#allowance_link").addClass('active');
+            $("#referral_submenu").css('display', 'block');
+        });
+</script>
+{% endblock %}
+
+{% block body %}
+
+ <form action="" method="POST" autocomplete="off">
+ {% csrf_token %}
+     <div class="row">
+         <div class="col-md-3">
+             <div class="form-group">
+                 <select class="form-control" name="branch" required>
+                     <option value="" >-- Select Branch --</option>
+                     <option value="All" >All</option>
+                     {% for list in branch %}
+                         <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+
+                     {% endfor %}
+                 </select>
+             </div>
+         </div>
+  <div class="col-md-2">
+                 <button type="submit" name="Submit" class="btn btn-lg btn-success btn-gradient btn-shadow">Submit</button>
+             </div>
+         </div>
+
+
+ </form>
+
+     <div class="modal fade" id="transfer_all">
+         <div class="modal-dialog modal-dialog-centered">
+             <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Transfer All Doctor Agent</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    </div>
+                    <form action="" method="post" autocomplete="off">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="modal-body">
+
+                                        <div class="form-group row">
+                                            <label class="col-12 col-form-label">Transfer From</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" name="from_empid" id="transfer_search_id1" placeholder="Eg. 010215">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label class="col-12 col-form-label">Transfer To</label>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" name="to_empid" id="transfer_search_id2" placeholder="Eg. 010215">
+                                            </div>
+                                        </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-success">Save changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+         </div>
+     </div>
+     </div>
+
+
+
+    <div class="row pb-3">
+        <div class="col-md-12">
+            <div class="card card-body">
+                 <div class="table-responsive">
+                            <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                                <thead>
+                                <tr role="row" style="background: #0e43b5; color:white">
+                                    <th class="py-2" data-orderable="false">#</th>
+                                    <th class="py-2" data-orderable="false">Emp ID</th>
+                                    <th class="py-2" data-orderable="false">Emp Name</th>
+                                    <th class="py-2" data-orderable="false">Unique ID</th>
+                                    <th class="py-2" data-orderable="false">Agent Name</th>
+                                    <th class="py-2" data-orderable="false">Mobile</th>
+                                    <th class="py-2" data-orderable="false">Agent Type</th>
+                                    <th class="py-2" data-orderable="false">Branch</th>
+                                    <th class="py-2" data-orderable="false">Category</th>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for agents in doctor_agent_list %}
+                                    <tr>
+                                        <td class="py-1 text-right">{{ forloop.counter }}</td>
+                                        <td class="py-1">{{ agents.Emp_ID }}</td>
+                                        <td class="py-1">{{ agents.Emp_name }}</td>
+                                        <td class="py-1">{{ agents.unique_id }}</td>
+                                        <td class="py-1">{{ agents.agent_name }}</td>
+                                        <td class="py-1">{{ agents.mobile }}</td>
+                                        <td class="py-1">{{ agents.agent_type }}</td>
+                                        <td class="py-1">{{ agents.branch }}</td>
+                                        <td class="py-1">{{ agents.category }}</td>
+
+                                    </tr>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

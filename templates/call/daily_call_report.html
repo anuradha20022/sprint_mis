@@ -1,0 +1,215 @@
+{% extends 'base.html'%}
+{%  block content_heading %} Daily Call Report {% endblock %}
+{%  block content_subheading %} Daily Call Report {% endblock %}
+{% block title %} Daily Call Report {% endblock %}
+
+
+{% block script %}
+    <script>
+        {#$('#DataTables_Table_0').dataTable().clear().destroy();#}
+        {#$('#cus-responsive-datatable').dataTable().clear().destroy();#}
+        $('#cus-responsive-datatable').DataTable({
+            serverSide: true,
+            processing: true,
+            select: true,
+            paging: true,
+            lengthChange: true,
+            "pageLength": 10,
+            "lengthMenu": [[13, 25, 50, -1], [13, 25, 50, "All"]],
+
+            searching: true,
+            info: true, // bottom left info
+            responsive: true, // responnsive table
+            "deferRender": true,
+            ajax: {
+                url: "{% url 'daily_call_report' %}",
+                type: "POST",
+
+            },
+
+            columns:[
+                {data: "sno"},
+                {data: "edit"},
+                {data: "emp_id "},
+                {data: "Emp_name "},
+                {data: "ref_type "},
+                {data: "unique_id "},
+                {data: "name "},
+                {data: "camp "},
+                {data: "date "},
+                {data: "time"},
+                {data: "location "},
+                {data: "Type "},
+                {data: "source "},
+                {data: "branch "},
+
+            ],
+        }),
+
+    $('.edit-admission').on('click', function () {
+        console.log(edit_value);
+        $.ajax({
+            url: '{% url 'daily_call_report' %}',
+            data: {unique_id: edit_value},
+            success: function (response) {
+                $('#unique_id').val(response.unique_id);
+                $('#name').val(response.name);
+                $('#emp_id').val(response.emp_id);
+                $('#type').val(response.type);
+                $('#ref_type').val(response.ref_type);
+            },
+            error: function () {
+                alert('Oops something went wrong!')
+            }
+        })
+    });
+
+$(document).ready(function () {
+            $("#call_link").addClass('active subdrop');
+            $("#call_data").addClass('active');
+            $("#call_submenu").css('display', 'block');
+        });
+    </script>
+{% endblock %}
+{% block body %}
+    <form action="" method="POST" autocomplete="off">
+ {% csrf_token %}
+        <div class="row ">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <input type="date" name="date" class="form-control mb-2" required>
+                    <div class="input-group-append">
+                        <input class="btn btn-primary btn-sm form-control " type="submit" name="submit" value="Go">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+  </form>
+
+     <div class="modal fade" id="admissionModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h4 class="modal-title" id="largeModalLabel">Update Details</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                                <div class="modal-body">
+                                  <form id=add_form" action="" method="post">
+                                     {% csrf_token %}
+
+                                        <div class="form-group row">
+                                            <div class="col-10">
+                                                <label for="unique_id">Unique ID* :</label>
+                                                <input type="text" class="form-control" id="unique_id" name="unique_id" required readonly>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-10">
+                                                <label for="emp_id">Emp ID* :</label>
+                                                <input type="text" class="form-control" id="emp_id" name="emp_id" required readonly>
+                                            </div>
+                                        </div>
+                                       <div class="form-group row">
+                                            <div class="col-10">
+                                                <label for="name">Emp Name* :</label>
+                                                <input type="text" class="form-control" id="name" name="name" required >
+                                            </div>
+                                        </div>
+                                       <div class="form-group row">
+                                            <div class="col-10">
+                                                <label for="type">Type</label>
+                                                <select class="form-control" name="type" id="type">
+                                                 <option value="Trade">Trade</option>
+                                                 <option value="Public Corporate">Public Corporate</option>
+                                                 <option value="Private Corporate">Private Corporate</option>
+                                                 <option value="Neighbourhood"> Neighbourhood</option>
+                                                 <option value="Marketing Head">Marketing Head</option>
+                                                 <option value="Amb. Coordinator">Amb. Coordinator</option>
+                                               </select>
+                                            </div>
+{##}
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-10">Referral Type:
+                                                <label for="ref_type">Referral Type:</label>
+                                                <select class="form-control" name="ref_type" id="ref_type">
+                                                 <option value="all">All Types</option>
+                                                 <option value="QUALIFIED">QUALIFIED</option>
+                                                 <option value="REGISTERED PRACTIONER">REGISTERED PRACTIONER</option>
+                                                 <option value="SPECIAL CATEGORY">SPECIAL CATEGORY</option>
+                                                 <option value="CORPORATE">CORPORATE</option>
+                                               </select>
+                                            </div>
+{##}
+                                        </div>
+                                           <div class="submit-section">
+                                               <button type="submit" class="btn btn-success">Update</button>
+                                           </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+         </div>
+
+  <div class="row pb-4">
+                <div class="col-md-12">
+                    <div class="card card-body">
+                        <div class="table-responsive">
+                            <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                              <thead>
+                                 <tr role="row" style="background: #3F51B5; color: #fff;">
+                                     {#                                        <th>Edit</th>#}
+                                        <th class="py-2">S No</th>
+                                        <th class="py-2">Emp ID</th>
+                                        <th class="py-2">Emp Name</th>
+                                        <th class="py-2">Referral Type</th>
+                                        <th class="py-2">Doctor ID</th>
+                                        <th class="py-2">Doctor Name</th>
+                                        <th class="py-2">Camp</th>
+                                        <th class="py-2">Date</th>
+                                        <th class="py-2">Time</th>
+                                        <th class="py-2">Location</th>
+                                        <th class="py-2">Reason</th>
+                                        <th class="py-2">Type</th>
+                                        <th class="py-2">Source</th>
+                                        <th class="py-2">Branch</th>
+                                    </tr>
+                              </thead>
+                                <tbody>
+                                {% for list in daily %}
+                                    <tr>
+                                        <td class="py-1 text-right">{{ forloop.counter }}</td>
+{#                                        <td>#}
+{#                                           <a href="#" data-call="{{ list.unique_id }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>#}
+{#                                            <button id="sweetalert-4" class="icon-trash text-danger"></button>#}
+{#                                         </td>#}
+                                        <td class="py-1">{{ list.emp_id }}</td>
+                                        <td class="py-1">{{ list.Emp_name }}</td>
+                                        <td class="py-1">{{ list.ref_type }}</td>
+                                        <td class="py-1">{{ list.unique_id }}</td>
+                                        <td class="py-1">{{ list.name }}</td>
+                                        <td class="py-1">{{ list.contact }}</td>
+                                        <td class="py-1">{{ list.date|date:"d/m/Y" }}</td>
+                                        <td class="py-1">{{ list.time}}</td>
+                                        <td class="py-1">{{ list.location }}</td>
+                                        <td class="py-1">{{ list.reason }}</td>
+                                        <td class="py-1">{{ list.Type }}</td>
+                                        <td class="py-1">{{ list.source }}</td>
+                                        <td class="py-1">{{ list.branch }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+{% endblock %}

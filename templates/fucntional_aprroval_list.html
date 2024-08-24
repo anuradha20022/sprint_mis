@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{%  block content_heading %}Functional Approval List{% endblock %}
+{%  block content_subheading %}Functional Approval List{% endblock %}
+{% block title %} Functional Approval List {% endblock %}
+
+{% block script %}
+    <script>
+ let delete_value;
+    $(".reject-payment").on('click', function () {
+            delete_value = $(this).data('payment');
+            swal({
+                  title: "Are you sure?",
+                  text: "Do you want to Reject Selected rows.",
+                  type: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#DD6B55",
+                  confirmButtonText: "Yes, Reject it!",
+                  cancelButtonText: "No, cancel!",
+                  closeOnConfirm: false,
+                  closeOnCancel: false
+                },
+                function(isConfirm){
+                  if (isConfirm !== false) {
+
+                    $.ajax({
+                        url: '{% url "functional_approval_list" %}',
+                        data: {reject_id: delete_value},
+                        success: function (response) {
+                            if (response.success) {
+                                 $('#transfer_save_form').trigger('reset');
+                                 $('#reject_modal').modal('show');
+                                swal("Updated!", `Rows Rejected Successfully!`, "success");
+                                location.reload();
+                            }else swal("Failed!", `Failed to Update!`, "warning");
+                        },
+                        error: function () {
+                            alert('Oops something went wrong!')
+                        }
+                    });
+                  } else {
+                    {#swal("Cancelled", "Operation cancelled successfully :)", "error");#}
+                  }
+                });
+    });
+
+   {% comment %} $(document).ready(function () {
+        $('#btn_data').click(function () {
+            if(confirm("are you sure you want to approve"))
+                var id = [];
+                var csrf=$('input[name=csrfmiddlewaretoken]').val();
+                $(':checked:checked').each(function (i) {
+                    id[i] = $(this).val()
+                });
+                if(id.length===0){
+                    alert("Please select item to approve")
+                }else{
+                    console.log(id);
+                    $.ajax({
+                        url: "{% url 'edit_list' %}",
+                        method: "POST",
+                        data: {
+                            id,
+                            csrfmiddlewaretoken:csrf
+                        },
+                        success:function (response) {
+                          for(let i=0; i<length; i++){
+                              $('tr#'+id[i]+'').css('background-color', '#red');
+                              $('tr#'+id[i]+'').fadeOut('slow');
+                          }
+                        }
+                    })
+                }
+
+
+
+        })
+
+    });{% endcomment %}
+
+        var agent_list;
+
+         function approveValue() {
+             $('#transfer_form').submit(function (e) {
+                 e.preventDefault();
+                 {#let agent_list = $("input[name='transfer_id']:checked").val();#}
+                 agent_list = $("input[name='transfer_id']:checked").map(function () {
+                     return this.value;
+                 }).get();
+                 if (agent_list.length > 0) {
+                     $('#transfer_modal').modal('show');
+                     $('#reject_modal').modal('hide');
+                     $('#doctor_agent_count').html(agent_list.length);
+                     $("#approval_value").val(agent_list);
+                 }
+                 else {
+                     swal("Warning!", "No rows selected!", "warning");
+                 }
+             });
+         }
+
+         function rejectValue() {
+             $('#transfer_form').submit(function (e) {
+                 e.preventDefault();
+                 {#let agent_list = $("input[name='transfer_id']:checked").val();#}
+                 agent_list = $("input[name='transfer_id']:checked").map(function () {
+                     return this.value;
+                 }).get();
+                 if (agent_list.length > 0) {
+                     $('#reject_modal').modal('show');
+                     $('#transfer_modal').modal('hide');
+                     $('#reject_count').html(agent_list.length);
+                     $("#reject_value").val(agent_list);
+                 }
+                 else {
+                     swal("Warning!", "No rows selected!", "warning");
+                 }
+             });
+         }
+
+
+
+        $('#select_all').on('click', function () {
+            let agent_list = $("input[name='transfer_id']:checked");
+            if (agent_list.length>0){
+                $("input[name='transfer_id']").prop("checked", false)
+            }
+            else {
+                $("input[name='transfer_id']").prop("checked", true);
+            }
+
+        })
+    </script>
+{% endblock %}
+
+{% block body %}
+    <style>
+    .table thead tr th, .table thead tr td, .table tbody tr th, .table tbody tr td, .table tfoot tr th, .table tfoot tr td {
+    padding: 12px 10px;
+}
+
+    </style>
+    <form action="" method="post">
+    {% csrf_token %}
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <select class="form-control" name="branch">
+                        <option value="" disabled>-- Select Branch --</option>
+                        <option value="All" selected>All</option>
+                        {% for list in branch_name %}
+                            <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" name="Submit" class="btn btn-lg btn-primary btn-gradient btn-shadow">Submit</button>
+            </div>
+
+        </div>
+    </form>
+
+    <form id="transfer_form" method="post">
+    <div class="row pb-4">
+        <div class="col-md-12">
+            <div class="card card-body">
+                <hr>
+                <div class="table-responsive">
+                    <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-success btn-gradient btn-shadow btn_approve" data-action="approve" onclick="approveValue()">Approve</button>
+                            <button type="submit" class="btn btn-danger btn-gradient btn-shadow btn_reject" data-action="reject" onclick="rejectValue()" >Reject</button>
+
+                        </div><hr>
+
+                        <thead>
+                        <tr role="row" style="background: #3F51B5; color: #fff;">
+                            <th class="py-2" data-orderable="false" width="60">Sno</th>
+                                <th class="py-2" data-orderable="false"><i class="fa fa-check-circle font-20" id="select_all"></i> </th>
+                            <th class="py-2" data-orderable="false">Bill Number</th>
+                            <th class="py-2" data-orderable="false">UCID</th>
+                            <th class="py-2" data-orderable="false">Branch</th>
+                            <th class="py-2" data-orderable="false">Patient Name</th>
+                            <th class="py-2" data-orderable="false">Referral Name</th>
+                            <th class="py-2" data-orderable="false">Referral Type</th>
+                            <th class="py-2" data-orderable="false">Gross Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Discount Amount</th>
+                            <th class="py-2" data-orderable="false">Net Bill Amount</th>
+                            <th class="py-2" data-orderable="false">Referral Amount</th>
+                            <th class="py-2" data-orderable="false">UCID created On</th>
+                            <th class="py-2" data-orderable="false">Payment Mode</th>
+                            <th class="py-2" data-orderable="false">Department Name</th>
+                            <th class="py-2" data-orderable="false">Service Name</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% csrf_token %}
+                        {% for ref in cluster %}
+                            <tr>
+                                <td class="py-1 text-right" id="sno">{{ ref.sno }}</td>
+                                       <td class="py-1">
+                                           <div class="custom-control custom-checkbox custom-checkbox-1">
+                                                <input type="checkbox" class="custom-control-input" name="transfer_id" id="{{ ref.sno }}" value="{{ ref.sno }}">
+                                                <label class="custom-control-label" for="{{ ref.sno }}"></label>
+                                            </div>
+                                        </td>
+
+{#                                                                        <td class="py-1">#}
+{#                                                                            <a href="{% url 'functional_approval_list' %}?approve={{ ref.sno }}" class="btn-sm btn-success" name="approve">Approve</a>#}
+{##}
+{#                                                                            <a href="#" data-payment="{{ ref.sno }}" class="btn-sm btn-danger reject-payment" name="delete">Reject</a>#}
+{##}
+{#                                                                        </td>#}
+                                <td class="py-1" id="invoice_no">{{ ref.invoice_no }}</td>
+                                <td class="py-1" id="invoice_no">{{ ref.ucid }}</td>
+                                <td class="py-1" id="branch">{{ ref.branch}}</td>
+                                <td class="py-1" id="patient_name">{{ ref.patient_name}}</td>
+                                <td class="py-1" id="marketing_executive">{{ ref.marketing_executive}}</td>
+                                <td class="py-1" id="referral_type">{{ ref.referral_type}}</td>
+                                <td class="py-1" id="grossamount">{{ ref.grossamount}}</td>
+                                <td class="py-1" id="discount">{{ ref.discount}}</td>
+                                <td class="py-1" id="netamount">{{ ref.netamount}}</td>
+                                <td class="py-1" id="referralamount">{{ ref.referralamount}}</td>
+                                <td class="py-1" id="ucidcreatedon">{{ ref.ucidcreatedon}}</td>
+                                <td class="py-1" id="paymentmode">{{ ref.paymentmode}}</td>
+                                <td class="py-1" id="department_name">{{ ref.department_name}}</td>
+                                <td class="py-1" id="service_name">{{ ref.service_name}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+     <div class="modal fade" id="reject_modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Transfer Bills</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    </div>
+                    <form action="" method="post" id="reject_modal_form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="modal-body">
+                                        <h4>Selected Rows Count : <span id="reject_count"></span> </h4>
+
+                                </div>
+                                <input type="text" class="form-control" name="reject_value" id="reject_value" placeholder="Eg. 010215" hidden>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal" >Close</button>
+                                    <button type="submit" class="btn btn-success" name="approve" >Reject</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+     <div class="modal fade" id="transfer_modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Transfer Bills</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    </div>
+                    <form action="" method="post" id="approve_modal_form">
+                        {% csrf_token %}
+                        <div class="row">
+                                <div class="modal-body">
+                                    <h4>Selected Rows Count : <span id="doctor_agent_count"></span> </h4>
+                                </div>
+                                <div class="form-group">
+                                <input type="text" class="form-control" name="approval_value" id="approval_value" placeholder="Eg. 010215" hidden>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal" name="transfer_id">Close</button>
+                                    <button type="submit" class="btn btn-success" name="approve">Approve</button>
+                                </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+
+{% endblock %}
