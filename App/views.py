@@ -2688,6 +2688,7 @@ def coverage_report(request):
                     'qua': 0,
                     'reg': 0,
                     'spc': 0,
+                    'cor': 0,
                     'karnataka': 0,
                 }
             call_report_data[emp_id]['total'] += 1
@@ -2697,6 +2698,8 @@ def coverage_report(request):
                 call_report_data[emp_id]['reg'] += 1
             if 'SPECIAL CATEGORY' in item['ref_type']:
                 call_report_data[emp_id]['spc'] += 1
+            if 'CORPORATE' in item['ref_type']:
+                call_report_data[emp_id]['cor'] += 1
             if 'KARNATAKA' in item['ref_type']:
                 call_report_data[emp_id]['karnataka'] += 1
 
@@ -2716,6 +2719,7 @@ def coverage_report(request):
                     'qua': 0,
                     'reg': 0,
                     'spc': 0,
+                    'cor': 0,
                     'karnataka': 0,
                 }
 
@@ -2731,6 +2735,7 @@ def coverage_report(request):
                 'QUA': call_report['qua'],
                 'REG': call_report['reg'],
                 'SPC': call_report['spc'],
+                'COR': call_report['cor'],
                 'KARNATAKA': call_report['karnataka'],
                 'MINTIME': mintime['MINTIME'] if mintime['MINTIME'] else '-',
                 'location': logins_location[0]['last_location'] if logins_location else None,
@@ -2759,6 +2764,7 @@ def coverage_report(request):
     #          LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
     #            SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
     #                SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%CORPORATE%' THEN 1 ELSE 0 END) AS COR,
     #                    IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
     #                        logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
     #                        call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
@@ -2770,6 +2776,7 @@ def coverage_report(request):
     #          LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
     #            SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
     #                SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%CORPORATE%' THEN 1 ELSE 0 END) AS COR,
     #                    IFNULL(MIN(CASE WHEN call_report_master.time != '' THEN call_report_master.time ELSE NULL END),'-') AS MINTIME,
     #                        logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
     #                        call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
