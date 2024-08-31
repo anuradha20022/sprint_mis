@@ -101,6 +101,7 @@ urlpatterns = [
     path('functional_approval_list/', views.functional_approval_list, name='functional_approval_list'),
 
     path('coverage_report/', views.coverage_report, name='coverage_report'),
+    # path('coverage/', views.coverage, name='coverage'),
 
     path('map_maker/', views.map_maker, name='map_maker'),
     path('live_location/', views.live_location, name='live_location'),
