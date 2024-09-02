@@ -2915,7 +2915,7 @@ def coverage_report(request):
             call_report_data[emp_id]['total'] += 1
             if 'QUALIFIED' in item['ref_type']:
                 call_report_data[emp_id]['qua'] += 1
-            if 'REGISTERED PRACTITIONER' in item['ref_type']:
+            if 'REGISTERED PRACTIONER' in item['ref_type']:
                 call_report_data[emp_id]['reg'] += 1
             if 'SPECIAL CATEGORY' in item['ref_type']:
                 call_report_data[emp_id]['spc'] += 1
@@ -2970,6 +2970,8 @@ def coverage_report(request):
         context = {
             'result': result,
             'date': date_obj,
+            'branchs':branch,
+            'datee':date
         }
 
     context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))

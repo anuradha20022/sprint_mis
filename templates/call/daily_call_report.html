@@ -166,8 +166,8 @@ $(document).ready(function () {
                                  <tr role="row" style="background: #3F51B5; color: #fff;">
                                      {#                                        <th>Edit</th>#}
                                         <th class="py-2">S No</th>
-                                        <th class="py-2">Emp ID</th>
-                                        <th class="py-2">Emp Name</th>
+                                        <th class="py-2">Employee ID</th>
+                                        <th class="py-2">Employee Name</th>
                                         <th class="py-2">Referral Type</th>
                                         <th class="py-2">Doctor ID</th>
                                         <th class="py-2">Doctor Name</th>
@@ -195,7 +195,7 @@ $(document).ready(function () {
                                         <td class="py-1">{{ list.unique_id }}</td>
                                         <td class="py-1">{{ list.name }}</td>
                                         <td class="py-1">{{ list.contact }}</td>
-                                        <td class="py-1">{{ list.date|date:"d/m/Y" }}</td>
+                                        <td class="py-1">{{ list.date|date:"d-m-Y" }}</td>
                                         <td class="py-1">{{ list.time}}</td>
                                         <td class="py-1">{{ list.location }}</td>
                                         <td class="py-1">{{ list.reason }}</td>
