@@ -26,7 +26,18 @@ function validateNumber(event) {
 {% endblock  %}
 
 {% block body %}
+<style>
+ .form-group {
+        margin-bottom: 0;
+    }
 
+    .form-control {
+        margin-bottom: 0;
+    }
+.col-md-3 {
+        padding-right: 5px;
+    }
+</style>
 <div class="row">
     <div class="col-md-4">
         <form action="" method="post">
@@ -43,43 +54,57 @@ function validateNumber(event) {
         {% csrf_token %}
     <div class="card">
      <div class="card-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <label>UCID
-                        <input type="text" class="form-control" value="{{ b_details.unique_id }}" name="unique_id" id="unique_id" readonly>
-                    </label>
-                </div>
-                <div class="col-md-3">
-                    <label>Agent Name
-                        <input type="text" class="form-control" value="{{ b_details.agent_name }}" name="agent_name" id="agent_name" readonly>
-                    </label>
-                </div>
-                <div class="col-md-3">
-                    <label>Mobile
-                        <input type="number" class="form-control" value="{{ b_details.mobile }}" name="mobile" id="mobile" readonly>
-                    </label>
-                </div>
-                <div class="col-md-3">
-                    <label>Branch<span class="text-danger">*</span>
-                        <input type="text" class="form-control" value="{{ b_details.bank_branch_name }}" name="bank_branch_name" id="bank_branch_name" readonly>
-                    </label>
-                </div>
-                <div class="col-md-3">
-                    <label>Pan Card<span class="text-danger">*</span>
-                        <input type="text" class="form-control" value="{{ b_details.pancard }}" name="pancard" id="pancard" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10">
-                    </label>
-                </div>
-                <div class="col-md-3">
-                    <label>Account Number<span class="text-danger">*</span>
-                        <input type="tel" class="form-control" value="{{ b_details.bank_ac }}" name="bank_ac" id="bank_ac">
-                    </label>
-                </div>
-                <div class="col-md-3">
-                    <label>Ifsc Code<span class="text-danger">*</span>
-                        <input type="text" class="form-control" value="{{ b_details.ifsc }}" name="ifsc" id="ifsc" pattern="^[A-Za-z]{4}[a-zA-Z0-9]{7}$" maxlength="11">
-                    </label>
-                </div>
+ <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>UCID
+                    <input type="text" class="form-control" value="{{ b_details.unique_id }}" name="unique_id" id="unique_id" readonly>
+                </label>
             </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Agent Name
+                    <input type="text" class="form-control" value="{{ b_details.agent_name }}" name="agent_name" id="agent_name" readonly>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Mobile
+                    <input type="number" class="form-control" value="{{ b_details.mobile }}" name="mobile" id="mobile" readonly>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Branch<span class="text-danger">*</span>
+                    <input type="text" class="form-control" value="{{ b_details.bank_branch_name }}" name="bank_branch_name"  required id="bank_branch_name" readonly>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Pan Card<span class="text-danger">*</span>
+                    <input type="text" class="form-control" value="{{ b_details.pancard }}" name="pancard" id="pancard"  required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10">
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Account Number<span class="text-danger">*</span>
+                    <input type="tel" class="form-control" value="{{ b_details.bank_ac }}" name="bank_ac" id="bank_ac"  required>
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Ifsc Code<span class="text-danger">*</span>
+                    <input type="text" class="form-control" value="{{ b_details.ifsc }}" name="ifsc" id="ifsc" required pattern="^[A-Za-z]{4}[a-zA-Z0-9]{7}$" maxlength="11">
+                </label>
+            </div>
+        </div>
+    </div>
          <hr>
          <button class="btn btn-primary float-right" type="submit">Submit</button>
 

@@ -91,13 +91,13 @@
                             <option value="" selected disabled>-- Select Branch --</option>
                             <option value="All" >All</option>
                             {% for list in branch %}
-                                <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                                <option value="{{ list.branch_name }}" {% if branchs == list.branch_name %}selected{% endif %}>{{ list.branch_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
             </div>
             <div class="col-md-3">
-                <input type="date" name="date" class="form-control" required>
+                <input type="date" name="date" value="{{ datee }}" class="form-control" required>
             </div>
             <div class="col-md-2">
                 <button type="submit" name="Submit" class="btn btn-lg btn-primary btn-gradient btn-shadow">Submit</button>
@@ -113,10 +113,12 @@
                             <table id="report" class="table table-striped table-bordered datatable" style="white-space: nowrap">
                             <thead>
                             <tr role="row" style="background: #3F51B5; color: #fff;">
+                                <th class="py-2">S.no</th>
                                 <th class="py-2">Employee ID</th>
                                 <th class="py-2">Employee Name</th>
                                 <th class="py-2">First Call Time</th>
                                 <th class="py-2">No. of Calls</th>
+                                <th class="py-2">Date</th>
                                 <th class="py-2">Location</th>
                                 <th class="py-2">View map</th>
                             </tr>
@@ -125,10 +127,12 @@
                                    {% for item in result %}
                                        {% if item.TOTAL == 0 %}
                                            <tr>
+                                             <td class="py-1">{{ forloop.counter }}</td>
                                               <td  class="py-1">{{ item.empid }}</td>
                                             <td  class="py-1">{{ item.name }}</td>
                                               <td style="text-align:center;" class="py-1">{{ item.MINTIME|time:'h:i:s'|default:'No Data' }}</td>
                                                <td style="text-align:center;" class="py-1">No Data</td>
+                                               <td class="py-1">{{ item.date }}</td>
                                                <td class="py-1">{{ item.branch }}</td>
                                                <td  class="py-1">
                                      <a href="{% url 'live_location' %}?empid={{ item.empid }}&date={{ item.date }}" target="_blank" style="color: #0d47a1; text-underline: #0d47a1">Live Status</a>
@@ -136,10 +140,12 @@
                                     </tr>
                                        {% else %}
                                 <tr>
+                                 <td class="py-1">{{ forloop.counter }}</td>
                                     <td class="py-1">{{ item.empid }}</td>
                                     <td class="py-1">{{ item.name }}</td>
                                     <td class="py-1">{{ item.MINTIME|time:'h:i:s' }}</td>
                                     <td class="py-1">{{ item.TOTAL}}({{ item.doctor }} - Doctor, {{ item.RMP }}- RMP, {{ item.others }} - Others)</td>
+                                    <td class="py-1">{{ item.date }}</td>
                                     <td class="py-1">{{ item.branch }}</td>
                                     <td class="py-1">
                                          <a href="{% url 'live_location' %}?empid={{ item.empid }}&date={{ item.date }}" target="_blank" style="color: #0d47a1; text-underline: #0d47a1">Live Status</a>

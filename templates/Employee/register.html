@@ -39,29 +39,29 @@
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Employee Name:</label>
-                                    <input type="text" class="form-control form-control-sm" name="empname" placeholder="Full Name" required="true">
+                                    <label class="col-form-label">Employee Name<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm" name="empname" placeholder="Full Name" required>
                                     <div class="">
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Employee ID:</label>
-                                        <input type="number" class="form-control form-control-sm" name="empid" id="empid" placeholder="Eg. 010215" required="true" />
+                                    <label class="col-form-label">Employee ID<span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control form-control-sm" name="empid" id="empid" placeholder="Eg. 010215" required />
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Mobile No:</label>
+                                    <label class="col-form-label">Mobile No<span class="text-danger">*</span></label>
                                     <div class="">
-                                        <input type="text" name="mobile" class="form-control form-control-sm" maxlength="10" pattern="[0-9]{10}" placeholder="10 Digits Number" required="true" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                        <input type="text" name="mobile" class="form-control form-control-sm" maxlength="10" pattern="[0-9]{10}" placeholder="10 Digits Number" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Designation:</label>
+                                    <label class="col-form-label">Designation<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="designation" required>
                                         <option value="--Select Designation--">--Select Designation--</option>
                                         <option value="Cluster head">Cluster head</option>
@@ -84,7 +84,7 @@
 
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Branch:</label>
+                                    <label class="col-form-label">Branch<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="branch" required>
                                         <option value="">--Select Working Location--</option>
                                         {% for list in branch %}
@@ -96,7 +96,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Department:</label>
+                                    <label class="col-form-label">Department<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="department" required>
                                         <option value="--Select Department--">--Select Department--</option>
                                         <option value="Admin">Admin</option>
@@ -118,7 +118,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Category:</label>
+                                    <label class="col-form-label">Category<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="category" required>
                                         <option value="--Select Type--">--Select Category Type--</option>
                                         <option value="Admin">Admin</option>
@@ -143,10 +143,9 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label class="col-form-label">Reporting to:</label>
-                                    <div class="">
-                                        <input type="text" name="reporting_to" id="register_search" class="form-control form-control-sm" placeholder="Employee ID" autocomplete="on">
-                                    </div>
+                                    <label class="col-form-label">Reporting to<span class="text-danger">*</span></label>
+                                        <input type="text" name="reporting_to" required id="register_search" class="form-control form-control-sm" placeholder="Employee ID" autocomplete="on">
+
                                 </div>
                             </div>
                         </div>
@@ -167,9 +166,9 @@
                 {% csrf_token %}
                 <div class="panel-body">
                     <div class="form-group mb-1">
-                        <label class="col-form-label">Branch Name:</label>
+                        <label class="col-form-label">Branch Name<span class="text-danger">*</span></label>
                         <div class="">
-                            <input type="text" class="form-control" name="branch_name" placeholder="Eg. Hitech City" required="true">
+                            <input type="text" class="form-control" name="branch_name"  placeholder="Eg. Hitech City" required>
                         </div>
                     </div>
 
@@ -192,9 +191,9 @@
                                     {% csrf_token %}
                                     <div class="panel-body py-1">
                                        <div class="form-group mb-1">
-                                            <label class="col-form-label">Employee ID:</label>
+                                            <label class="col-form-label">Employee ID<span class="text-danger">*</span></label>
                                             <div class="">
-                                                <input type="number" id="emp_search" class="form-control" name="emp_search" placeholder="Eg. 010215" required="true">
+                                                <input type="number" id="emp_search" class="form-control" name="emp_search" placeholder="Eg. 010215" required>
                                             </div>
                                         </div>
                                         <div class="radio d-flex">

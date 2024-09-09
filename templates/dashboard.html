@@ -7,34 +7,26 @@
     <script>
     $("#dashboard_link").addClass('active');
 
-    $('.change-view').on('click', function () {
-       let view_type = $(this).data('view');
+  document.addEventListener('DOMContentLoaded', function () {
+            const sections = document.querySelectorAll('[id$="_div"]'); // Select all sections with id ending in '_div'
+            const buttons = document.querySelectorAll('.change-view'); // Select all buttons
 
-       if (view_type === "master") {
-           $("#master_div").show();
-           $("#active_div").hide();
-           $("#present_div").hide();
-            $("#absent_div").hide();
-       }else if (view_type === "active") {
-           $("#master_div").hide();
-           $("#active_div").show();
-           $("#present_div").hide();
-            $("#absent_div").hide();
+            function showSection(view) {
+                sections.forEach(section => {
+                    section.style.display = section.id === `${view}_div` ? 'block' : 'none';
+                });
+            }
 
-       }else if (view_type === "present") {
-           $("#master_div").hide();
-           $("#active_div").hide();
-           $("#present_div").show();
-            $("#absent_div").hide();
+            // Show master list by default
+            showSection('master');
 
-       }else if(view_type ==="absent"){
-           $("#absent_div").show();
-            $("#master_div").hide();
-           $("#active_div").hide();
-           $("#present_div").hide();
-       }
-    })
-
+            buttons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const view = this.getAttribute('data-view');
+                    showSection(view);
+                });
+            });
+        });
     </script>
 {% endblock %}
 {% block body %}
@@ -63,7 +55,7 @@
                 <div class="icon"><i class="icon-calendar"></i></div>
             </div>
         </div>
-        <div class="change-view col-md-5 col-lg-3" data-view="present">
+        <div class="change-view col-md-5 col-lg-3" data-view="absent">
             <div class="dashboard-stat color-danger">
                 <div class="content"><h4>{{ absent }}
                 </h4> <span><a href="#">Absent</a></span></div>
@@ -71,167 +63,159 @@
             </div>
         </div>
     </div>
-{#    <div id="master_div" style="display: none" class="row pb-4">#}
-{#       <div class="col-md-12">#}
-{#          <div class="card card-body">#}
-{##}
-{#            <div class="table-responsive">#}
-{#                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">#}
-{#                  <thead>#}
-{#                    <tr role="row" style="background: #3F51B5; color: #fff;" >#}
-{#                        <th class="py-2" data-orderable="false">#</th>#}
-{#                        <th class="py-2" data-orderable="false">Emp ID</th>#}
-{#                        <th class="py-2" data-orderable="false">Unique ID</th>#}
-{#                        <th class="py-2" data-orderable="false">Agent Type</th>#}
-{#                        <th class="py-2" data-orderable="false">Category</th>#}
-{#                        <th class="py-2" data-orderable="false">Branch</th>#}
-{#                        <th class="py-2" data-orderable="false">Mobile</th>#}
-{#                        <th class="py-2" data-orderable="false">Company</th>#}
-{#                        <th class="py-2" data-orderable="false">Pan Card</th>#}
-{#                        <th class="py-2" data-orderable="false">Bank Act</th>#}
-{#                        <th class="py-2" data-orderable="false">IFSC</th>#}
-{#                        <th class="py-2" data-orderable="false">Area</th>#}
-{#                        <th class="py-2" data-orderable="false">City</th>#}
-{#                    </tr>#}
-{#                  </thead>#}
-{##}
-{#                    <tbody>#}
-{#                    {% for list in master %}#}
-{#                        <tr>#}
-{#                            <td class="py-1 text-right">{{ forloop.counter }}</td>#}
-{#                            <td class="py-1">{{ list.emp_id }}</td>#}
-{#                            <td class="py-1">{{ list.unique_id }}</td>#}
-{#                            <td class="py-1">{{ list.agent_type }}</td>#}
-{#                            <td class="py-1">{{ list.category }}</td>#}
-{#                            <td class="py-1">{{ list.branch }}</td>#}
-{#                            <td class="py-1">{{ list.mobile }}</td>#}
-{#                            <td class="py-1">{{ list.company }}</td>#}
-{#                            <td class="py-1">{{ list.pancard }}</td>#}
-{#                            <td class="py-1">{{ list.bank_ac }}</td>#}
-{#                            <td class="py-1">{{ list.ifsc }}</td>#}
-{#                            <td class="py-1">{{ list.area }}</td>#}
-{#                            <td class="py-1">{{ list.city }}</td>#}
-{#                        </tr>#}
-{#                    {% endfor %}#}
-{#                    </tbody>#}
-{#                </table>#}
-{#            </div>#}
-{#       </div>#}
-{#      </div>#}
-{#    </div>#}
-{#    <div id="active_div" style="display: none" class="row pb-4">#}
-{#          <div class="col-md-12">#}
-{#            <div class="card card-body">#}
-{#              <div class="table-responsive">#}
-{#                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">#}
-{#                    <thead>#}
-{#                    <tr role="row" style="background: #3F51B5; color: #fff;" >#}
-{#                        <th class="py-2" data-orderable="false">#</th>#}
-{#                        <th class="py-2" data-orderable="false">Emp ID</th>#}
-{#                        <th class="py-2" data-orderable="false">Employee Name</th>#}
-{#                        <th class="py-2" data-orderable="false">Branch</th>#}
-{#                        <th class="py-2" data-orderable="false">Old Branch</th>#}
-{#                        <th class="py-2" data-orderable="false">Designation</th>#}
-{#                        <th class="py-2" data-orderable="false">Original Type</th>#}
-{#                        <th class="py-2" data-orderable="false">Personal Number</th>#}
-{#                        <th class="py-2" data-orderable="false">Job Status</th>#}
-{#                    </tr>#}
-{#                    </thead>#}
-{#                    <tbody>#}
-{#                    {% for i in total %}#}
-{#                        <tr>#}
-{#                            <td class="py-1 text-right">{{ forloop.counter }}</td>#}
-{#                            <td class="py-1">{{ i.emp_id }}</td>#}
-{#                            <td class="py-1">{{ i.emp_name }}</td>#}
-{#                            <td class="py-1">{{ i.branch }}</td>#}
-{#                            <td class="py-1">{{ i.old_branch }}</td>#}
-{#                            <td class="py-1">{{ i.designation }}</td>#}
-{#                            <td class="py-1">{{ i.original_type }}</td>#}
-{#                            <td class="py-1">{{ i.personal_number }}</td>#}
-{#                            <td class="py-1">{{ i.job_status }}</td>#}
-{#                        </tr>#}
-{#                    {% endfor %}#}
-{#                    </tbody>#}
-{#                </table>#}
-{#            </div>#}
-{#          </div>#}
-{#         </div>#}
-{#      </div>#}
-{#    <div id="absent_div" style="display: none" class="row pb-4">#}
-{#          <div class="col-md-12">#}
-{#            <div class="card card-body">#}
-{#              <div class="table-responsive">#}
-{#                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">#}
-{#                    <thead>#}
-{#                    <tr role="row" style="background: #3F51B5; color: #fff;" >#}
-{#                        <th class="py-2" data-orderable="false">#</th>#}
-{#                        <th class="py-2" data-orderable="false">Emp </th>#}
-{#                        <th class="py-2" data-orderable="false">Unique </th>#}
-{#                        <th class="py-2" data-orderable="false">Name</th>#}
-{#                        <th class="py-2" data-orderable="false">Category</th>#}
-{#                        <th class="py-2" data-orderable="false">Design</th>#}
-{#                        <th class="py-2" data-orderable="false">Contact</th>#}
-{#                        <th class="py-2" data-orderable="false">Date</th>#}
-{#                        <th class="py-2" data-orderable="false">Time</th>#}
-{#                    </tr>#}
-{#                    </thead>#}
-{#                    <tbody>#}
-{#                    {% for i in absent %}#}
-{#                        <tr>#}
-{#                            <td class="py-1 text-right" >{{ forloop.counter }}</td>#}
-{#                            <td class="py-1">{{ i.emp_id}}</td>#}
-{#                            <td class="py-1">{{ i.unique_id}}</td>#}
-{#                            <td class="py-1">{{ i.name}}</td>#}
-{#                            <td class="py-1">{{ i.category}}</td>#}
-{#                            <td class="py-1">{{ i.design}}</td>#}
-{#                            <td class="py-1">{{ i.contact}}</td>#}
-{#                            <td class="py-1">{{ i.date}}</td>#}
-{#                            <td class="py-1">{{ i.time}}</td>#}
-{#                        </tr>#}
-{#                    {% endfor %}#}
-{#                    </tbody>#}
-{#                </table>#}
-{#            </div>#}
-{#          </div>#}
-{#         </div>#}
-{#      </div>#}
-{#    <div id="present_div" style="display: none" class="row pb-4">#}
-{#          <div class="col-md-12">#}
-{#            <div class="card card-body">#}
-{#              <div class="table-responsive">#}
-{#                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">#}
-{#                    <thead>#}
-{#                    <tr role="row" style="background: #3F51B5; color: #fff;" >#}
-{#                        <th class="py-2" data-orderable="false">#</th>#}
-{#                        <th class="py-2" data-orderable="false">Emp </th>#}
-{#                        <th class="py-2" data-orderable="false">Unique </th>#}
-{#                        <th class="py-2" data-orderable="false">Name</th>#}
-{#                        <th class="py-2" data-orderable="false">Category</th>#}
-{#                        <th class="py-2" data-orderable="false">Design</th>#}
-{#                        <th class="py-2" data-orderable="false">Contact</th>#}
-{#                        <th class="py-2" data-orderable="false">Date</th>#}
-{#                        <th class="py-2" data-orderable="false">Time</th>#}
-{#                    </tr>#}
-{#                    </thead>#}
-{#                    <tbody>#}
-{#                    {% for i in preset_data %}#}
-{#                        <tr>#}
-{#                            <td class="py-1 text-right" >{{ forloop.counter }}</td>#}
-{#                            <td class="py-1">{{ i.emp_id}}</td>#}
-{#                            <td class="py-1">{{ i.unique_id}}</td>#}
-{#                            <td class="py-1">{{ i.name}}</td>#}
-{#                            <td class="py-1">{{ i.category}}</td>#}
-{#                            <td class="py-1">{{ i.design}}</td>#}
-{#                            <td class="py-1">{{ i.contact}}</td>#}
-{#                            <td class="py-1">{{ i.date}}</td>#}
-{#                            <td class="py-1">{{ i.time}}</td>#}
-{#                        </tr>#}
-{#                    {% endfor %}#}
-{#                    </tbody>#}
-{#                </table>#}
-{#            </div>#}
-{#          </div>#}
-{#         </div>#}
-{#      </div>#}
+    <div id="master_div" class="row pb-4">
+       <div class="col-md-12">
+          <div class="card card-body">
+
+            <div class="table-responsive">
+                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">
+                  <thead>
+                    <tr role="row" style="background: #3F51B5; color: #fff;" >
+                        <th class="py-2">#</th>
+                        <th class="py-2">Employee Id</th>
+                        <th class="py-2">Unique ID</th>
+                        <th class="py-2">Agent Type</th>
+                        <th class="py-2">Category</th>
+                        <th class="py-2">Branch</th>
+                        <th class="py-2">Mobile</th>
+                        <th class="py-2">Company</th>
+                        <th class="py-2">Pan Card</th>
+                        <th class="py-2">Bank Act</th>
+                        <th class="py-2">IFSC</th>
+                        <th class="py-2">Area</th>
+                        <th class="py-2">City</th>
+                    </tr>
+                  </thead>
+
+                    <tbody>
+                    {% for list in master %}
+                        <tr>
+                            <td class="py-1 text-right">{{ forloop.counter }}</td>
+                            <td class="py-1">{{ list.emp_id }}</td>
+                            <td class="py-1">{{ list.unique_id }}</td>
+                            <td class="py-1">{{ list.agent_type }}</td>
+                            <td class="py-1">{{ list.category }}</td>
+                            <td class="py-1">{{ list.branch }}</td>
+                            <td class="py-1">{{ list.mobile }}</td>
+                            <td class="py-1">{{ list.company }}</td>
+                            <td class="py-1">{{ list.pancard }}</td>
+                            <td class="py-1">{{ list.bank_ac }}</td>
+                            <td class="py-1">{{ list.ifsc }}</td>
+                            <td class="py-1">{{ list.area }}</td>
+                            <td class="py-1">{{ list.city }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+       </div>
+      </div>
+    </div>
+    <div id="active_div" style="display: none" class="row pb-4">
+          <div class="col-md-12">
+            <div class="card card-body">
+              <div class="table-responsive">
+                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">
+                    <thead>
+                    <tr role="row" style="background: #3F51B5; color: #fff;" >
+                        <th class="py-2">#</th>
+                        <th class="py-2">Employee Id</th>
+                        <th class="py-2">Employee Name</th>
+                        <th class="py-2">Branch</th>
+                        <th class="py-2">Old Branch</th>
+                        <th class="py-2">Designation</th>
+                        <th class="py-2">Original Type</th>
+                        <th class="py-2">Personal Number</th>
+                        <th class="py-2">Job Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i in total %}
+                        <tr>
+                            <td class="py-1 text-right">{{ forloop.counter }}</td>
+                            <td class="py-1">{{ i.emp_id }}</td>
+                            <td class="py-1">{{ i.emp_name }}</td>
+                            <td class="py-1">{{ i.branch }}</td>
+                            <td class="py-1">{{ i.old_branch }}</td>
+                            <td class="py-1">{{ i.designation }}</td>
+                            <td class="py-1">{{ i.original_type }}</td>
+                            <td class="py-1">{{ i.personal_number }}</td>
+                            <td class="py-1">{{ i.job_status }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+         </div>
+      </div>
+    <div id="absent_div" style="display: none" class="row pb-4">
+          <div class="col-md-12">
+            <div class="card card-body">
+              <div class="table-responsive">
+                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">
+                    <thead>
+                     <tr role="row" style="background: #3F51B5; color: #fff;" >
+                        <th class="py-2">#</th>
+                        <th class="py-2">Employee Id</th>
+                        <th class="py-2">Employee Name</th>
+                        <th class="py-2">Design</th>
+                        <th class="py-2">Contact</th>
+                        <th class="py-2">Date</th>
+                        <th class="py-2">Time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i in absent_employees %}
+                        <tr>
+                            <td class="py-1 text-right" >{{ forloop.counter }}</td>
+                            <td class="py-1">{{ i.emp_id}}</td>
+                            <td class="py-1">{{ i.emp_name}}</td>
+                            <td class="py-1">{{ i.designation }}</td>
+                            <td class="py-1">{{ i.personal_number }}</td>
+                            <td class="py-1">{{ i.date|date:'d-m-Y' }}</td>
+                            <td class="py-1">{{ i.time|time:"h:i:s"}}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+         </div>
+      </div>
+    <div id="present_div" style="display: none" class="row pb-4">
+          <div class="col-md-12">
+            <div class="card card-body">
+              <div class="table-responsive">
+                <table id="call-report-details" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap;width: 100%">
+                    <thead>
+                    <tr role="row" style="background: #3F51B5; color: #fff;" >
+                        <th class="py-2">#</th>
+                        <th class="py-2">Employee Id</th>
+                        <th class="py-2">Employee Name</th>
+                        <th class="py-2">Design</th>
+                        <th class="py-2">Contact</th>
+                        <th class="py-2">Date</th>
+                        <th class="py-2">Time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i in present_employees %}
+                        <tr>
+                            <td class="py-1 text-right" >{{ forloop.counter }}</td>
+                            <td class="py-1">{{ i.emp_id}}</td>
+                            <td class="py-1">{{ i.emp_name}}</td>
+                            <td class="py-1">{{ i.designation }}</td>
+                            <td class="py-1">{{ i.personal_number }}</td>
+                            <td class="py-1">{{ i.date|date:'d-m-Y' }}</td>
+                            <td class="py-1">{{ i.time|time:"h:i:s"}}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+         </div>
+      </div>
 
 {% endblock %}

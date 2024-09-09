@@ -8,42 +8,46 @@
     <link rel="icon" type="image/x-icon" href="{% static 'logo.png' %}">
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="{% static 'dist/css/style.css' %}" />
+    <!-- Font Awesome for Eye Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-
     <!-- Page Wrapper -->
     <div class="lgn-background" style="background-image: url({% static 'user_images/422.png' %});">
         <div class="lgn-wrapper card">
             <div class="lgn-logo text-center">
-                <a><img src="{% static 'logo.png' %}" alt=""></a>
+                <a><img src="{% static 'logo.png' %}" alt="Logo"></a>
             </div>
             <div class="">
                 <form class="" method="post" action="">
-                    {%  csrf_token %}
-
+                    {% csrf_token %}
                     <div class="lgn-input form-group">
                         <label class="control-label col-sm-12">Employee ID</label>
                         <div class="col-sm-12">
-                            <input class="form-control" type="text" name="emp_id" id="lgn-mail" placeholder="Enter your Emp Id" autocomplete="off">
+                            <input class="form-control" type="text" name="emp_id" id="lgn-mail" placeholder="Enter your Emp ID" autocomplete="off">
                         </div>
                     </div>
+
                     <div class="lgn-input form-group">
                         <label class="control-label col-sm-12">Password</label>
-                        <div class="col-sm-12">
+                        <div class="col-sm-12 position-relative">
                             <input type="password" name="password" id="lgn-pass" class="form-control" placeholder="Enter your Password" autocomplete="off">
+                            <i class="fa fa-eye-slash toggle-password text-white" id="togglePassword" style="position: absolute; top: 50%; right: 25px; transform: translateY(-50%); cursor: pointer;"></i>
                         </div>
                     </div>
+
                     <div class="lgn-forgot text-center">
                         <a href="{% url 'forgot_password' %}" class="text-white">Forgotten Password?</a>
-                    {% for message in messages %}
-                        <span class="text-orange">{{ message }}</span>
-                    {%  endfor %}
+                        {% for message in messages %}
+                            <span class="text-orange">{{ message }}</span>
+                        {% endfor %}
                     </div>
+
                     <div class="lgn-submit">
                         <button type="submit" id="lgn-submit" class="btn btn-primary btn-pill btn-lg" name="login">Login</button>
                     </div>
                 </form>
-            </div> 
+            </div>
         </div>
     </div>
 
@@ -54,7 +58,21 @@
     <script type="text/javascript" src="{% static 'assets/plugin/popper/popper.min.js' %}"></script>
     <!-- Bootstrap Framework -->
     <script type="text/javascript" src="{% static 'assets/plugin/bootstrap/bootstrap.min.js' %}"></script>
+
+    <!-- Password Toggle Script -->
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordField = document.querySelector('#lgn-pass');
+
+        togglePassword.addEventListener('click', function () {
+            // Toggle the type attribute between password and text
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+
+            // Toggle the eye / eye-slash icon
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
 </body>
 </html>
-
-

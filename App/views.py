@@ -57,14 +57,20 @@ def dashboard(request):
     cur = connection.cursor()
     cur.execute('''SELECT COUNT(DISTINCT (`emp_id`)) FROM `call_report_master` WHERE `date` = CURRENT_DATE ;''')
     present_data = cur.fetchall()[0][0]
-    total_count = Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active')).count()
-
+    total_count = Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active',page='Marketing')).count()
+    cur.execute('''SELECT DISTINCT(`emp_id`) FROM `call_report_master` WHERE `date` = CURRENT_DATE ;''')
+    present_employee_ids = [row[0] for row in cur.fetchall()]
+    active_employees = Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active',page='Marketing'))
+    present_employees = active_employees.filter(emp_id__in=present_employee_ids)
+    absent_employees = active_employees.exclude(emp_id__in=present_employee_ids)
     context = {
         'master_list': DoctorAgentList.objects.filter(~Q(emp_id='1234')).count(),
         'present': present_data,
+        'absent_employees': absent_employees,
+        'present_employees': present_employees,
         'total_count': total_count,
         'absent': total_count - present_data,
-        'total': Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active')),
+        'total': Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active',page='Marketing')),
         'master': DoctorAgentList.objects.filter(~Q(emp_id='1234')),
 
     }
@@ -698,7 +704,7 @@ def save_transfer(request):
 @login_required(login_url="/")
 def call_report_csv(request):
     res = HttpResponse(content_type='text/csv')
-    res['Content-Disposition'] = 'attachment; filename="myfile.csv"'
+    res['Content-Disposition'] = 'attachment; filename="call_report.csv"'
     writer = csv.writer(res)
     writer.writerow([
         'Emp_ID', 'Emp_name', 'ref_type', 'unique_id', 'name', 'camp', 'camp_details', 'date', 'time', 'location',
@@ -793,7 +799,7 @@ def referral_details(request):
     if 'edit' in request.GET:
         edit = request.GET.get('edit')
         context['search_ref'] = DoctorAgentList.objects.get(unique_id=edit)
-        messages.success(request, 'Updated succesfully....')
+        messages.success(request, 'Updated successfully....')
 
     if request.POST.get('emp_id'):
         emp_id = request.POST.get('emp_id ')
@@ -868,7 +874,7 @@ def search_referral(request):
     if 'edit' in request.GET:
         edit = request.GET.get('edit')
         context['search_ref'] = DoctorAgentList.objects.get(unique_id=edit)
-        messages.success(request, 'Updated succesfully....')
+        messages.success(request, 'Updated successfully....')
 
     if request.POST.get('emp_id'):
         emp_id = request.POST.get('emp_id ')
@@ -1199,7 +1205,7 @@ def bill_list(request):
     if 'delete_sno' in request.GET and request.is_ajax():
         delete_sno = request.GET.get('delete_sno')
         PatientDataOlddata.objects.get(sno=delete_sno)
-        messages.success(request, 'Deleted succesfully')
+        messages.success(request, 'Deleted successfully')
         return JsonResponse({"success": True})
 
     return render(request, 'bills_list.html', context)
@@ -1360,7 +1366,7 @@ def recent_updates(request):
         delete = request.GET.get('delete')
         data = DoctorAgentList.objects.get(unique_id=delete)
         data.delete()
-        messages.success(request, 'Deleted succesfully')
+        messages.success(request, 'Deleted successfully')
         return redirect('recent_updates')
 
     if request.method == "POST":
@@ -1382,7 +1388,7 @@ def recent_updates(request):
     if 'edit' in request.GET:
         edit = request.GET.get('edit')
         context['re'] = DoctorAgentList.objects.get(unique_id=edit)
-        messages.success(request, 'Updated succesfully....')
+        messages.success(request, 'Updated successfully....')
 
     if request.POST.get('unique_id'):
         unique_id = request.POST.get("unique_id")
@@ -1455,6 +1461,8 @@ def attendance_list(request):
         ]
 
     return render(request, 'Employee/attendance_list.html', context)
+
+
 @login_required(login_url="/")
 def employee_leave_list(request):
     url = f'https://3.6.104.94/api/employee-leaves/?from_date={timezone.now().date()}&to_date={timezone.now().date()}'
@@ -1489,13 +1497,11 @@ def daily_call_report(request):
     if 'date' in request.POST:
         date = request.POST.get('date')
         emp_ids_marketing = Logins.objects.filter(page='Marketing').order_by('branch').values_list('emp_id', flat=True)
-        # Fetch data using Django ORM with inner join-like filtering
         daily_data = CallReportMaster.objects.filter(
             date=date,
             emp_id__in=emp_ids_marketing
         )
 
-        # Retrieve relevant fields from the models
         context['daily'] = [
             {
                 'emp_id': report.emp_id,
@@ -3075,6 +3081,8 @@ def map_data(request):
         context = {
             'result': result,
             'date': date_obj,
+            'branchs':branch,
+            'datee':date,
         }
     context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
 
@@ -3191,17 +3199,14 @@ def forgot_password(request):
             messages.error(request, "Employee ID is required.")
             return render(request, 'forgotpwd.html')
 
-        # Check if the employee ID exists in WebLogins
         user = WebLogins.objects.filter(emp_id=emp_id).first()
         if not user:
             messages.error(request, "Employee ID does not exist.")
             return render(request, 'forgotpwd.html')
 
         if password == password2:
-            # Use make_password to securely hash the password
             hashed_password = make_password(password)
 
-            # Update the password only if the entered passwords match
             user.password = hashed_password
             user.save()
 
