@@ -4,7 +4,7 @@ from datetime import date
 import ast
 import csv
 import os
-from rest_framework.response import Response
+
 import bcrypt
 import requests
 from django.contrib import messages
@@ -19,10 +19,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import generics, status
+from rest_framework import generics
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
 
 from App.serializers import HomeSampleVisitsSerializer
 from .models import *
@@ -3216,50 +3215,3 @@ def forgot_password(request):
             messages.error(request, "Passwords do not match")
 
     return render(request, 'forgotpwd.html')
-
-from rest_framework.authtoken.models import Token
-
-def token_validation(token):
-    if token == '790c5f7e97bda3a2973c41c7986d173d82a7dc4d':
-        return {"error": False, "user": "demo_user"}
-    else:
-        return {"error": True, "message": "Invalid token"}
-
-
-class EmployeeAttendanceAPIView(APIView):
-    def post(self, request):
-        data = request.data
-        from_date = data.get('from_date')
-        to_date = data.get('to_date')
-        token = data.get('token')
-        token_validation_result = token_validation(token)
-
-        if not token_validation_result['error']:
-
-            if not from_date or not to_date:
-                return Response({"error": "Both from_date and to_date are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-            with connection.cursor() as cursor:
-                query = """
-                    SELECT l.`emp_id`, l.`emp_name`, crm.`date`, MIN(crm.`time`) AS `first_time`,
-                           MAX(crm.`time`) AS `last_time`, TIMEDIFF(MAX(crm.`time`), MIN(crm.`time`)) AS `total_working_hours`,  crm.`attendance`, crm.`branch`
-                    FROM `call_report_master` crm
-                    JOIN `logins` l ON crm.`emp_id` = l.`emp_id`
-                    WHERE l.`Job_Status` = 'Active'
-                      AND l.`Page` = 'Marketing'
-                      AND l.`type` != 'Center Head'
-                      AND crm.`emp_id` IS NOT NULL
-                      AND crm.`date` BETWEEN %s AND %s
-                      AND l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills', 'Corporate')
-                    GROUP BY crm.`date`, crm.`emp_id`
-                    ORDER BY l.branch ASC;
-                """
-                cursor.execute(query, [from_date, to_date])
-                rows = cursor.fetchall()
-                columns = [col[0] for col in cursor.description]
-
-            data = [dict(zip(columns, row)) for row in rows]
-
-            return Response(data)
-        else:
-            return Response({"error": True, "message": token_validation_result['message']}, status=400)

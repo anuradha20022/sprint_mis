@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from App import views
-from App.views import HomeSampleVisitsListAPIView, EmployeeAttendanceAPIView
+from App.views import HomeSampleVisitsListAPIView
 from sprint_mis import settings
 
 urlpatterns = [
@@ -108,8 +108,9 @@ urlpatterns = [
     # path('emp_map_data/', views.emp_map_data, name='emp_map_data'),
     path('map_data/', views.map_data, name='map_data'),
     path('ucid_creation/', views.ucid_creation, name='ucid_creation'),
-    path('api/employee_attendance/', EmployeeAttendanceAPIView.as_view(), name='employee_attendance'),
+
     path('api/category/', HomeSampleVisitsListAPIView.as_view(), name='category-list'),
+
 
     # path('dynamic_form/', views.dynamic_form, name='dynamic_form'),
     # path('api/payment-list/', PaymentListAPIView.as_view(), name='payment_list_api'),
