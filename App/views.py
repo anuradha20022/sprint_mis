@@ -408,15 +408,16 @@ def employee_list(request):
         messages.success(request, "Details updated successfully")
 
     if 'branch' in request.POST and 'employee_update' not in request.POST:
+        print(request.POST)
         branch = request.POST.get('branch')
         if branch:
             context['emp_list'] = Logins.objects.filter(
-                Q(job_status='Active', page='Marketing', branch=branch) & (~Q(branch="Test"))).order_by(
+                Q(job_status='Active', branch=branch) & (~Q(branch="Test"))).order_by(
                 'branch', 'emp_id').exclude(emp_id='10101')
 
     else:
         context['emp_list'] = Logins.objects.filter(
-            Q(job_status='Active', page='Marketing') & (~Q(branch="Test"))).order_by(
+            Q(job_status='Active') & (~Q(branch="Test"))).order_by(
             'branch', 'emp_id').exclude(emp_id='10101')
 
     if request.method == "GET" and request.is_ajax():
