@@ -1452,7 +1452,7 @@ def attendance_list(request):
         cursor.execute("""SELECT l.`emp_id`, l.`emp_name`,  crm.`date`, MIN(crm.`time`) AS `first_time`,
                          MAX(crm.`time`) AS `last_time`,crm.`attendance`, crm.`branch`
                         FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` 
-                         WHERE l.`Job_Status` = 'Active' AND l.`Page` = 'Marketing' AND l.`type` != 'Center Head' 
+                         WHERE l.`Job_Status` = 'Active' AND l.`type` != 'Center Head' 
                         AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and 
                        l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills', 'Corporate')
                         GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;""".format(fd=from_d, td=to_d))
@@ -1575,7 +1575,7 @@ def day_report(request):
                        "MIN(crm.`time`) AS `first_time`, MAX(crm.`time`) AS `last_time`, "
                        "COUNT(*) AS `call_count`, l.`ref_count`, l.`type` FROM `call_report_master` crm "
                        "INNER JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
-                       "l.`Page` = 'Marketing' AND l.`Job_Status` = 'Active' AND "
+                       "l.`Page` = 'Marketing' AND "
                        "(l.`Designation` != 'Center Head') AND crm.`date` BETWEEN '{fd}' AND '{td}'"
                        " and l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
                        " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
@@ -2798,7 +2798,7 @@ def pending_payment_csv(request):
 #         ]
 #     return render(request, 'coverage_report.html', context)
 
-
+@login_required(login_url="/")
 def coverage_report(request):
     context = {}
     # if request.method == 'POST':
@@ -2871,7 +2871,6 @@ def coverage_report(request):
 
         # Fetching all required data in a single query
         query = Logins.objects.filter(
-            Q(page='Marketing') &
             ~Q(branch='Test') &
             Q(job_status='Active') &
             ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
@@ -3038,7 +3037,6 @@ def map_data(request):
         date = request.POST.get('date')
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         query = Logins.objects.filter(
-            Q(page='Marketing') &
             ~Q(branch='Test') &
             Q(job_status='Active') &
             ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
