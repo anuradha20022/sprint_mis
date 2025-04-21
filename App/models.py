@@ -243,9 +243,8 @@ class Banner(models.Model):
 
 
 class BranchListDum(models.Model):
-    id = models.IntegerField(primary_key=True, null=False)
     branch_name = models.CharField(max_length=50)
-    status = models.IntegerField()
+    status = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         db_table = 'branch_list_dum'

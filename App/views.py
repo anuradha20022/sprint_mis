@@ -344,7 +344,7 @@ def register(request):
         return redirect('register')
 
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
         'branch_wise_count': result,
         'total_count': CallReportMaster.objects.count(),
     }
@@ -375,7 +375,7 @@ def inactive_emp(request):
 @login_required(login_url="/")
 def employee_list(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
         'agent_type': DoctorAgentList.objects.filter(~Q(agent_type='Type')).values('agent_type').distinct(),
         'designation': Logins.objects.all()
     }
@@ -446,7 +446,7 @@ def doctor_search(request):
     if 'term' in request.GET:
         result = []
         term = request.GET.get('term')
-        new = DoctorAgentList.objects.filter(Q(unique_id__istartswith=term) | Q(agent_name__istartswith=term))
+        new = DoctorAgentList.objects.filter(Q(emp_id__istartswith=term) | Q(unique_id__istartswith=term) | Q(agent_name__istartswith=term))
         for emp in new:
             result.append({'id': emp.unique_id, 'name': emp.agent_name, 'desg': emp.designation})
         if not result:
@@ -740,7 +740,7 @@ def call_report_csv(request):
 @login_required(login_url="/")
 def total_referral_list(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
         'agent_type': DoctorAgentList.objects.filter(~Q(agent_type='Type')).values('agent_type').distinct()
     }
 
@@ -822,7 +822,7 @@ def referral_details(request):
 @login_required(login_url="/")
 def new_referral_list(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
 
     if request.method == "POST":
@@ -990,7 +990,7 @@ def abc_csv(request):
 @login_required(login_url="/")
 def allowance_report(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
     # if request.method == "POST":
     #     branch = request.POST.get('branch')
@@ -1069,7 +1069,7 @@ def allowance_report(request):
 @login_required(login_url="/")
 def inactive_allowance_report(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
     if request.method == "POST":
         branch = request.POST.get('branch')
@@ -1117,7 +1117,7 @@ def inactive_allowance_report(request):
 @login_required(login_url="/")
 def bill_list(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
     }
 
     if request.method == "POST":
@@ -1215,7 +1215,7 @@ def bill_list(request):
 @login_required(login_url="/")
 def bill(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
     }
     if 'date' in request.POST:
         date_range_str = request.POST.get('date')
@@ -1360,7 +1360,7 @@ def admission(request):
 @login_required(login_url="/")
 def recent_updates(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
         'agent_type': DoctorAgentList.objects.filter(~Q(agent_type='Type')).values('agent_type').distinct()
     }
     if 'delete' in request.GET:
@@ -1410,7 +1410,7 @@ def recent_updates(request):
 @login_required(login_url="/")
 def bifurcation_list(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
         'agent_type': DoctorAgentList.objects.filter(~Q(agent_type='Type')).values('agent_type').distinct()
     }
 
@@ -1492,7 +1492,7 @@ def employee_leave_list(request):
 @login_required(login_url="/")
 def daily_call_report(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
         # 'ref_type': CallReportMaster.objects.filter(Q(ref_type='ref_type'))
     }
     if 'date' in request.POST:
@@ -1602,7 +1602,7 @@ def n_day_report(request):
 @login_required(login_url="/")
 def camp_report(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
 
     if request.method == "POST":
@@ -1646,7 +1646,7 @@ def camp_report(request):
 @login_required(login_url="/")
 def processed_ref(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
     if request.method == "POST":
         branch_name = request.POST.get('branch')
@@ -1694,7 +1694,7 @@ def processed_ref(request):
 @login_required(login_url="/")
 def wrong_bank_details(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
 
     if request.method == "POST":
@@ -1901,7 +1901,7 @@ def day_reports(request):
 @login_required(login_url="/")
 def incomplete_referral(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
     if request.method == "POST":
         branch = request.POST.get('branch')
@@ -1950,7 +1950,7 @@ def incomplete_referral(request):
 
 @login_required(login_url="/")
 def abc_report(request):
-    context = {'branch': BranchListDum.objects.filter(~Q(branch_name='Test')), }
+    context = {'branch': BranchListDum.objects.filter(status=1), }
     if request.method == "POST":
         branch = request.POST.get('branch')
         filter_date = request.POST.get('date')
@@ -2132,7 +2132,7 @@ def abc_report(request):
 
 # @login_required(login_url="/")
 # def abc_report(request):
-#     context = { 'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),}
+#     context = { 'branch': BranchListDum.objects.filter(status=1),}
 #     if request.method == "POST":
 #         branch = request.POST.get('branch')
 #         filter_date = request.POST.get('date')
@@ -2335,7 +2335,7 @@ def abc_report(request):
 @login_required(login_url="/")
 def reject(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch': BranchListDum.objects.filter(status=1),
 
     }
 
@@ -2353,7 +2353,7 @@ def reject(request):
 @login_required(login_url="/")
 def neft_return_list(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
     }
 
     if request.method == "POST":
@@ -2395,7 +2395,7 @@ def neft_return_list(request):
 @login_required(login_url="/")
 def cash_payment(request):
     context = {
-        'branch': BranchListDum.objects.filter(~Q(branch_name='Test'))
+        'branch': BranchListDum.objects.filter(status=1)
 
     }
     if request.method == "POST":
@@ -2413,7 +2413,7 @@ def cash_payment(request):
 @csrf_exempt
 def functional_approval_list(request):
     context = {
-        'branch_name': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch_name': BranchListDum.objects.filter(status=1),
         'cluster': PatientDataOlddata.objects.filter(referralstatus='Yes', chapproval="")
     }
     if 'approval_value' in request.POST:
@@ -2532,7 +2532,7 @@ def edit_list(request):
 @login_required(login_url="/")
 def payment_list(request):
     context = {
-        'branch_name': BranchListDum.objects.filter(~Q(branch_name='Test')),
+        'branch_name': BranchListDum.objects.filter(status=1),
 
     }
     if request.method == "POST":
@@ -2758,7 +2758,7 @@ def pending_payment_csv(request):
 #     #         'date': date_obj,
 #     #     }
 #
-#     context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
+#     context['branch'] = BranchListDum.objects.filter(status=1)
 #
 #     if request.method == 'POST':
 #         branch = request.POST.get('branch', '')
@@ -2980,7 +2980,7 @@ def coverage_report(request):
             'datee':date
         }
 
-    context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
+    context['branch'] = BranchListDum.objects.filter(status=1)
 
     # if request.method == 'POST':
     #     branch = request.POST.get('branch', '')
@@ -3083,7 +3083,7 @@ def map_data(request):
             'branchs':branch,
             'datee':date,
         }
-    context['branch'] = BranchListDum.objects.filter(~Q(branch_name='Test'))
+    context['branch'] = BranchListDum.objects.filter(status=1)
 
     return render(request, 'report.html', context)
 
