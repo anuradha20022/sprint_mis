@@ -1041,8 +1041,7 @@ def allowance_report(request):
                   WHEN `logins`.`allow` = 250 THEN 21  ELSE 0.00  END As TOTAL FROM `call_report_master`
                  INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE
                 `call_report_master`.`date` BETWEEN '{from_d}' AND '{to_d}'  and `logins`.`Branch` != 'Test'
-                 AND `logins`.`Job_Status` = 'Active' AND `logins`.`Designation` != 'Center Head'
-                 AND `logins`.`Page` = 'Marketing' AND `logins`.`type` != 'Admin' GROUP BY
+                 AND `logins`.`Job_Status` = 'Active' AND `logins`.`type` != 'Admin' GROUP BY
                 `call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;""".format(fd=from_d, td=to_d))
         else:
             cursor.execute(
@@ -1055,8 +1054,7 @@ def allowance_report(request):
                 "  WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00  END As TOTAL FROM `call_report_master`"
                 " INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE"
                 "`call_report_master`.`date` BETWEEN '{fd}' AND '{td}' and `logins`.`Branch` = '{bn}'  and `logins`.`Branch` != 'Test'"
-                " AND `logins`.`Job_Status` = 'Active' AND `logins`.`Designation` != 'Center Head'"
-                " AND `logins`.`Page` = 'Marketing' AND `logins`.`type` != 'Admin' GROUP BY"
+                " AND `logins`.`Job_Status` = 'Active' AND `logins`.`type` != 'Admin' GROUP BY"
                 "`call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;".format(fd=from_d, td=to_d, bn=branch))
         ina = cursor.description
         context['allowance'] = [
