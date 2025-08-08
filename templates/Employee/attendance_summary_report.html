@@ -1,0 +1,189 @@
+{% extends 'base.html'%}
+{%  block content_heading %} Attendance Summary Report {% endblock %}
+{%  block content_subheading %} Attendance Summary Report {% endblock %}
+{% block title %} Attendance Summary Report {% endblock %}
+{% block script %}
+
+<script>
+   $(document).ready(function () {
+  // Highlight UI
+  $("#employee_link").addClass('active subdrop');
+  $("#employee_data_link").addClass('active');
+  $("#employee_submenu_link").show();
+});
+$(document).ready(function () {
+    $("#attendanceForm").on("submit", function (e) {
+        e.preventDefault();
+
+        const month = $("#month").val();
+        const branch = $("#branch").val();
+        const branchText = $("#branch option:selected").text().trim(); // ✅ Get branch name for file
+        const csrftoken = $("input[name='csrfmiddlewaretoken']").val();
+
+        // Destroy existing DataTable if it exists
+        if ($.fn.DataTable.isDataTable('#attendanceTable')) {
+            $('#attendanceTable').DataTable().clear().destroy();
+        }
+
+        // Fixed headers (13 columns now)
+        let fixedHeaders = `
+            <th>Employee ID</th>
+            <th>Employee Name</th>
+            <th>Branch</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Date of Join</th>
+            <th>Month</th>
+            <th>Total Net Days</th>
+            <th>Present Days</th>
+            <th>Absent Days</th>
+            <th>Leave Days</th>
+            <th>Weekoff</th>
+            <th>Holiday</th>
+        `;
+        $("#attendanceHeader tr").html(fixedHeaders);
+
+        $("#attendanceBody").html(`<tr><td colspan="13" class="text-center">Loading data...</td></tr>`);
+
+        $.ajax({
+            url: "{% url 'attendance_summary_report' %}",
+            type: "POST",
+            headers: { "X-CSRFToken": csrftoken },
+            data: { month: month, branch: branch },
+            success: function (response) {
+                const headerRow = $("#attendanceHeader tr");
+                const tbody = $("#attendanceBody");
+                tbody.empty();
+
+                if (!response.data || response.data.length === 0) {
+                    tbody.html(`<tr><td colspan="13" class="text-center">No Data Available</td></tr>`);
+                    return;
+                }
+
+                // Add date headers
+                if (response.dates && response.dates.length > 0) {
+                    response.dates.forEach(date => {
+                        headerRow.append(`<th>${date}</th>`);
+                    });
+                }
+
+                // Populate rows
+                response.data.forEach(emp => {
+                    let row = `
+                        <tr>
+                            <td>${emp.empid}</td>
+                            <td>${emp.username}</td>
+                            <td>${emp.branch}</td>
+                            <td>${emp.department}</td>
+                            <td>${emp.designation}</td>
+                            <td>${emp.doj}</td>
+                            <td>${emp.month}</td>
+                            <td>${emp.month_days}</td>
+                            <td>${emp.present}</td>
+                            <td>${emp.absent}</td>
+                            <td>${emp.leaves}</td>
+                            <td>${emp.weekoff}</td>
+                            <td>${emp.holiday}</td>
+                    `;
+                    if (response.dates) {
+                        response.dates.forEach(date => {
+                            row += `<td>${emp[date] || ""}</td>`;
+                        });
+                    }
+                    row += `</tr>`;
+                    tbody.append(row);
+                });
+
+                // ✅ Init DataTable with dynamic CSV file name
+                $('#attendanceTable').DataTable({
+                    dom: 'Bfrtip',
+                    buttons: ['pageLength',
+                        {
+                            extend: 'csv',
+                            title: `Attendance List - ${branchText}`, // Dynamic title
+                            filename: `Attendance_List_${branchText.replace(/\s+/g, '_')}` // No spaces in filename
+                        }
+                    ],
+                    pageLength: 10
+                });
+            },
+            error: function () {
+                $("#attendanceBody").html(
+                    `<tr><td colspan="13" class="text-center text-danger">Failed to fetch data.</td></tr>`
+                );
+            }
+        });
+    });
+});
+
+</script>
+{% endblock %}
+{% block body %}
+    <style>
+    .table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+    </style>
+   <form id="attendanceForm">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <select class="form-control" name="branch" id="branch" required>
+                    <option value="">-- Select Branch --</option>
+                        <option value="A S Rao Nagar">A S Rao Nagar</option>
+                        <option value="Gachibowli">Gachibowli</option>
+                        <option value="Corporate">Corporate</option>
+                        <option value="LB Nagar">LB Nagar</option>
+                        <option value="SUCHITRA">Suchitra</option>
+                        <option value="JNTU">Kukatpally</option>
+                        <option value="Jubilee Hills">Jubilee Hills</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <input type="month" name="month" id="month" required class="form-control mb-2" max="{% now 'Y-m' %}">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary btn-sm form-control">Go</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="card">
+<div class="card card-body">
+
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-bordered" id="attendanceTable" style="white-space: nowrap">
+            <thead id="attendanceHeader">
+            <tr style="background: #3F51B5; color: #fff;">
+                <th class="py-2">Employee ID</th>
+                <th class="py-2">Employee Name</th>
+                <th class="py-2">Branch</th>
+                <th class="py-2">Department</th>
+                <th class="py-2">Designation</th>
+                <th class="py-2">Date of Join</th>
+                <th class="py-2">Month</th>
+                <th class="py-2">Total Net Days</th>
+                <th class="py-2">Present Days</th>
+                <th class="py-2">Absent Days</th>
+                <th class="py-2">Leave Days</th>
+                <th class="py-2">Weekoff</th>
+                <th class="py-2">Holiday</th>
+            </tr>
+            </thead>
+            <tbody id="attendanceBody">
+            <tr class="no-data">
+                <td colspan="100%" class="text-center">No Data Available</td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+
+{% endblock %}

@@ -349,7 +349,176 @@ def register(request):
         'total_count': CallReportMaster.objects.count(),
     }
     return render(request, 'Employee/register.html', context)
+#
 
+# def create_login_entries(empname, empid, mobile, hashed_password, branch, old_branch, department,
+#                          designation, reporting_to, category, page, login_designation, allow_value,
+#                          menu, submenu):
+#     current_date = timezone.now().date()
+#     time_now = timezone.now().time()
+#
+#     Logins.objects.create(
+#         emp_name=empname,
+#         emp_id=empid,
+#         password=mobile,
+#         mpassword=hashed_password,
+#         personal_number=mobile,
+#         office_number=mobile,
+#         branch=branch,
+#         old_branch=old_branch.old_branch if old_branch else '',
+#         page=page,
+#         designation=login_designation,
+#         original_type=department,
+#         orginal_design=designation,
+#         head=reporting_to,
+#         type=department,
+#         branch_access=branch,
+#         new_type=category,
+#         date=current_date,
+#         time=time_now,
+#         join_date=current_date,
+#         visibility='Hidden',
+#         job_status='Active',
+#         levels='0',
+#         bank_acc='',
+#         ifsc='',
+#         pan='',
+#         last_location='',
+#         last_loc_datetime=timezone.now(),
+#         allow=allow_value,
+#         img_link='',
+#         model='',
+#         version='',
+#         firebase_token='',
+#         deviceid='',
+#         accesskey='',
+#         state='',
+#         ref_count='0',
+#         androidpermissions=menu,
+#         androidsubmenu=submenu,
+#         loginstatus='0',
+#     )
+#
+#     WebLogins.objects.create(
+#         emp_name=empname,
+#         emp_id=empid,
+#         password=make_password(mobile),
+#         mpassword=mobile,
+#         personal_number=mobile,
+#         office_number=mobile,
+#         branch=branch,
+#         old_branch=old_branch.old_branch if old_branch else '',
+#         page=page,
+#         designation=login_designation,
+#         original_type=department,
+#         orginal_design=designation,
+#         head=reporting_to,
+#         type=department,
+#         branch_access=branch,
+#         new_type=category,
+#         date=current_date,
+#         time=time_now,
+#         join_date=current_date,
+#         visibility='Hidden',
+#         job_status='Active',
+#         levels='0',
+#         bank_acc='',
+#         ifsc='',
+#         pan='',
+#         last_location='',
+#         last_loc_datetime=timezone.now(),
+#         allow=allow_value,
+#         img_link='',
+#         model='',
+#         version='',
+#         firebase_token='',
+#         deviceid='',
+#         accesskey='',
+#         state='',
+#         ref_count='0',
+#         androidpermissions=menu,
+#         androidsubmenu=submenu,
+#         loginstatus='0',
+#         is_staff=True
+#     )
+#
+#
+# def register(request):
+#     print(request.POST)
+#     # Count distinct branches with their counts
+#     branch_counts = []
+#     distinct_branches = CallReportMaster.objects.values('branch').distinct()
+#     for b in distinct_branches:
+#         branch_name = b.get('branch')
+#         if branch_name:
+#             count = CallReportMaster.objects.filter(branch=branch_name).count()
+#             branch_counts.append({'branch': branch_name, 'count': count})
+#
+#     if request.method == 'POST' and 'empname' in request.POST:
+#         empname = request.POST.get('empname')
+#         empid = request.POST.get('empid')
+#         mobile = request.POST.get('mobile')
+#         designation = request.POST.get('designation')
+#         branch = request.POST.get('branch')
+#         department = request.POST.get('department')
+#         category = request.POST.get('category')
+#         reporting_to = request.POST.get('reporting_to')
+#
+#         old_branch = Logins.objects.filter(branch=branch).exclude(branch='').first()
+#
+#         # Hash password using bcrypt
+#         password_bytes = mobile.encode('utf-8')
+#         salt = bcrypt.gensalt()
+#         hashed_password_bytes = bcrypt.hashpw(password_bytes, salt)
+#         hashed_password = hashed_password_bytes.decode('utf-8')
+#
+#         # Mapping designation to login designation and permission level
+#         designation_mapping = {
+#             'Executive': ('Executive', '250', 'Executive'),
+#             'Senior Executive': ('Executive', '250', 'Executive'),
+#             'Manager': ('Manager', '300', 'Manager'),
+#             'Assistant Manager': ('Manager', '300', 'Manager'),
+#             'Deputy Manager': ('Manager', '300', 'Manager'),
+#             'Senior Manager': ('Manager', '300', 'Manager'),
+#             'Team Lead': ('Manager', '300', 'Manager'),
+#             'General Manager': ('Marketing Head', '300', 'Marketing Head'),
+#             'Deputy General Manager': ('Marketing Head', '300', 'Marketing Head'),
+#             'Center Head': ('Center Head', '300', 'Center Head')
+#         }
+#
+#         # Default allow and login_designation if not matched
+#         login_designation = designation
+#         allow_value = '250'  # default allowance
+#         page = department
+#
+#         if designation in designation_mapping:
+#             login_designation, allow_value, page = designation_mapping[designation]
+#         else:
+#             login_designation = designation
+#             allow_value = '250'
+#             page = department
+#
+#         get_menu_details = LoginPermissions.objects.filter(designation__contains=login_designation).first()
+#         if get_menu_details:
+#             menu = get_menu_details.menu
+#             submenu = get_menu_details.submenu
+#             create_login_entries(
+#                 empname, empid, mobile, hashed_password, branch, old_branch, department,
+#                 designation, reporting_to, category, page, login_designation, allow_value,
+#                 menu, submenu
+#             )
+#             messages.success(request, 'Employee Created Successfully')
+#             return redirect('register')
+#         else:
+#             messages.error(request, f"Menu details not found for designation: {login_designation}")
+#
+#     context = {
+#         'branch': BranchListDum.objects.filter(status=1),
+#         'branch_wise_count': branch_counts,
+#         'total_count': CallReportMaster.objects.count(),
+#     }
+#     return render(request, 'Employee/register.html', context)
+#
 
 @login_required(login_url="/")
 def inactive_emp(request):
@@ -1436,30 +1605,47 @@ def bifurcation_list(request):
 
 
 @login_required(login_url="/")
-def attendance_list(request):
-    context = {
-    }
-    if request.method == 'POST':
-        date_d = request.POST.get('date_d')
+def attendance_summary_report(request):
+    if request.method == "POST":
+        # For standard form submission
+        month = request.POST.get("month")
+        branch = request.POST.get("branch")
 
-        from_d, to_d = date_d.split(' - ')
-        from_d = datetime.strptime(str(from_d), '%m/%d/%Y')
-        to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
+        if not month or not branch:
+            return JsonResponse({"error": True, "message": "Month and branch are required."})
 
-        cursor = connection.cursor()
-        cursor.execute("""SELECT l.`emp_id`, l.`emp_name`,  crm.`date`, MIN(crm.`time`) AS `first_time`,
-                         MAX(crm.`time`) AS `last_time`,crm.`attendance`, crm.`branch`
-                        FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` 
-                         WHERE l.`Job_Status` = 'Active' AND l.`type` != 'Center Head' 
-                        AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and 
-                       l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills', 'Corporate')
-                        GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;""".format(fd=from_d, td=to_d))
-        call = cursor.description
-        context['attendance'] = [
-            dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()
+        # Get marketing emp_ids
+        marketing_emp_ids = Logins.objects.filter(page="Marketing").values_list("emp_id", flat=True)
+        hrms_api_url = f'https://3.6.104.94/api/attendance-summary/'
+        print(hrms_api_url)
+
+        try:
+            hrms_response = requests.post(hrms_api_url, json={"month": month, "branch": branch}, verify=False)
+
+        except requests.exceptions.RequestException:
+            return JsonResponse({"error": True, "message": "Failed to connect to HRMS."})
+
+        if hrms_response.status_code != 200:
+            return JsonResponse({"error": True, "message": "Failed to fetch attendance from HRMS."})
+
+        hrms_json = hrms_response.json()
+        all_attendance_data = hrms_json.get("data", [])
+        dates = hrms_json.get("dates", [])
+
+        filtered_data = [
+            item for item in all_attendance_data
+            if item.get("empid") in marketing_emp_ids
         ]
 
-    return render(request, 'Employee/attendance_list.html', context)
+        return JsonResponse({
+            "error": False,
+            "data": filtered_data,
+            "dates": dates
+        })
+        print(filtered_data,dates)
+    # GET request
+    active_branches = BranchListDum.objects.filter(status=1)
+    return render(request, "Employee/attendance_summary_report.html", {"branches": active_branches})
 
 
 @login_required(login_url="/")
@@ -3212,3 +3398,29 @@ def forgot_password(request):
             messages.error(request, "Passwords do not match")
 
     return render(request, 'forgotpwd.html')
+
+
+def attendance_list(request):
+    context = {
+    }
+    if request.method == 'POST':
+        date_d = request.POST.get('date_d')
+
+        from_d, to_d = date_d.split(' - ')
+        from_d = datetime.strptime(str(from_d), '%m/%d/%Y')
+        to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
+
+        cursor = connection.cursor()
+        cursor.execute("""SELECT l.`emp_id`, l.`emp_name`,  crm.`date`, MIN(crm.`time`) AS `first_time`,
+                         MAX(crm.`time`) AS `last_time`,crm.`attendance`, crm.`branch`
+                        FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` 
+                         WHERE l.`Job_Status` = 'Active' AND l.`type` != 'Center Head' 
+                        AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and 
+                       l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills', 'Corporate')
+                        GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;""".format(fd=from_d, td=to_d))
+        call = cursor.description
+        context['attendance'] = [
+            dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()
+        ]
+
+    return render(request, 'Employee/attendance_list.html', context)

@@ -47,6 +47,7 @@ urlpatterns = [
     path('search_id/', views.search_id, name='search_id'),
     path('s_id/', views.s_id, name='s_id'),
     path('search_uid/', views.search_uid, name='search_uid'),
+    path('attendance_summary_report/', views.attendance_summary_report, name='attendance_summary_report'),
 
 
 
