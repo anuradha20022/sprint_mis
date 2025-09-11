@@ -9,6 +9,36 @@
             $("#allowance_link").addClass('active');
             $("#referral_submenu").css('display', 'block');
         });
+
+ $(document).on("click", ".edit-data", function () {
+    let edit_branch = $(this).data("lc");
+     var licenseId = $(this).data("lc");
+        $("#master_id").val(licenseId);
+    console.log("Clicked License No:", edit_branch);
+
+    $.ajax({
+        url: "{% url 'master_list' %}",
+        data: { master_id: edit_branch },
+        dataType: "json",
+        success: function (response) {
+            console.log("Response:", response);
+            if (response.error) {
+                alert(response.error);
+            } else {
+                $("#edit_master").modal("show");
+                $("#unique_id").val(response.unique_id);
+                $("#agent_name").val(response.agent_name);
+             $("#agent_type").val($.trim(response.agent_type));
+                $("#mobile").val(response.mobile);
+                          }
+        },
+        error: function (xhr, status, error) {
+            console.log("AJAX Error:", xhr.responseText);
+            alert("An error occurred while fetching data!");
+        },
+    });
+});
+
 </script>
 {% endblock %}
 
@@ -33,8 +63,6 @@
                  <button type="submit" name="Submit" class="btn btn-lg btn-success btn-gradient btn-shadow">Submit</button>
              </div>
          </div>
-
-
  </form>
 
      <div class="modal fade" id="transfer_all">
@@ -81,25 +109,30 @@
         <div class="col-md-12">
             <div class="card card-body">
                  <div class="table-responsive">
-                            <table id="" class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
+                            <table  class="table table-striped table-bordered cus-responsive-datatable" style="white-space: nowrap">
                                 <thead>
                                 <tr role="row" style="background: #0e43b5; color:white">
                                     <th class="py-2" data-orderable="false">#</th>
-                                    <th class="py-2" data-orderable="false">Emp ID</th>
-                                    <th class="py-2" data-orderable="false">Emp Name</th>
+                                    <th class="py-2" data-orderable="false">Edit</th>
+                                    <th class="py-2" data-orderable="false">Employee ID</th>
+                                    <th class="py-2" data-orderable="false">Employee Name</th>
                                     <th class="py-2" data-orderable="false">Unique ID</th>
                                     <th class="py-2" data-orderable="false">Agent Name</th>
                                     <th class="py-2" data-orderable="false">Mobile</th>
                                     <th class="py-2" data-orderable="false">Agent Type</th>
                                     <th class="py-2" data-orderable="false">Branch</th>
                                     <th class="py-2" data-orderable="false">Category</th>
-
                                 </tr>
                                 </thead>
                                 <tbody>
                                 {% for agents in doctor_agent_list %}
                                     <tr>
                                         <td class="py-1 text-right">{{ forloop.counter }}</td>
+                                         <td class="py-1">
+                                            <a href="#" class="text-primary ms-2 edit-data" data-lc="{{ agents.sno }}">
+                                                <i class="icon-pencil"></i>
+                                            </a>
+                                    </td>
                                         <td class="py-1">{{ agents.Emp_ID }}</td>
                                         <td class="py-1">{{ agents.Emp_name }}</td>
                                         <td class="py-1">{{ agents.unique_id }}</td>
@@ -108,13 +141,72 @@
                                         <td class="py-1">{{ agents.agent_type }}</td>
                                         <td class="py-1">{{ agents.branch }}</td>
                                         <td class="py-1">{{ agents.category }}</td>
-
                                     </tr>
                                 {% endfor %}
-
                                 </tbody>
                             </table>
                  </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal custom-modal fade" role="dialog" id="edit_master">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 1000px; height: 600px;"  role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="" method="post" id="updatedform" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="master_id" id="master_id">
+                    <div class="modal-body"  style="max-height: 500px;max-width: 1000px">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group fieldWrapper" >
+                                    <label>Unique ID <span class="text-danger">*</span></label>
+                                    <input class="form-control form-control-sm" placeholder="Enter Agent Name" name="unique_id" id="unique_id" type="text" readonly required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group fieldWrapper" >
+                                    <label>Agent Name <span class="text-danger">*</span></label>
+                                    <input class="form-control form-control-sm" placeholder="Enter Agent Name" name="agent_name" id="agent_name" type="text" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                    <div class="form-group fieldWrapper">
+                                        <label>Agent Type <span class="text-danger">*</span></label>
+                                        <select class="form-control form-control-sm" name="agent_type" id="agent_type" required>
+                                            <option value="">-- Select Agent Type --</option>
+                                            <option value="SPECIAL CATEGORY">SPECIAL CATEGORY</option>
+                                            <option value="QUALIFIED">QUALIFIED</option>
+                                            <option value="REGISTERED PRACTIONER">REGISTERED PRACTIONER</option>
+                                            <option value="CORPORATE">CORPORATE</option>
+                                            <option value="KARNATAKA">KARNATAKA</option>
+                                        </select>
+                                    </div>
+                                </div>
+                           <div class="col-md-3">
+                                <div class="form-group fieldWrapper">
+                                    <label for="mobile">Mobile Number <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control form-control-sm"
+                                           name="mobile" id="mobile"
+                                           pattern="[0-9]{10}"
+                                           maxlength="10" minlength="10"
+                                           placeholder="Enter 10-digit number"
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary close_btn" data-dismiss="modal">Close</button>
+                        <input type="submit" class="btn btn-primary" value="Update">
+                    </div>
+                </form>
+
             </div>
         </div>
     </div>

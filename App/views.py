@@ -15,7 +15,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import connection
 from django.db.models import Q, Count, Min, Sum
 from django.http import JsonResponse, HttpResponse, FileResponse, HttpResponseRedirect, response
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -588,6 +588,7 @@ def employee_list(request):
         context['emp_list'] = Logins.objects.filter(
             Q(job_status='Active') & (~Q(branch="Test"))).order_by(
             'branch', 'emp_id').exclude(emp_id='10101')
+
 
     if request.method == "GET" and request.is_ajax():
         emp_id = request.GET.get('emp_id')
@@ -3348,18 +3349,19 @@ def master_list(request):
         'branch': BranchListDum.objects.exclude(branch_name='Test')
     }
 
-    if request.method == "POST":
+    if request.method == "POST" and 'master_id' not in request.POST:
+        print(request.POST)
         branch = request.POST.get('branch')
         cur = connection.cursor()
         if branch == "All":
             cur.execute("SELECT logins.Emp_ID,logins.Emp_name, unique_id,"
-                        " agent_name, doctor_agent_list.mobile, agent_type, logins.branch, "
+                        " agent_name, doctor_agent_list.mobile, doctor_agent_list.sno, agent_type, logins.branch, "
                         "category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` "
                         "ON doctor_agent_list.emp_id = logins.Emp_ID WHERE logins.job_status='Active'"
                         " and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test';")
         else:
             cur.execute("SELECT logins.Emp_name,logins.Emp_ID, "
-                        "unique_id, agent_name, doctor_agent_list.mobile, agent_type, logins.branch,"
+                        "unique_id, agent_name, doctor_agent_list.mobile, doctor_agent_list.sno,agent_type, logins.branch,"
                         " category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` ON"
                         " doctor_agent_list.emp_id = logins.Emp_ID  WHERE logins.job_status='Active'"
                         " and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(b=branch))
@@ -3368,7 +3370,30 @@ def master_list(request):
         context['doctor_agent_list'] = [
             dict(zip([i[0] for i in desc], row)) for row in cur.fetchall()
         ]
+    if "master_id" in request.POST:
+        print(request.POST)
+        master_id = request.POST.get("master_id")
+        unique_id = request.POST.get("unique_id")
+        agent_name = request.POST.get("agent_name")
+        agent_type = request.POST.get("agent_type")
+        mobile = request.POST.get("mobile")
 
+        l = get_object_or_404(DoctorAgentList, sno=master_id)
+
+        l.agent_name = agent_name
+        l.agent_type = agent_type
+        l.mobile = mobile
+        l.unique_id = unique_id
+        l.modified_on = now()
+        l.modified_by = f'{request.user.emp_id}'
+        l.save()
+
+        messages.success(request, "Details Updated Successfully!")
+        return HttpResponseRedirect(reverse('master_list'))
+    if request.method == "GET" and request.is_ajax():
+        master_id = request.GET.get('master_id')
+        res = list(DoctorAgentList.objects.filter(sno=master_id).values())[0]
+        return JsonResponse(res, safe=False)
     return render(request, 'master_list.html', context)
 
 

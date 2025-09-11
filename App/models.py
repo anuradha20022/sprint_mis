@@ -386,9 +386,12 @@ class DoctorAgentList(models.Model):
     last_pername_referral = models.CharField(max_length=10)
     include_phar_consum = models.CharField(max_length=10)
     bank_details_updatedby = models.CharField(max_length=30)
+    modified_by = models.CharField(max_length=200, null=True, blank=True)
+    modified_on = models.DateTimeField(null=True, blank=True)
+
 
     class Meta:
-        managed = False
+        # managed = False
         db_table = 'doctor_agent_list'
 
 
