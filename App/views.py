@@ -768,22 +768,22 @@ def call_report(request):
         call = connection.cursor()
         if f_date:
             call.execute(
-                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
+                """SELECT DISTINCT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
                     call_report_master.ref_type,call_report_master.name, call_report_master.design,  call_report_master.contact, call_report_master.date,
                      call_report_master.location, call_report_master.branch
                 FROM logins
                 INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
-                WHERE call_report_master.date BETWEEN '{fd}' AND '{td}'
+                WHERE call_report_master.date BETWEEN '{fd}' AND '{td}' AND logins.Job_Status = 'Active' 
                 AND call_report_master.branch != 'Test'""".format(fd=from_d, td=to_d)
             )
         else:
             call.execute(
-                """SELECT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
+                """SELECT DISTINCT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
                     call_report_master.ref_type, call_report_master.name, call_report_master.design,  call_report_master.contact, call_report_master.date,
                      call_report_master.location, call_report_master.branch
                 FROM logins
                 INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
-                WHERE call_report_master.branch != 'Test'""")
+                WHERE  logins.Job_Status = 'Active' AND call_report_master.branch != 'Test'""")
         desc = call.description
         context['call_report'] = [
             dict(zip([i[0] for i in desc], row)) for row in call.fetchall()
