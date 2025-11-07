@@ -4,7 +4,7 @@ from datetime import date
 import ast
 import csv
 import os
-
+import logging
 import bcrypt
 import requests
 from django.contrib import messages
@@ -113,243 +113,148 @@ def logout_user(request):
     #                                  androidsubmenu=emp.androidsubmenu,
     #                                  loginstatus=emp.loginstatus)
 
+
+logger = logging.getLogger(__name__)
+
+# Define constants for designation mapping (Optional, but clean)
+EXECUTIVE_DESIGNATIONS = ['Executive', 'Senior Executive']
+MANAGER_DESIGNATIONS = ['Manager', 'Assistant Manager', 'Deputy Manager', 'Senior Manager', 'Team Lead']
+GM_DESIGNATIONS = ['General Manager', 'Deputy General Manager']
+
+
+# --- Helper Function for Menu Lookup ---
+def get_menu_designation(designation):
+    """Maps an incoming designation to the appropriate LoginPermissions designation."""
+    if designation in EXECUTIVE_DESIGNATIONS:
+        return 'Executive'
+    elif designation in MANAGER_DESIGNATIONS:
+        return 'Manager'
+    elif designation in GM_DESIGNATIONS:
+        return 'Marketing Head'
+    elif designation == 'Center Head':
+        return 'Center Head'
+    else:
+        return designation
+
+
+# --- Main View Function ---
 @login_required(login_url="/")
 def register(request):
-    result = []
-    for branch in list(CallReportMaster.objects.values('branch').distinct()):
-        if branch['branch']:
-            result.append(
-                {'branch': branch['branch'], 'count': CallReportMaster.objects.filter(branch=branch['branch']).count()})
+    # 1. Branch Count Calculation (Can be optimized slightly)
+    # This is a bit cleaner than using list() and iterating:
+    branch_counts = CallReportMaster.objects.values('branch').annotate(count=Count('branch'))
+    result = [{'branch': item['branch'], 'count': item['count']} for item in branch_counts if item['branch']]
 
-    if 'empname' in request.POST:
-        print(request.POST)
-        empname = request.POST.get('empname')
-        empid = request.POST.get('empid')
-        mobile = request.POST.get('mobile')
-        designation = request.POST.get('designation')
-        branch = request.POST.get('branch')
-        department = request.POST.get('department')
-        category = request.POST.get('category')
-        reporting_to = request.POST.get('reporting_to')
-        old_branch = Logins.objects.filter(branch=branch).exclude(branch='').first()
+    if request.method == 'POST':
+        # 2. Data Extraction
+        post_data = request.POST
 
-        password = mobile.encode('utf-8')
+        empname = post_data.get('empname')
+        empid = post_data.get('empid')
+        mobile = post_data.get('mobile')
+        designation = post_data.get('designation')
+        branch = post_data.get('branch')
+        department = post_data.get('department')
+        category = post_data.get('category')
+        reporting_to = post_data.get('reporting_to')
+
+        # 3. Model Lookups
+        # Get old_branch only once
+        old_branch_obj = Logins.objects.filter(branch=branch).exclude(branch='').first()
+        old_branch = old_branch_obj.old_branch if old_branch_obj else ''
+
+        # Determine the key designation for menu lookup
+        menu_key_designation = get_menu_designation(designation)
+
+        # Get menu details based on the key designation
+        menu_details = LoginPermissions.objects.filter(designation__contains=menu_key_designation).first()
+
+        if not menu_details:
+            messages.error(request, f"Login permissions not found for designation group: {menu_key_designation}.")
+            return redirect('register')
+
+        menu = menu_details.menu
+        submenu = menu_details.submenu
+
+        # 4. Password Hashing (Maintaining bcrypt for Logins and make_password for WebLogins)
+        # Hashing for Logins model (using bcrypt)
+        password_bytes = mobile.encode('utf-8')
         salt = bcrypt.gensalt()
-        hashed_password_bytes = bcrypt.hashpw(password, salt)
-        hashed_password = hashed_password_bytes.decode('utf-8')
+        hashed_password = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+
+        # Hashing for WebLogins model (using Django's standard hasher)
+        django_hashed_password = make_password(mobile)
+
         current_date = timezone.now().date()
 
-        if designation == 'Executive' or designation == 'Senior Executive':
-            get_menu_details = LoginPermissions.objects.filter(designation__contains='Executive').first()
-            if get_menu_details:
-                menu = get_menu_details.menu
-                submenu = get_menu_details.submenu
-                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
-                                      personal_number=mobile, office_number=mobile, branch=branch,
-                                      old_branch=old_branch.old_branch,
-                                      page='Marketing', designation='Executive', original_type=department,
-                                      orginal_design=designation,
-                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(),
-                                      join_date=current_date,
-                                      visibility='Hidden',
-                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='250',
-                                      img_link='',
-                                      model='', version='', firebase_token='',
-                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                      androidsubmenu=submenu,
-                                      loginstatus='0')
-                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile),
-                                         mpassword=mobile,
-                                         personal_number=mobile, office_number=mobile, branch=branch,
-                                         old_branch=old_branch.old_branch,
-                                         page='Marketing', designation='Executive', original_type=department,
-                                         orginal_design=designation,
-                                         head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                         date=timezone.now().date(), time=timezone.now().time(),
-                                         join_date=current_date,
-                                         visibility='Hidden',
-                                         job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
-                                         last_location='',
-                                         last_loc_datetime=timezone.now(), allow='250',
-                                         img_link='', is_staff=True,
-                                         model='', version='', firebase_token='',
-                                         deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                         androidsubmenu=submenu,
-                                         loginstatus='0')
+        # Determine 'allow' level
+        allow_level = '300' if menu_key_designation in ['Manager', 'Marketing Head', 'Center Head'] else '250'
 
-        elif designation == 'Manager' or designation == 'Assistant Manager' or designation == 'Deputy Manager' or designation == 'Senior Manager' \
-                or designation == 'Team Lead':
-            get_menu_details = LoginPermissions.objects.filter(designation__contains='Manager').first()
-            if get_menu_details:
-                menu = get_menu_details.menu
-                submenu = get_menu_details.submenu
-                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
-                                      personal_number=mobile, office_number=mobile, branch=branch,
-                                      old_branch=old_branch.old_branch,
-                                      page='Marketing', designation='Manager', original_type=department,
-                                      orginal_design=designation,
-                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(),
-                                      join_date=current_date,
-                                      visibility='Hidden',
-                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='300',
-                                      img_link='',
-                                      model='', version='', firebase_token='',
-                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                      androidsubmenu=submenu,
-                                      loginstatus='0')
-                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile),
-                                         mpassword=mobile,
-                                         personal_number=mobile, office_number=mobile, branch=branch,
-                                         old_branch=old_branch.old_branch, is_staff=True,
-                                         page='Marketing', designation='Manager', original_type=department,
-                                         orginal_design=designation,
-                                         head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                         date=timezone.now().date(), time=timezone.now().time(),
-                                         join_date=current_date,
-                                         visibility='Hidden',
-                                         job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
-                                         last_location='',
-                                         last_loc_datetime=timezone.now(), allow='300',
-                                         img_link='',
-                                         model='', version='', firebase_token='',
-                                         deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                         androidsubmenu=submenu,
-                                         loginstatus='0')
+        # Determine 'page' for Logins
+        page_value = 'Marketing' if menu_key_designation in ['Executive', 'Manager', 'Marketing Head',
+                                                             'Center Head'] else department
 
-        elif designation == 'General Manager' or designation == 'Deputy General Manager':
-            get_menu_details = LoginPermissions.objects.filter(designation__contains='Marketing Head').first()
-            if get_menu_details:
-                menu = get_menu_details.menu
-                submenu = get_menu_details.submenu
-                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
-                                      personal_number=mobile, office_number=mobile, branch=branch,
-                                      old_branch=old_branch.old_branch,
-                                      page='Marketing', designation='Marketing Head', original_type=department,
-                                      orginal_design=designation,
-                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(),
-                                      join_date=current_date,
-                                      visibility='Hidden',
-                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='300',
-                                      img_link='',
-                                      model='', version='', firebase_token='',
-                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                      androidsubmenu=submenu,
-                                      loginstatus='0')
-                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile),
-                                         mpassword=mobile,
-                                         personal_number=mobile, office_number=mobile, branch=branch,
-                                         old_branch=old_branch.old_branch,
-                                         page='Marketing', designation='Marketing Head', original_type=department,
-                                         orginal_design=designation,
-                                         head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                         date=timezone.now().date(), time=timezone.now().time(),
-                                         join_date=current_date,
-                                         visibility='Hidden',
-                                         job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
-                                         last_location='', is_staff=True,
-                                         last_loc_datetime=timezone.now(), allow='300',
-                                         img_link='',
-                                         model='', version='', firebase_token='',
-                                         deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                         androidsubmenu=submenu,
-                                         loginstatus='0')
+        # 5. Standardized Data Dictionary
+        base_data = {
+            'emp_name': empname,
+            'emp_id': empid,
+            'personal_number': mobile,
+            'office_number': mobile,
+            'branch': branch,
+            'old_branch': old_branch,
+            'designation': menu_key_designation,
+            'original_type': department,
+            'orginal_design': designation,
+            'head': reporting_to,
+            'type': department,
+            'branch_access': branch,
+            'new_type': category,
+            'date': timezone.now().date(),
+            'time': timezone.now().time(),
+            'join_date': current_date,
+            'visibility': 'Hidden',
+            'job_status': 'Active',
+            'levels': '0',
+            'last_loc_datetime': timezone.now(),
+            'allow': allow_level,
+            'androidpermissions': menu,
+            'androidsubmenu': submenu,
+            'loginstatus': '0',
 
-        elif designation == 'Center Head':
-            get_menu_details = LoginPermissions.objects.filter(designation__contains='Center Head').first()
-            if get_menu_details:
-                menu = get_menu_details.menu
-                submenu = get_menu_details.submenu
-                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
-                                      personal_number=mobile, office_number=mobile, branch=branch,
-                                      old_branch=old_branch.old_branch,
-                                      page='Marketing', designation='Center Head', original_type=department,
-                                      orginal_design=designation,
-                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(),
-                                      join_date=current_date,
-                                      visibility='Hidden',
-                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='300',
-                                      img_link='',
-                                      model='', version='', firebase_token='',
-                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                      androidsubmenu=submenu,
-                                      loginstatus='0')
-                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile),
-                                         mpassword=mobile,
-                                         personal_number=mobile, office_number=mobile, branch=branch,
-                                         old_branch=old_branch.old_branch,
-                                         page='Marketing', designation='Center Head', original_type=department,
-                                         orginal_design=designation, is_staff=True,
-                                         head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                         date=timezone.now().date(), time=timezone.now().time(),
-                                         join_date=current_date,
-                                         visibility='Hidden',
-                                         job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
-                                         last_location='',
-                                         last_loc_datetime=timezone.now(), allow='300',
-                                         img_link='',
-                                         model='', version='', firebase_token='',
-                                         deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                         androidsubmenu=submenu,
-                                         loginstatus='0').save()
+            # Default empty string fields (grouping them helps maintainability)
+            'page': page_value,
+            'bank_acc': '', 'ifsc': '', 'pan': '', 'last_location': '',
+            'img_link': '', 'model': '', 'version': '', 'firebase_token': '',
+            'deviceid': '', 'accesskey': '', 'state': '', 'ref_count': '0',
+        }
 
-        else:
-            get_menu_details = LoginPermissions.objects.filter(designation=designation).first()
-            if get_menu_details:
-                menu = get_menu_details.menu
-                submenu = get_menu_details.submenu
-                Logins.objects.create(emp_name=empname, emp_id=empid, password=mobile, mpassword=hashed_password,
-                                      personal_number=mobile, office_number=mobile, branch=branch,
-                                      old_branch=old_branch.old_branch,
-                                      page=department, designation=designation, original_type=department,
-                                      orginal_design=designation,
-                                      head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                      date=timezone.now().date(), time=timezone.now().time(),
-                                      join_date=current_date,
-                                      visibility='Hidden',
-                                      job_status='Active', levels='0', bank_acc='', ifsc='', pan='', last_location='',
-                                      last_loc_datetime=timezone.now(), allow='250',
-                                      img_link='',
-                                      model='', version='', firebase_token='',
-                                      deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                      androidsubmenu=submenu,
-                                      loginstatus='0')
-                WebLogins.objects.create(emp_name=empname, emp_id=empid, password=make_password(mobile),
-                                         mpassword=mobile,
-                                         personal_number=mobile, office_number=mobile, branch=branch,
-                                         old_branch=old_branch.old_branch,
-                                         page=department, designation=designation, original_type=department,
-                                         orginal_design=designation, is_staff=True,
-                                         head=reporting_to, type=department, branch_access=branch, new_type=category,
-                                         date=timezone.now().date(), time=timezone.now().time(),
-                                         join_date=current_date,
-                                         visibility='Hidden',
-                                         job_status='Active', levels='0', bank_acc='', ifsc='', pan='',
-                                         last_location='',
-                                         last_loc_datetime=timezone.now(), allow='250',
-                                         img_link='',
-                                         model='', version='', firebase_token='',
-                                         deviceid='', accesskey='', state='', ref_count='0', androidpermissions=menu,
-                                         androidsubmenu=submenu,
-                                         loginstatus='0')
+        # 6. Object Creation (One section, not five)
 
-        messages.success(request, 'Employee Account has been created')
+        # Create Logins object (uses bcrypt hashed password)
+        Logins.objects.create(
+            password=mobile,  # Assuming this is the unhashed mobile number
+            mpassword=hashed_password,  # The bcrypt hash
+            **base_data
+        )
+
+        # Create WebLogins object (uses Django hashed password)
+        WebLogins.objects.create(
+            password=django_hashed_password,  # The Django hash
+            mpassword=mobile,  # Assuming this is the unhashed mobile number
+            is_staff=True,
+            **base_data
+        )
+
+        messages.success(request, 'Employee Account has been created 🎉')
         return redirect('register')
 
+    # 7. Context and Rendering
     context = {
         'branch': BranchListDum.objects.filter(status=1),
         'branch_wise_count': result,
         'total_count': CallReportMaster.objects.count(),
     }
-    return render(request, 'Employee/register.html', context)
-#
+    return render(request, 'Employee/register.html', context)#
 
 # def create_login_entries(empname, empid, mobile, hashed_password, branch, old_branch, department,
 #                          designation, reporting_to, category, page, login_designation, allow_value,
