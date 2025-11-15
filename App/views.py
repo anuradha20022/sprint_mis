@@ -64,15 +64,14 @@ def dashboard(request):
     present_employees = active_employees.filter(emp_id__in=present_employee_ids)
     absent_employees = active_employees.exclude(emp_id__in=present_employee_ids)
     context = {
-        'master_list': DoctorAgentList.objects.filter(~Q(emp_id='1234')).count(),
+        'master_list': DoctorAgentList.objects.filter(~Q(emp_id='1234'), r_status='Visit').count(),
         'present': present_data,
         'absent_employees': absent_employees,
         'present_employees': present_employees,
         'total_count': total_count,
         'absent': total_count - present_data,
         'total': Logins.objects.filter(~Q(branch='Test') & Q(job_status='Active',page='Marketing')),
-        'master': DoctorAgentList.objects.filter(~Q(emp_id='1234')),
-
+        # 'master': DoctorAgentList.objects.filter(~Q(emp_id='1234'), r_status='Visit')
     }
 
     return render(request, 'dashboard.html', context)
@@ -81,38 +80,6 @@ def dashboard(request):
 def logout_user(request):
     logout(request)
     return redirect('loginuser')
-
-    # for emp in Logins.objects.all():
-    #     try:
-    #         WebLogins.objects.get(emp_id=emp.emp_id)
-    #     except WebLogins.DoesNotExist:
-    #         print(emp.emp_id)
-    #         WebLogins.objects.create(emp_name=emp.emp_name, emp_id=emp.emp_id, password=make_password(emp.password),
-    #                                  mpassword=emp.mpassword,
-    #                                  personal_number=emp.personal_number, office_number=emp.office_number,
-    #                                  branch=emp.branch,
-    #                                  old_branch=emp.old_branch,
-    #                                  page=emp.page, designation=emp.designation, original_type=emp.original_type,
-    #                                  orginal_design=emp.orginal_design,
-    #                                  head=emp.head, type=emp.type, branch_access=emp.branch_access,
-    #                                  new_type=emp.new_type,
-    #                                  # date=emp.date,
-    #                                  time=emp.time,
-    #                                  # join_date=emp.join_date,
-    #                                  visibility=emp.visibility,
-    #                                  job_status=emp.job_status, levels=emp.levels, bank_acc=emp.bank_acc, ifsc=emp.ifsc,
-    #                                  pan=emp.pan,
-    #                                  last_location=emp.last_location,
-    #                                  # last_loc_datetime=emp.last_loc_datetime,
-    #                                  allow=emp.allow,
-    #                                  img_link=emp.img_link, is_staff=True,
-    #                                  model=emp.model, version=emp.version, firebase_token=emp.firebase_token,
-    #                                  deviceid=emp.deviceid, accesskey=emp.accesskey, state=emp.state,
-    #                                  ref_count=emp.ref_count,
-    #                                  androidpermissions=emp.androidpermissions,
-    #                                  androidsubmenu=emp.androidsubmenu,
-    #                                  loginstatus=emp.loginstatus)
-
 
 logger = logging.getLogger(__name__)
 
@@ -140,8 +107,6 @@ def get_menu_designation(designation):
 # --- Main View Function ---
 @login_required(login_url="/")
 def register(request):
-    # 1. Branch Count Calculation (Can be optimized slightly)
-    # This is a bit cleaner than using list() and iterating:
     branch_counts = CallReportMaster.objects.values('branch').annotate(count=Count('branch'))
     result = [{'branch': item['branch'], 'count': item['count']} for item in branch_counts if item['branch']]
 
@@ -160,7 +125,7 @@ def register(request):
 
         # 3. Model Lookups
         # Get old_branch only once
-        old_branch_obj = Logins.objects.filter(branch=branch).exclude(branch='').first()
+        old_branch_obj = Logins.objects.filter(branch=branch, job_status='Active').exclude(branch='').first()
         old_branch = old_branch_obj.old_branch if old_branch_obj else ''
 
         # Determine the key designation for menu lookup
@@ -176,8 +141,6 @@ def register(request):
         menu = menu_details.menu
         submenu = menu_details.submenu
 
-        # 4. Password Hashing (Maintaining bcrypt for Logins and make_password for WebLogins)
-        # Hashing for Logins model (using bcrypt)
         password_bytes = mobile.encode('utf-8')
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
@@ -228,19 +191,15 @@ def register(request):
             'deviceid': '', 'accesskey': '', 'state': '', 'ref_count': '0',
         }
 
-        # 6. Object Creation (One section, not five)
-
-        # Create Logins object (uses bcrypt hashed password)
         Logins.objects.create(
-            password=mobile,  # Assuming this is the unhashed mobile number
-            mpassword=hashed_password,  # The bcrypt hash
+            password=mobile,
+            mpassword=hashed_password,
             **base_data
         )
 
-        # Create WebLogins object (uses Django hashed password)
         WebLogins.objects.create(
-            password=django_hashed_password,  # The Django hash
-            mpassword=mobile,  # Assuming this is the unhashed mobile number
+            password=django_hashed_password,
+            mpassword=mobile,
             is_staff=True,
             **base_data
         )
@@ -248,13 +207,10 @@ def register(request):
         messages.success(request, 'Employee Account has been created 🎉')
         return redirect('register')
 
-    # 7. Context and Rendering
     context = {
         'branch': BranchListDum.objects.filter(status=1),
-        'branch_wise_count': result,
-        'total_count': CallReportMaster.objects.count(),
     }
-    return render(request, 'Employee/register.html', context)#
+    return render(request, 'Employee/register.html', context)
 
 # def create_login_entries(empname, empid, mobile, hashed_password, branch, old_branch, department,
 #                          designation, reporting_to, category, page, login_designation, allow_value,
@@ -425,11 +381,12 @@ def register(request):
 #     return render(request, 'Employee/register.html', context)
 #
 
+
 @login_required(login_url="/")
 def inactive_emp(request):
     if 'branch_name' in request.POST:
         branch = request.POST.get('branch_name')
-        BranchListDum.objects.create(branch_name=branch)
+        BranchListDum.objects.create(branch_name=branch, status=1)
         messages.success(request, "branch added")
         return redirect('register')
 
@@ -437,7 +394,7 @@ def inactive_emp(request):
         emp_search = request.POST.get('emp_search')
         status = request.POST.get('status')
         current_date = timezone.now().date()
-        user = Logins.objects.filter(emp_id=emp_search).update(job_status=status, inactive_dt=current_date)
+        user = Logins.objects.filter(emp_id=emp_search, job_status='Active').update(job_status=status, inactive_dt=current_date)
         if user:
             messages.success(request, "updated successfully..")
         else:
@@ -451,7 +408,6 @@ def employee_list(request):
     context = {
         'branch': BranchListDum.objects.filter(status=1),
         'agent_type': DoctorAgentList.objects.filter(~Q(agent_type='Type')).values('agent_type').distinct(),
-        'designation': Logins.objects.all()
     }
 
     # if 'delete' in request.GET:
@@ -577,7 +533,8 @@ def doctor_agent_list(request):
     if request.POST.get('from_empid'):
         from_empid = request.POST.get('from_empid')
         to_empid = request.POST.get('to_empid')
-        data = DoctorAgentList.objects.filter(emp_id=from_empid).update(emp_id=to_empid)
+        data = DoctorAgentList.objects.filter(emp_id=from_empid, r_status='Visit').update(emp_id=to_empid, modified_by=request.user.emp_id,
+                                                                        modified_on=timezone.now())
         print(from_empid, to_empid)
         messages.success(request, f"Emp Id : {from_empid} Transferred to Emp Id : {to_empid}")
         return redirect('doctor_agent_list')
@@ -585,15 +542,21 @@ def doctor_agent_list(request):
     if request.method == "POST":
         empid = request.POST.get('empid')
         branch = request.POST.get('branch')
+
         if branch == "All":
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(~Q(emp_id='1234'))
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(~Q(emp_id='1234'), r_status='Visit')
         elif empid and branch:
             context["doctor_agent_list"] = DoctorAgentList.objects.filter(
-                Q(unique_id=empid, branch=branch) & ~Q(emp_id='1234'))
+                Q(unique_id=empid, branch=branch) & ~Q(emp_id='1234'), r_status='Visit'
+            )
         elif empid:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(unique_id=empid) & ~Q(emp_id='1234'))
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(
+                Q(unique_id=empid) & ~Q(emp_id='1234'), r_status='Visit'
+            )
         elif branch:
-            context["doctor_agent_list"] = DoctorAgentList.objects.filter(Q(branch=branch) & ~Q(emp_id='1234'))
+            context["doctor_agent_list"] = DoctorAgentList.objects.filter(
+                Q(branch=branch) & ~Q(emp_id='1234'), r_status='Visit'
+            )
     return render(request, 'doctor_agent_list.html', context)
 
 
@@ -606,14 +569,21 @@ def doctor_agent_list_dt(request):
     length = int(request.POST.get('length'))
     search = request.POST.get('search[value]')
     colindex = request.POST.get("order[0][column]")
-    records_total = DoctorAgentList.objects.all().order_by('unique_id').count()
+    records_total = DoctorAgentList.objects.filter(~Q(emp_id='1234'), r_status='Visit').order_by('unique_id').count()
     records_filtered = records_total
-    agent_data = DoctorAgentList.objects.all().order_by('unique_id').values()
+
+    agent_data = DoctorAgentList.objects.filter(~Q(emp_id='1234'), r_status='Visit').order_by('unique_id').values()
 
     if search:
         agent_data = DoctorAgentList.objects.filter(
-            Q(unique_id__icontains=search) | Q(agent_name__icontains=search) | Q(
-                unique_id__icontains=search)).order_by('unique_id').values()
+            (
+                    Q(unique_id__icontains=search) |
+                    Q(agent_name__icontains=search) |
+                    Q(unique_id__icontains=search)
+            ) & ~Q(emp_id='1234'),
+            r_status='Visit'
+        ).order_by('unique_id').values()
+
         records_total = agent_data.count()
         records_filtered = records_total
 
@@ -1107,30 +1077,61 @@ def allowance_report(request):
 
         cursor = connection.cursor()
         if branch == 'All':
-            cursor.execute(f"""SELECT `call_report_master`.`emp_id` AS Emp_ID,`logins`.`Emp_name` AS Emp_name,
-                `logins`.`Branch` AS Branch, `logins`.`allow` AS Allowance,
-                 COUNT(DISTINCT `call_report_master`.`date`) AS Total_Days,
-                 COUNT(`call_report_master`.`emp_id`) AS Total_Calls, CASE WHEN `logins`.`allow` = 300 THEN 25.00
-                 WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00 END AS Per_Day_Allowance,
-                 COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00
-                  WHEN `logins`.`allow` = 250 THEN 21  ELSE 0.00  END As TOTAL FROM `call_report_master`
-                 INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE
-                `call_report_master`.`date` BETWEEN '{from_d}' AND '{to_d}'  and `logins`.`Branch` != 'Test'
-                 AND `logins`.`Job_Status` = 'Active' AND `logins`.`type` != 'Admin' GROUP BY
-                `call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;""".format(fd=from_d, td=to_d))
+            cursor.execute(f"""
+                SELECT 
+                    call_report_master.emp_id AS Emp_ID,
+                    logins.Emp_name AS Emp_name,
+                    logins.Branch AS Branch,
+                    logins.allow AS Allowance,
+                    COUNT(DISTINCT call_report_master.date) AS Total_Days,
+                    COUNT(call_report_master.emp_id) AS Total_Calls,
+                    CASE WHEN logins.allow = 300 THEN 25.00
+                         WHEN logins.allow = 250 THEN 21 
+                         ELSE 0.00 END AS Per_Day_Allowance,
+                    COUNT(call_report_master.emp_id) * 
+                    CASE WHEN logins.allow = 300 THEN 25.00
+                         WHEN logins.allow = 250 THEN 21
+                         ELSE 0.00 END AS TOTAL
+                FROM call_report_master
+                INNER JOIN logins ON call_report_master.emp_id = logins.Emp_ID
+                WHERE call_report_master.date BETWEEN '{from_d}' AND '{to_d}'
+                    AND logins.Branch != 'Test'
+                    AND logins.Job_Status = 'Active'
+                    AND logins.type != 'Admin'
+                    AND logins.Branch IN (
+                        SELECT branch_name 
+                        FROM branch_list_dum  
+                        WHERE branch_name IS NOT NULL
+                    )
+                GROUP BY call_report_master.emp_id
+                ORDER BY logins.allow DESC;
+            """)
         else:
-            cursor.execute(
-                "SELECT `call_report_master`.`emp_id` AS Emp_ID,`logins`.`Emp_name` AS Emp_name,"
-                "`logins`.`Branch` AS Branch, `logins`.`allow` AS Allowance,"
-                " COUNT(DISTINCT `call_report_master`.`date`) AS Total_Days,"
-                " COUNT(`call_report_master`.`emp_id`) AS Total_Calls, CASE WHEN `logins`.`allow` = 300 THEN 25.00"
-                " WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00 END AS Per_Day_Allowance,"
-                " COUNT(`call_report_master`.`emp_id`) * CASE  WHEN `logins`.`allow` = 300 THEN 25.00"
-                "  WHEN `logins`.`allow` = 250 THEN 21 ELSE 0.00  END As TOTAL FROM `call_report_master`"
-                " INNER JOIN `logins` ON `call_report_master`.`emp_id` = `logins`.`Emp_ID` WHERE"
-                "`call_report_master`.`date` BETWEEN '{fd}' AND '{td}' and `logins`.`Branch` = '{bn}'  and `logins`.`Branch` != 'Test'"
-                " AND `logins`.`Job_Status` = 'Active' AND `logins`.`type` != 'Admin' GROUP BY"
-                "`call_report_master`.`emp_id` ORDER BY`logins`.`allow` DESC;".format(fd=from_d, td=to_d, bn=branch))
+            cursor.execute("""
+                SELECT 
+                    call_report_master.emp_id AS Emp_ID,
+                    logins.Emp_name AS Emp_name,
+                    logins.Branch AS Branch,
+                    logins.allow AS Allowance,
+                    COUNT(DISTINCT call_report_master.date) AS Total_Days,
+                    COUNT(call_report_master.emp_id) AS Total_Calls,
+                    CASE WHEN logins.allow = 300 THEN 25.00
+                         WHEN logins.allow = 250 THEN 21 
+                         ELSE 0.00 END AS Per_Day_Allowance,
+                    COUNT(call_report_master.emp_id) * 
+                    CASE WHEN logins.allow = 300 THEN 25.00
+                         WHEN logins.allow = 250 THEN 21
+                         ELSE 0.00 END AS TOTAL
+                FROM call_report_master
+                INNER JOIN logins ON call_report_master.emp_id = logins.Emp_ID
+                WHERE call_report_master.date BETWEEN '{fd}' AND '{td}'
+                    AND logins.Branch = '{bn}'
+                    AND logins.Branch != 'Test'
+                    AND logins.Job_Status = 'Active'
+                    AND logins.type != 'Admin'
+                GROUP BY call_report_master.emp_id
+                ORDER BY logins.allow DESC;
+            """.format(fd=from_d, td=to_d, bn=branch))
         ina = cursor.description
         context['allowance'] = [
             dict(zip([i[0] for i in ina], list)) for list in cursor.fetchall()
@@ -1521,9 +1522,8 @@ def attendance_summary_report(request):
             return JsonResponse({"error": True, "message": "Month and branch are required."})
 
         # Get marketing emp_ids
-        marketing_emp_ids = Logins.objects.filter(page="Marketing").values_list("emp_id", flat=True)
+        marketing_emp_ids = Logins.objects.filter(page="Marketing", job_status='Active').values_list("emp_id", flat=True)
         hrms_api_url = f'https://3.6.104.94/api/attendance-summary/'
-        print(hrms_api_url)
 
         try:
             hrms_response = requests.post(hrms_api_url, json={"month": month, "branch": branch}, verify=False)
@@ -1548,8 +1548,6 @@ def attendance_summary_report(request):
             "data": filtered_data,
             "dates": dates
         })
-        print(filtered_data,dates)
-    # GET request
     active_branches = BranchListDum.objects.filter(status=1)
     return render(request, "Employee/attendance_summary_report.html", {"branches": active_branches})
 
@@ -1581,13 +1579,15 @@ def employee_leave_list(request):
 
 @login_required(login_url="/")
 def daily_call_report(request):
-    context = {
-        'branch': BranchListDum.objects.filter(status=1),
-        # 'ref_type': CallReportMaster.objects.filter(Q(ref_type='ref_type'))
-    }
+    context = {}
+    date=None
     if 'date' in request.POST:
         date = request.POST.get('date')
-        emp_ids_marketing = Logins.objects.filter(page='Marketing').order_by('branch').values_list('emp_id', flat=True)
+        emp_ids_marketing = Logins.objects.filter(
+            page='Marketing',
+            job_status='Active'
+        ).order_by('branch').values_list('emp_id', flat=True)
+
         daily_data = CallReportMaster.objects.filter(
             date=date,
             emp_id__in=emp_ids_marketing
@@ -1608,22 +1608,32 @@ def daily_call_report(request):
                 'Type': report.type,
                 'source': report.source,
                 'branch': report.branch
-            } for report in daily_data
+            }
+            for report in daily_data
         ]
+
     elif 'unique_id' in request.POST:
         unique_id = request.POST.get("unique_id")
         emp_id = request.POST.get("emp_id")
         name = request.POST.get("name")
         types = request.POST.get("type")
         ref_type = request.POST.get("ref_type")
-        CallReportMaster.objects.filter(unique_id=unique_id).update(emp_id=emp_id, name=name, type=types,
-                                                                    ref_type=ref_type)
+
+        CallReportMaster.objects.filter(unique_id=unique_id).update(
+            emp_id=emp_id,
+            name=name,
+            type=types,
+            ref_type=ref_type
+        )
         messages.success(request, "Updated successfully....")
 
     if request.method == "GET" and request.is_ajax():
         unique_id = request.GET.get('unique_id')
         res = list(CallReportMaster.objects.filter(unique_id=unique_id).values())[0]
         return JsonResponse(res)
+
+    context['branch'] = BranchListDum.objects.filter(status=1)
+    context['selected_date'] = date
 
     return render(request, 'call/daily_call_report.html', context)
 
@@ -1661,14 +1671,26 @@ def day_report(request):
         #     dict(zip([i[0] for i in day], rep)) for rep in cursor.fetchall()
         # ]
         cursor = connection.cursor()
-        cursor.execute("SELECT l.`emp_id`, l.`emp_name`,l.`Orginal_Design`, crm.`attendance`, crm.`branch`,crm.`date`, "
-                       "MIN(crm.`time`) AS `first_time`, MAX(crm.`time`) AS `last_time`, "
-                       "COUNT(*) AS `call_count`, l.`ref_count`, l.`type` FROM `call_report_master` crm "
-                       "INNER JOIN `logins` l ON crm.`emp_id` = l.`emp_id` WHERE l.`Job_Status` = 'Active' and "
-                       "l.`Page` = 'Marketing' AND "
-                       "(l.`Designation` != 'Center Head') AND crm.`date` BETWEEN '{fd}' AND '{td}'"
-                       " and l.branch != 'Test' AND NOT l.`type` LIKE 'Neighbourhood' and crm.`emp_id` IS NOT NULL "
-                       " GROUP BY crm.`date`, crm.`emp_id` ORDER BY crm.`date` ASC;".format(fd=from_d, td=to_d))
+        cursor.execute("""
+            SELECT 
+                l.emp_id, l.emp_name, l.Orginal_Design,
+                crm.attendance, crm.branch, crm.date,
+                MIN(crm.time) AS first_time,
+                MAX(crm.time) AS last_time,
+                COUNT(crm.unique_id) AS call_count,
+                l.ref_count, l.type
+            FROM call_report_master crm
+            JOIN logins l ON crm.emp_id = l.emp_id
+            WHERE crm.date BETWEEN %s AND %s
+                AND l.Job_Status = 'Active'
+                AND l.Page = 'Marketing'
+                AND l.Designation <> 'Center Head'
+                AND l.branch <> 'Test'
+                AND l.type NOT LIKE 'Neighbourhood'
+                AND crm.emp_id IS NOT NULL
+            GROUP BY crm.date, crm.emp_id
+            ORDER BY crm.date ASC
+        """, [from_d, to_d])
         day = cursor.description
         context['report'] = [
             dict(zip([i[0] for i in day], rep)) for rep in cursor.fetchall()
@@ -1883,8 +1905,11 @@ def search_id(request):
         result = []
         term = request.GET.get('term')
         new = DoctorAgentList.objects.filter(
-            Q(unique_id__istartswith=term) | Q(agent_name__istartswith=term) | Q(
-                mobile__istartswith=term))
+            (Q(unique_id__istartswith=term) |
+             Q(agent_name__istartswith=term) |
+             Q(mobile__istartswith=term)),
+            r_Status='visit'
+        )
         for emp in new:
             result.append(
                 {'id': emp.unique_id, 'mobile': emp.mobile, 'agent_name': emp.agent_name})
@@ -1905,9 +1930,18 @@ def search_uid(request):
         pancard = request.GET.get('pancard ')
         upinumber = request.GET.get('upinumber')
         new = DoctorAgentList.objects.filter(
-            Q(unique_id__istartswith=term) | Q(agent_name__istartswith=term) | Q(
-                mobile__istartswith=term)) & DoctorAgentList.objects.filter(
-            ~Q(bank_ac=accnumber, ifsc=ifsccode, pancard=pancard))
+            (
+                    Q(unique_id__istartswith=term) |
+                    Q(agent_name__istartswith=term) |
+                    Q(mobile__istartswith=term)
+            ),
+            r_status='visit'
+        ).exclude(
+            bank_ac=accnumber,
+            ifsc=ifsccode,
+            pancard=pancard
+        )
+
         for emp in new:
             result.append(
                 {'id': emp.unique_id, 'mobile': emp.mobile, 'agent_name': emp.agent_name, 'accnumber': emp.bank_ac,
@@ -3263,13 +3297,13 @@ def master_list(request):
                         " agent_name, doctor_agent_list.mobile, doctor_agent_list.sno, agent_type, logins.branch, "
                         "category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` "
                         "ON doctor_agent_list.emp_id = logins.Emp_ID WHERE logins.job_status='Active'"
-                        " and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test';")
+                        " AND  doctor_agent_list.r_status='Visit' and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test';")
         else:
             cur.execute("SELECT logins.Emp_name,logins.Emp_ID, "
                         "unique_id, agent_name, doctor_agent_list.mobile, doctor_agent_list.sno,agent_type, logins.branch,"
                         " category FROM sprint_mis.doctor_agent_list INNER JOIN sprint_mis.`logins` ON"
                         " doctor_agent_list.emp_id = logins.Emp_ID  WHERE logins.job_status='Active'"
-                        " and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(b=branch))
+                        " AND  doctor_agent_list.r_status='Visit' and logins.emp_id NOT IN ('100','200','300','400','500') and doctor_agent_list.branch != 'Test' and doctor_agent_list.branch = '{b}';".format(b=branch))
 
         desc = cur.description
         context['doctor_agent_list'] = [
@@ -3341,13 +3375,29 @@ def attendance_list(request):
         to_d = datetime.strptime(str(to_d), '%m/%d/%Y')
 
         cursor = connection.cursor()
-        cursor.execute("""SELECT l.`emp_id`, l.`emp_name`,  crm.`date`, MIN(crm.`time`) AS `first_time`,
-                         MAX(crm.`time`) AS `last_time`,crm.`attendance`, crm.`branch`
-                        FROM `call_report_master` crm JOIN `logins` l ON crm.`emp_id` = l.`emp_id` 
-                         WHERE l.`Job_Status` = 'Active' AND l.`type` != 'Center Head' 
-                        AND crm.`emp_id` IS NOT NULL AND crm.`date` between '{fd}' AND '{td}' and 
-                       l.branch IN ('Kukatpally', 'As Rao Nagar', 'Gachibowli', 'LB Nagar', 'Jubilee Hills', 'Corporate')
-                        GROUP BY crm.`date`, crm.`emp_id` ORDER BY l.branch ASC;""".format(fd=from_d, td=to_d))
+        cursor.execute("""SELECT 
+                    l.emp_id,
+                    l.emp_name,
+                    crm.date,
+                    MIN(crm.time) AS first_time,
+                    MAX(crm.time) AS last_time,
+                    crm.attendance,
+                    crm.branch
+                FROM call_report_master crm
+                JOIN logins l ON crm.emp_id = l.emp_id
+                WHERE 
+                    l.Job_Status = 'Active'
+                    AND l.type != 'Center Head'
+                    AND crm.emp_id IS NOT NULL
+                    AND crm.date BETWEEN '{fd}' AND '{td}'
+                    AND l.branch IN (
+                            SELECT branch_name 
+                            FROM branch_list_dum  
+                            WHERE branch_name IS NOT NULL 
+                    )
+                GROUP BY crm.date, crm.emp_id
+                ORDER BY l.branch ASC;
+                """.format(fd=from_d, td=to_d))
         call = cursor.description
         context['attendance'] = [
             dict(zip([i[0] for i in call], report)) for report in cursor.fetchall()

@@ -43,8 +43,8 @@ $(document).ready(function () {
                                       <th class="py-2" data-orderable="false">S No</th>
 {#                                      <th class="py-2" data-orderable="false">View</th>#}
                                       <th class="py-2" data-orderable="false">Designation</th>
-                                      <th class="py-2" data-orderable="false">Emp ID</th>
-                                      <th class="py-2" data-orderable="false">Emp Name</th>
+                                      <th class="py-2" data-orderable="false">Employee ID</th>
+                                      <th class="py-2" data-orderable="false">Employee Name</th>
                                       <th class="py-2" data-orderable="false">Start Time</th>
                                       <th class="py-2" data-orderable="false">End Time</th>
                                       <th class="py-2" data-orderable="false">Master List</th>
@@ -71,7 +71,7 @@ $(document).ready(function () {
                                         <td class="py-1" data-orderable="false">{{ day.attendance }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.call_count }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.branch }}</td>
-                                        <td class="py-1" data-orderable="false">{{ day.date }}</td>
+                                        <td class="py-1" data-orderable="false">{{ day.date|date:'d-m-Y' }}</td>
                                         <td class="py-1" data-orderable="false">{{ day.type }}</td>
                                         {#                                        <td class="py-1" data-orderable="false">{{ day.date }}</td>#}
                                     </tr>

@@ -13,32 +13,41 @@
             $("#employee_submenu_link").css('display', 'block');
         });
 
-    $('.edit-admission').on('click', function () {
-        let edit_value = parseInt($(this).data('ref'));
+   $('.edit-admission').on('click', function () {
+    let edit_value = parseInt($(this).data('ref'));
 
-        console.log(edit_value);
-        $.ajax({
-            url: '{% url 'employee_list' %}',
-            data: {emp_id: edit_value},
-            success: function (response) {
-                $('#emp_name').val(response.emp_name);
-                $('#emp_id').val(response.emp_id);
-                $('#designation').val(response.orginal_design);
-                $('#mobile_number').val(response.personal_number);
-                $('#office_number').val(response.office_number);
-                $('#bank_ac').val(response.bank_acc);
-                $('#ifsc').val(response.ifsc);
-                $('#pancard').val(response.pan);
-                $('#register_search').val(response.head);
-                $('#branch').val(response.branch);
-                $('#department').val(response.original_type);
-                console.log(response)
-            },
-            error: function () {
-                alert('Oops something went wrong!')
-            }
-        })
+    $.ajax({
+        url: '{% url 'employee_list' %}',
+        data: { emp_id: edit_value },
+        success: function (response) {
+
+            $('#emp_name').val(response.emp_name);
+            $('#emp_id').val(response.emp_id);
+            $('#designation').val(response.orginal_design);
+            $('#mobile_number').val(response.personal_number);
+            $('#office_number').val(response.office_number);
+            $('#bank_ac').val(response.bank_acc);
+            $('#ifsc').val(response.ifsc);
+            $('#pancard').val(response.pan);
+            $('#register_search').val(response.head);
+            $('#department').val(response.original_type);
+
+            let branchValue = response.branch ? response.branch.trim().toLowerCase() : '';
+
+            $("#branch option").each(function () {
+                if ($(this).val().trim().toLowerCase() === branchValue) {
+                    $("#branch").val($(this).val());
+                }
+            });
+
+            console.log(response);
+        },
+        error: function () {
+            alert('Oops something went wrong!');
+        }
     });
+});
+
 
     let delete_value;
     $(".delete-unit").on('click', function () {
@@ -76,7 +85,7 @@
     .ui-front {
         z-index: 9999; }
     </style>
-    <form action=""method="post">
+    <form action="" method="post">
     {% csrf_token %}
         <div class="row">
             <div class="col-md-3">
@@ -170,11 +179,18 @@
                                                 <input type="text" class="form-control" id="register_search" name="reporting" required >
                                             </div>
                                         </div>
-                                        <div class="form-group row">
-                                            <div class="col-10">Branch:
-                                                <input type="text" class="form-control" id="branch" name="branch" required>
+                                       <div class="form-group row">
+                                            <div class="col-10">
+                                                <label>Branch:</label>
+                                                <select class="form-control" id="branch" name="branch" required>
+                                                    <option value="" disabled selected>--select branch--</option>
+                                                    {% for list in branch %}
+                                                        <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
+                                                    {% endfor %}
+                                                </select>
                                             </div>
                                         </div>
+
                                       <div class="form-group row">
                                             <div class="col-10">Department :
                                          <select class="form-control" name="department" id="department" required>
@@ -207,7 +223,7 @@
                                 <tr role="row" style="background: #3F51B5; color: #fff;">
                                     <th class="py-2" data-orderable="false">#</th>
                                     <th class="py-2" data-orderable="false">Edit</th>
-                                    <th class="py-2" data-orderable="false">Emp ID</th>
+                                    <th class="py-2" data-orderable="false">Employee ID</th>
                                     <th class="py-2" data-orderable="false">Name</th>
                                     <th class="py-2" data-orderable="false"> Designation</th>
                                     <th class="py-2" data-orderable="false">Department</th>
@@ -220,7 +236,7 @@
                                    <tr>
                                          <td class="py-1 text-right">{{ forloop.counter }}</td>
                                          <td class="py-1">
-<a href="#" data-ref="{{ emp.emp_id }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>
+                                            <a href="#" data-ref="{{ emp.emp_id }}" class="icon-pencil mr-2 text-info edit-admission" data-toggle="modal" data-target="#admissionModal"></a>
 {#                                           <a href="{% url 'referral_details' %}?edit={{ emp.emp_id }}" class=" "><i class="icon-pencil mr-2 text-info"></i></a>#}
 {#                                             <a href="{% url 'employee_list' %}?delete={{ emp.emp_id}}" class=" "><i class="icon-trash mr-2 text-danger"></i></a>#}
 {#                                        <a class="dropdown-item delete-unit" href="#" data-toggle="modal" data-unit={{ emp.emp_id}} data-target="#delete_unit"><i class="fa fa-trash-o m-r-5"></i> Deactive</a>#}

@@ -27,19 +27,19 @@ $(document).ready(function () {
 
         // Fixed headers (13 columns now)
         let fixedHeaders = `
-            <th>Employee ID</th>
-            <th>Employee Name</th>
-            <th>Branch</th>
-            <th>Department</th>
-            <th>Designation</th>
-            <th>Date of Join</th>
-            <th>Month</th>
-            <th>Total Net Days</th>
-            <th>Present Days</th>
-            <th>Absent Days</th>
-            <th>Leave Days</th>
-            <th>Weekoff</th>
-            <th>Holiday</th>
+            <th class="py-1">Employee ID</th>
+            <th class="py-1">Employee Name</th>
+            <th class="py-1">Branch</th>
+            <th class="py-1">Department</th>
+            <th class="py-1">Designation</th>
+            <th class="py-1">Date of Join</th>
+            <th class="py-1">Month</th>
+            <th class="py-1">Total Net Days</th>
+            <th class="py-1">Present Days</th>
+            <th class="py-1">Absent Days</th>
+            <th class="py-1">Leave Days</th>
+            <th class="py-1">Weekoff</th> class="py-1"
+            <th class="py-1">Holiday</th>
         `;
         $("#attendanceHeader tr").html(fixedHeaders);
 
@@ -71,19 +71,19 @@ $(document).ready(function () {
                 response.data.forEach(emp => {
                     let row = `
                         <tr>
-                            <td>${emp.empid}</td>
-                            <td>${emp.username}</td>
-                            <td>${emp.branch}</td>
-                            <td>${emp.department}</td>
-                            <td>${emp.designation}</td>
-                            <td>${emp.doj}</td>
-                            <td>${emp.month}</td>
-                            <td>${emp.month_days}</td>
-                            <td>${emp.present}</td>
-                            <td>${emp.absent}</td>
-                            <td>${emp.leaves}</td>
-                            <td>${emp.weekoff}</td>
-                            <td>${emp.holiday}</td>
+                            <td class="py-1">${emp.empid}</td>
+                            <td class="py-1">${emp.username}</td>
+                            <td class="py-1">${emp.branch}</td>
+                            <td class="py-1">${emp.department}</td>
+                            <td class="py-1">${emp.designation}</td>
+                            <td class="py-1">${emp.doj}</td>
+                            <td class="py-1">${emp.month}</td>
+                            <td class="py-1">${emp.month_days}</td>
+                            <td class="py-1">${emp.present}</td>
+                            <td class="py-1">${emp.absent}</td>
+                            <td class="py-1">${emp.leaves}</td>
+                            <td class="py-1">${emp.weekoff}</td>
+                            <td class="py-1">${emp.holiday}</td>
                     `;
                     if (response.dates) {
                         response.dates.forEach(date => {

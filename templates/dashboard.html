@@ -18,7 +18,7 @@
             }
 
             // Show master list by default
-            showSection('master');
+            showSection('active');
 
             buttons.forEach(button => {
                 button.addEventListener('click', function () {
@@ -78,12 +78,12 @@
                         <th class="py-2">Category</th>
                         <th class="py-2">Branch</th>
                         <th class="py-2">Mobile</th>
-                        <th class="py-2">Company</th>
-                        <th class="py-2">Pan Card</th>
-                        <th class="py-2">Bank Act</th>
-                        <th class="py-2">IFSC</th>
-                        <th class="py-2">Area</th>
-                        <th class="py-2">City</th>
+{#                        <th class="py-2">Company</th>#}
+{#                        <th class="py-2">Pan Card</th>#}
+{#                        <th class="py-2">Bank Act</th>#}
+{#                        <th class="py-2">IFSC</th>#}
+{#                        <th class="py-2">Area</th>#}
+{#                        <th class="py-2">City</th>#}
                     </tr>
                   </thead>
 
@@ -97,12 +97,12 @@
                             <td class="py-1">{{ list.category }}</td>
                             <td class="py-1">{{ list.branch }}</td>
                             <td class="py-1">{{ list.mobile }}</td>
-                            <td class="py-1">{{ list.company }}</td>
-                            <td class="py-1">{{ list.pancard }}</td>
-                            <td class="py-1">{{ list.bank_ac }}</td>
-                            <td class="py-1">{{ list.ifsc }}</td>
-                            <td class="py-1">{{ list.area }}</td>
-                            <td class="py-1">{{ list.city }}</td>
+{#                            <td class="py-1">{{ list.company }}</td>#}
+{#                            <td class="py-1">{{ list.pancard }}</td>#}
+{#                            <td class="py-1">{{ list.bank_ac }}</td>#}
+{#                            <td class="py-1">{{ list.ifsc }}</td>#}
+{#                            <td class="py-1">{{ list.area }}</td>#}
+{#                            <td class="py-1">{{ list.city }}</td>#}
                         </tr>
                     {% endfor %}
                     </tbody>
