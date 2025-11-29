@@ -1519,34 +1519,27 @@ def attendance_summary_report(request):
 
         if not month or not branch:
             return JsonResponse({"error": True, "message": "Month and branch are required."})
-
-        # Ensure month is in YYYY-MM format
         try:
             month_obj = datetime.strptime(month, "%Y-%m")
             month_formatted = month_obj.strftime("%Y-%m")
         except ValueError:
             return JsonResponse({"error": True, "message": "Month must be in YYYY-MM format."})
-
         marketing_emp_ids = Logins.objects.filter(
             page="Marketing", job_status="Active"
         ).values_list("emp_id", flat=True)
 
         hrms_api_url = "https://3.6.104.94/api/attendance-summary/"
 
-        # Always include branch in payload, whether "All" or specific
-        payload = {
-            "month": month_formatted,
-            "branch": branch,  # Send branch to HRMS API
-            "emp_ids": list(marketing_emp_ids)  # If API needs emp_ids
-        }
+        payload = {"month": month_formatted}
+
+        # If branch != "all", include branch in payload
+        if branch == "All":
+            payload["branch"] = branch
 
         try:
             hrms_response = requests.post(hrms_api_url, json=payload, verify=False)
-            hrms_response.raise_for_status()  # Raise error for bad response
-            data = hrms_response.json()
-            return JsonResponse({"error": False, "data": data})
-        except requests.exceptions.RequestException as e:
-            return JsonResponse({"error": True, "message": f"Failed to connect to HRMS: {str(e)}"})
+        except requests.exceptions.RequestException:
+            return JsonResponse({"error": True, "message": "Failed to connect to HRMS."})
 
         if hrms_response.status_code != 200:
             return JsonResponse({"error": True, "message": "Failed to fetch attendance from HRMS."})
@@ -1581,7 +1574,7 @@ def employee_leave_list(request):
     if request.method == 'POST':
         filter_date = request.POST.get('date')
 
-        fdate, tdate = filter_date.split(' - ') 
+        fdate, tdate = filter_date.split(' - ')
         fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
         tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
 
