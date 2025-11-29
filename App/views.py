@@ -1519,17 +1519,19 @@ def attendance_summary_report(request):
 
         if not month or not branch:
             return JsonResponse({"error": True, "message": "Month and branch are required."})
-
+        try:
+            month_obj = datetime.strptime(month, "%Y-%m")
+            month_formatted = month_obj.strftime("%Y-%m")
+        except ValueError:
+            return JsonResponse({"error": True, "message": "Month must be in YYYY-MM format."})
         marketing_emp_ids = Logins.objects.filter(
             page="Marketing", job_status="Active"
         ).values_list("emp_id", flat=True)
 
         hrms_api_url = "https://3.6.104.94/api/attendance-summary/"
 
-        payload = {"month": month}
-
-        # If branch != "all", include branch in payload
-        if branch.lower() != "all":
+        payload = {"month": month_formatted}
+        if branch == "All":
             payload["branch"] = branch
 
         try:
