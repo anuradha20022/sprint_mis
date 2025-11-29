@@ -1514,20 +1514,26 @@ def bifurcation_list(request):
 @login_required(login_url="/")
 def attendance_summary_report(request):
     if request.method == "POST":
-        # For standard form submission
         month = request.POST.get("month")
         branch = request.POST.get("branch")
 
         if not month or not branch:
             return JsonResponse({"error": True, "message": "Month and branch are required."})
 
-        # Get marketing emp_ids
-        marketing_emp_ids = Logins.objects.filter(page="Marketing", job_status='Active').values_list("emp_id", flat=True)
-        hrms_api_url = f'https://3.6.104.94/api/attendance-summary/'
+        marketing_emp_ids = Logins.objects.filter(
+            page="Marketing", job_status="Active"
+        ).values_list("emp_id", flat=True)
+
+        hrms_api_url = "https://3.6.104.94/api/attendance-summary/"
+
+        payload = {"month": month}
+
+        # If branch != "all", include branch in payload
+        if branch.lower() != "all":
+            payload["branch"] = branch
 
         try:
-            hrms_response = requests.post(hrms_api_url, json={"month": month, "branch": branch}, verify=False)
-
+            hrms_response = requests.post(hrms_api_url, json=payload, verify=False)
         except requests.exceptions.RequestException:
             return JsonResponse({"error": True, "message": "Failed to connect to HRMS."})
 
@@ -1548,6 +1554,7 @@ def attendance_summary_report(request):
             "data": filtered_data,
             "dates": dates
         })
+
     active_branches = BranchListDum.objects.filter(status=1)
     return render(request, "Employee/attendance_summary_report.html", {"branches": active_branches})
 
