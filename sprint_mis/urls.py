@@ -70,6 +70,7 @@ urlpatterns = [
     path('admission/', views.admission, name='admission'),
     path('abc_report/', views.abc_report, name='abc_report'),
     path('master_list/', views.master_list, name='master_list'),
+    # path('inactive_master_list/', views.inactive_master_list, name='inactive_master_list'),
 
 #Employee Details
     path('register/', views.register, name='register'),

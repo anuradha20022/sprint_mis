@@ -1,4 +1,4 @@
-FROM centos/python-38-centos7
+FROM centos/python-38-centos8
 USER root
 
 ENV PYTHONUNBUFFERED 1
