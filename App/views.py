@@ -3013,8 +3013,7 @@ def coverage_report(request):
         # Fetching all required data in a single query
         query = Logins.objects.filter(
             ~Q(branch='Test') &
-            Q(job_status='Active') &
-            ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
+            Q(job_status='Active')
         ).distinct()
 
         results = query.extra(
@@ -3123,50 +3122,50 @@ def coverage_report(request):
 
     context['branch'] = BranchListDum.objects.filter(status=1)
 
-    if request.method == 'POST':
-        branch = request.POST.get('branch', '')
-        date = request.POST.get('date', '')
-        cursor = connection.cursor()
-        if branch == 'All':
-            cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, call_report_master.city,  call_report_master.area,  call_report_master.state,  call_report_master.pincode,
-             (SELECT COUNT(`unique_id`) FROM `call_report_master`
-            WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL,
-             SUM(CASE WHEN call_report_master.ref_type
-             LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
-               SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
-                   SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
-                   SUM(CASE WHEN call_report_master.ref_type LIKE '%CORPORATE%' THEN 1 ELSE 0 END) AS COR,
-                       IFNULL(MIN(CASE
-        WHEN call_report_master.time IS NOT NULL AND call_report_master.time != ''
-        THEN call_report_master.time
-        ELSE NULL
-    END), '-') AS MINTIME,
-                           logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
-                           call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
-                            AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
-                            logins.Last_Location, logins.last_loc_datetime;""".format(d=date))
-        else:
-            cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, call_report_master.city,  call_report_master.area,  call_report_master.state,  call_report_master.pincode,
-             (SELECT COUNT(`unique_id`) FROM `call_report_master`
-             WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL, SUM(CASE WHEN call_report_master.ref_type
-             LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
-               SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
-                   SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
-                   SUM(CASE WHEN call_report_master.ref_type LIKE '%CORPORATE%' THEN 1 ELSE 0 END) AS COR,
-                     IFNULL(MIN(CASE
-        WHEN call_report_master.time IS NOT NULL AND call_report_master.time != ''
-        THEN call_report_master.time
-        ELSE NULL
-    END), '-') AS MINTIME,
-                           logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
-                           call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
-                            AND logins.Branch = '{b}'  AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
-                            logins.Last_Location, logins.last_loc_datetime;""".format(d=date, b=branch))
-        desc = cursor.description
-
-        context['new'] = [
-            dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
-        ]
+    # if request.method == 'POST':
+    #     branch = request.POST.get('branch', '')
+    #     date = request.POST.get('date', '')
+    #     cursor = connection.cursor()
+    #     if branch == 'All':
+    #         cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, call_report_master.city,  call_report_master.area,  call_report_master.state,  call_report_master.pincode,
+    #          (SELECT COUNT(`unique_id`) FROM `call_report_master`
+    #         WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL,
+    #          SUM(CASE WHEN call_report_master.ref_type
+    #          LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
+    #            SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%CORPORATE%' THEN 1 ELSE 0 END) AS COR,
+    #                    IFNULL(MIN(CASE
+    #     WHEN call_report_master.time IS NOT NULL AND call_report_master.time != ''
+    #     THEN call_report_master.time
+    #     ELSE NULL
+    # END), '-') AS MINTIME,
+    #                        logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
+    #                        call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
+    #                         AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
+    #                         logins.Last_Location, logins.last_loc_datetime;""".format(d=date))
+    #     else:
+    #         cursor.execute("""SELECT DISTINCT  logins.Emp_ID,  logins.Emp_name,  logins.Branch,  logins.type, call_report_master.city,  call_report_master.area,  call_report_master.state,  call_report_master.pincode,
+    #          (SELECT COUNT(`unique_id`) FROM `call_report_master`
+    #          WHERE `emp_id` = logins.Emp_ID AND `date` = '{d}') AS TOTAL, SUM(CASE WHEN call_report_master.ref_type
+    #          LIKE '%QUALIFIED%' THEN 1 ELSE 0 END) AS QUA, SUM(CASE WHEN call_report_master.ref_type LIKE '%REGISTERED PRACTIONER%' THEN 1 ELSE 0 END) AS REG,
+    #            SUM(CASE WHEN call_report_master.ref_type LIKE '%SPECIAL CATEGORY%' THEN 1 ELSE 0 END) AS SPC,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%KARNATAKA%' THEN 1 ELSE 0 END) AS KARNATAKA,
+    #                SUM(CASE WHEN call_report_master.ref_type LIKE '%CORPORATE%' THEN 1 ELSE 0 END) AS COR,
+    #                  IFNULL(MIN(CASE
+    #     WHEN call_report_master.time IS NOT NULL AND call_report_master.time != ''
+    #     THEN call_report_master.time
+    #     ELSE NULL
+    # END), '-') AS MINTIME,
+    #                        logins.Last_Location AS location, logins.last_loc_datetime AS lastupdate FROM logins INNER JOIN
+    #                        call_report_master ON call_report_master.emp_id = logins.Emp_ID WHERE   logins.Page = 'Marketing' AND logins.Job_Status = 'Active'
+    #                         AND logins.Branch = '{b}'  AND call_report_master.date = '{d}' GROUP BY logins.Emp_ID, logins.Emp_name,  logins.Branch,  logins.type,
+    #                         logins.Last_Location, logins.last_loc_datetime;""".format(d=date, b=branch))
+    #     desc = cursor.description
+    #
+    #     context['new'] = [
+    #         dict(zip([i[0] for i in desc], row)) for row in cursor.fetchall()
+    #     ]
     return render(request, 'coverage.html', context)
 
 
@@ -3179,8 +3178,7 @@ def map_data(request):
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         query = Logins.objects.filter(
             ~Q(branch='Test') &
-            Q(job_status='Active') &
-            ~Q(emp_id__in=[15217, 15030, 15179, 15376, 15251])
+            Q(job_status='Active')
         ).distinct()
         results = query.extra(
             tables=['call_report_master'],
