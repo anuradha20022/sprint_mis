@@ -57,7 +57,7 @@ services:
 
     container_name: sprint_mis
 
-    command: gunicorn sprint_mis.wsgi --bind 0.0.0.0:8000
+    command: gunicorn sprint_mis.wsgi --bind 0.0.0.0:8000 --timeout 300
 
     volumes:
         - /app/venv  # Omits venv of local folder
