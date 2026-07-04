@@ -395,6 +395,24 @@ class DoctorAgentList(models.Model):
         db_table = 'doctor_agent_list'
 
 
+class DoctorAgentListLog(models.Model):
+    doctor_agent = models.ForeignKey(
+        DoctorAgentList,
+        on_delete=models.CASCADE,
+        db_column='sno',
+        related_name='logs',db_constraint=False
+    )
+    field_name = models.CharField(max_length=50)
+    unique_id = models.CharField(max_length=20,null=True,blank=True)
+    old_value = models.TextField(null=True, blank=True)
+    new_value = models.TextField(null=True, blank=True)
+    updated_by = models.CharField(max_length=200, null=True, blank=True)
+    updated_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'doctor_agent_list_log'
+
+
 class DummyDoctorAgentList(models.Model):
     sno = models.IntegerField(blank=True, null=True)
     emp_id = models.CharField(max_length=20)

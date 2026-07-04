@@ -41,6 +41,7 @@ urlpatterns = [
     path('doctor_agent_list/', views.doctor_agent_list, name='doctor_agent_list'),
     path('doctor_agent_list_dt/', views.doctor_agent_list_dt, name='doctor_agent_list_dt'),
     path('utr_update/', views.utr_update, name='utr_update'),
+    path('agent_update/', views.agent_update, name='agent_update'),
     path('utr_csv/', views.utr_csv, name='utr_csv'),
     # path('upload_utr_csv/', views.upload_utr_csv, name='upload_utr_csv'),
     path('pending_payment_csv/', views.pending_payment_csv, name='pending_payment_csv'),

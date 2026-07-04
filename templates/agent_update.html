@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+{% block content_heading %}UCID Update{% endblock %}
+{% block content_subheading %}UCID Update{% endblock %}
+{% block title %} UCID Update {% endblock %}
+
+{% block body %}
+<div class="card card-body">
+
+    <div id="ucidAlertBox" class="alert d-none" role="alert"></div>
+
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-3">
+            <select id="ucidBranchFilter" class="form-control form-control-sm">
+                <option value="">-- All Branches --</option>
+                {% for b in branches %}
+                    <option value="{{ b.branch_name }}">{{ b.branch_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="ucidPageSizeSelect" class="form-control form-control-sm">
+                <option value="10">Show 10 rows</option>
+                <option value="25">Show 25 rows</option>
+                <option value="50">Show 50 rows</option>
+                <option value="100">Show 100 rows</option>
+            </select>
+        </div>
+{#        <div class="col-md-2">#}
+{#            <button type="button" id="ucidExportBtn" class="btn btn-sm btn-primary w-100">#}
+{#                Export Excel#}
+{#            </button>#}
+{#        </div>#}
+        <div class="col-md-5">
+            <input type="text" id="ucidSearchInput" class="form-control form-control-sm"
+                   placeholder="🔍 Search by name, type, category, UCID, or mobile...">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm" id="ucidAgentTable">
+            <thead style="background-color:#3b3f8c; color:#fff;">
+                <tr>
+                    <th style="width:40px;">#</th>
+                    <th class="ucid-sortable" data-field="unique_id">UCID</th>
+                    <th class="ucid-sortable" data-field="agent_name">Agent Name</th>
+                    <th class="ucid-sortable" data-field="agent_type">Agent Type</th>
+                    <th class="ucid-sortable" data-field="mobile">Mobile</th>
+                    <th class="ucid-sortable" data-field="category">Category (A/B/C)</th>
+                    <th class="ucid-sortable" data-field="branch">Branch</th>
+                </tr>
+            </thead>
+            <tbody id="ucidTableBody">
+                <tr><td colspan="7" class="text-center">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <div class="text-muted small" id="ucidEntriesInfo"></div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0" id="ucidPaginationNav"></ul>
+        </nav>
+    </div>
+
+</div>
+
+<style>
+    #ucidAgentTable th.ucid-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+    #ucidAgentTable th.ucid-sortable:hover { opacity: 0.85; }
+    #ucidAgentTable th.ucid-sortable .ucid-sort-arrow { font-size: 11px; margin-left: 4px; opacity: 0.7; }
+
+    #ucidPaginationNav { gap: 4px; }
+    #ucidPaginationNav .page-item .page-link {
+        border-radius: 50% !important;
+        width: 30px; height: 30px;
+        display: flex; align-items: center; justify-content: center;
+        padding: 0; margin: 0 2px;
+        border: 1px solid #dee2e6;
+    }
+    #ucidPaginationNav .page-item.prev-next .page-link {
+        border-radius: 15px !important;
+        width: auto; padding: 0 12px;
+    }
+    #ucidPaginationNav .page-item.active .page-link {
+        background-color: #2f5fdd; border-color: #2f5fdd; color: #fff;
+    }
+    #ucidPaginationNav .page-item.ellipsis .page-link {
+        border: none; background: transparent; cursor: default;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const csrftoken = '{{ csrf_token }}';
+    const tableBody = document.getElementById('ucidTableBody');
+    const entriesInfo = document.getElementById('ucidEntriesInfo');
+    const paginationNav = document.getElementById('ucidPaginationNav');
+    const alertBox = document.getElementById('ucidAlertBox');
+    const searchInput = document.getElementById('ucidSearchInput');
+    const branchFilter = document.getElementById('ucidBranchFilter');
+    const pageSizeSelect = document.getElementById('ucidPageSizeSelect');
+    {#const exportBtn = document.getElementById('ucidExportBtn');#}
+
+    // Sanity check: if any of these are null, the IDs above don't match what's
+    // actually in the page (e.g. base.html has a duplicate ID, or this script
+    // loaded before the DOM existed). Check the browser console for this.
+    [tableBody, entriesInfo, paginationNav, alertBox, searchInput, branchFilter, pageSizeSelect]
+        .forEach(function (el, i) {
+            if (!el) console.error('UCID table: element #' + i + ' not found — check for duplicate IDs in base.html.');
+        });
+
+    let currentPage = 1;
+    let searchTimer = null;
+    let sortField = 'sno';
+    let sortDir = 'asc';
+
+    const AGENT_TYPES = ['SPECIAL CATEGORY', 'QUALIFIED', 'REGISTERED PRACTIONER', 'CORPORATE', 'KARNATAKA'];
+    const CATEGORIES = ['A', 'B', 'C'];
+
+    function showAlert(message, isError) {
+        alertBox.textContent = message;
+        alertBox.classList.remove('d-none', 'alert-success', 'alert-danger');
+        alertBox.classList.add(isError ? 'alert-danger' : 'alert-success');
+        setTimeout(() => alertBox.classList.add('d-none'), 3000);
+    }
+
+    function renderRows(rows, startIndex) {
+        if (rows.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No records found</td></tr>';
+            return;
+        }
+
+        let html = '';
+        rows.forEach(function (agent, i) {
+            const agentTypeOptions = AGENT_TYPES.map(function (t) {
+                const selected = (t === agent.agent_type) ? 'selected' : '';
+                return `<option value="${t}" ${selected}>${t}</option>`;
+            }).join('');
+
+            const categoryOptions = CATEGORIES.map(function (c) {
+                const selected = (c === agent.category) ? 'selected' : '';
+                return `<option value="${c}" ${selected}>${c}</option>`;
+            }).join('');
+
+            html += `
+                <tr data-sno="${agent.sno}">
+                    <td>${startIndex + i}</td>
+                    <td>${agent.unique_id || ''}</td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm editable-field"
+                               name="agent_name" value="${agent.agent_name || ''}">
+                    </td>
+                    <td>
+                        <select class="form-control form-control-sm editable-field" name="agent_type">
+                            <option value="">-- Select Agent Type --</option>
+                            ${agentTypeOptions}
+                        </select>
+                    </td>
+                    <td>${agent.mobile || ''}</td>
+                    <td>
+                        <select class="form-control form-control-sm editable-field" name="category">
+                            <option value="">-- Select --</option>
+                            ${categoryOptions}
+                        </select>
+                    </td>
+                    <td>${agent.branch || ''}</td>
+                </tr>`;
+        });
+        tableBody.innerHTML = html;
+    }
+
+    function buildPageList(current, total) {
+        const pages = [];
+        const delta = 2;
+        if (total <= 0) return [1];
+
+        pages.push(1);
+        if (current - delta > 2) pages.push('...');
+
+        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+            pages.push(i);
+        }
+
+        if (current + delta < total - 1) pages.push('...');
+        if (total > 1) pages.push(total);
+
+        return pages;
+    }
+
+    function renderPagination(meta) {
+        entriesInfo.textContent = meta.total_count === 0
+            ? 'No entries found'
+            : `Showing ${meta.start_index} to ${meta.end_index} of ${meta.total_count} entries`;
+
+        let html = '';
+        html += meta.has_previous
+            ? `<li class="page-item prev-next"><a class="page-link ucid-page-link" href="#" data-page="${meta.previous_page}">Previous</a></li>`
+            : `<li class="page-item prev-next disabled"><span class="page-link">Previous</span></li>`;
+
+        buildPageList(meta.current_page, meta.total_pages).forEach(function (p) {
+            if (p === '...') {
+                html += `<li class="page-item ellipsis"><span class="page-link">...</span></li>`;
+            } else if (p === meta.current_page) {
+                html += `<li class="page-item active"><span class="page-link">${p}</span></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link ucid-page-link" href="#" data-page="${p}">${p}</a></li>`;
+            }
+        });
+
+        html += meta.has_next
+            ? `<li class="page-item prev-next"><a class="page-link ucid-page-link" href="#" data-page="${meta.next_page}">Next</a></li>`
+            : `<li class="page-item prev-next disabled"><span class="page-link">Next</span></li>`;
+
+        paginationNav.innerHTML = html;
+    }
+
+    function updateSortIndicators() {
+        document.querySelectorAll('#ucidAgentTable th.ucid-sortable').forEach(function (th) {
+            th.querySelectorAll('.ucid-sort-arrow').forEach(el => el.remove());
+            if (th.dataset.field === sortField) {
+                const arrow = document.createElement('span');
+                arrow.className = 'ucid-sort-arrow';
+                arrow.textContent = sortDir === 'asc' ? '▲' : '▼';
+                th.appendChild(arrow);
+            }
+        });
+    }
+
+    function loadList(page) {
+        currentPage = page || 1;
+
+        const searchVal = searchInput.value.trim();
+
+        const data = new FormData();
+        data.append('action', 'list');
+        data.append('branch', branchFilter.value);
+        data.append('search', searchVal);
+        data.append('page', currentPage);
+        data.append('page_size', pageSizeSelect.value);
+        data.append('sort', sortField);
+        data.append('order', sortDir);
+
+        console.log('UCID loadList ->', { page: currentPage, search: searchVal, branch: branchFilter.value, sortField, sortDir });
+
+        fetch(window.location.pathname, { method: 'POST', headers: { 'X-CSRFToken': csrftoken }, body: data })
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(res => {
+                console.log('UCID loadList response ->', res);
+                if (res.status === 'success') {
+                    currentPage = res.meta.current_page;
+                    renderRows(res.rows, res.meta.start_index);
+                    renderPagination(res.meta);
+                    updateSortIndicators();
+                } else {
+                    showAlert(res.message || 'Failed to load data', true);
+                }
+            })
+            .catch(function (err) {
+                console.error('UCID loadList error ->', err);
+                showAlert('Something went wrong while loading data', true);
+            });
+    }
+
+    // Debounced search — bound to BOTH 'input' and 'keyup' as a safety net,
+    // in case some other script on the page intercepts one event type.
+    function scheduleSearch() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () { loadList(1); }, 300);
+    }
+    searchInput.addEventListener('input', scheduleSearch);
+    searchInput.addEventListener('keyup', scheduleSearch);
+
+    document.querySelectorAll('#ucidAgentTable th.ucid-sortable').forEach(function (th) {
+        th.addEventListener('click', function () {
+            const field = th.dataset.field;
+            if (sortField === field) {
+                sortDir = (sortDir === 'asc') ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDir = 'asc';
+            }
+            loadList(1);
+        });
+    });
+
+    paginationNav.addEventListener('click', function (e) {
+        const link = e.target.closest('.ucid-page-link');
+        if (!link) return;
+        e.preventDefault();
+        loadList(parseInt(link.dataset.page, 10));
+    });
+
+    tableBody.addEventListener('change', function (e) {
+        if (!e.target.classList.contains('editable-field')) return;
+
+        const row = e.target.closest('tr');
+        const sno = row.dataset.sno;
+
+        const data = new FormData();
+        data.append('action', 'update');
+        data.append('sno', sno);
+        data.append('agent_name', row.querySelector('[name="agent_name"]').value);
+        data.append('agent_type', row.querySelector('[name="agent_type"]').value);
+        data.append('category', row.querySelector('[name="category"]').value);
+
+        fetch(window.location.pathname, { method: 'POST', headers: { 'X-CSRFToken': csrftoken }, body: data })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    row.style.backgroundColor = '#d4edda';
+                    setTimeout(() => { row.style.backgroundColor = ''; }, 1000);
+                    showAlert(res.message, false);
+                } else {
+                    showAlert(res.message, true);
+                }
+            })
+            .catch(() => showAlert('Something went wrong', true));
+    });
+
+    branchFilter.addEventListener('change', function () {
+        loadList(1);
+    });
+
+    pageSizeSelect.addEventListener('change', function () {
+        loadList(1);
+    });
+
+   {% comment %} exportBtn.addEventListener('click', function () {
+        const params = new URLSearchParams({
+            export: '1',
+            branch: branchFilter.value,
+            search: searchInput.value.trim(),
+            sort: sortField,
+            order: sortDir,
+        });
+        window.location = window.location.pathname + '?' + params.toString();
+    });
+{% endcomment %}
+    loadList(1);
+});
+</script>
+{% endblock %}

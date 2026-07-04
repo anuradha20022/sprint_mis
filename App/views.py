@@ -6,6 +6,7 @@ import csv
 import os
 import logging
 import bcrypt
+import openpyxl
 import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -13,12 +14,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import connection
-from django.db.models import Q, Count, Min, Sum
+from django.db.models import Q, Count, Min, Sum, Subquery, Exists, OuterRef
 from django.http import JsonResponse, HttpResponse, FileResponse, HttpResponseRedirect, response
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from openpyxl.utils import get_column_letter
 from rest_framework import generics
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
@@ -26,7 +28,7 @@ from rest_framework.permissions import IsAuthenticated
 from App.serializers import HomeSampleVisitsSerializer
 from .models import *
 
-
+from openpyxl.styles import Font
 def decode_utf8(input_iterator):
     for l in input_iterator:
         try:
@@ -2026,6 +2028,229 @@ def upload_utr_csv(request):
     ])
 
     return res
+
+
+TRACKED_FIELDS = ['agent_type', 'category', 'agent_name']
+
+# Whitelist of columns users are allowed to sort by. NEVER pass client
+# input straight into order_by() — always go through a lookup table.
+SORTABLE_FIELDS = {
+    'unique_id': 'unique_id',
+    'agent_name': 'agent_name',
+    'agent_type': 'agent_type',
+    'mobile': 'mobile',
+    'category': 'category',
+    'branch': 'branch',
+}
+
+EXCLUDED_EMP_IDS = ['100', '200', '300', '400', '500']
+
+
+def _get_filtered_agents(branch_id, search, sort_field, sort_dir):
+    """
+    Shared queryset builder used by both the AJAX list action and the
+    Excel export, so the two can never show different data for the
+    same filters.
+    """
+    logins_match = Logins.objects.filter(
+        emp_id=OuterRef('emp_id'),
+        job_status='Active'
+    ).exclude(emp_id__in=EXCLUDED_EMP_IDS)
+
+    agents_qs = DoctorAgentList.objects.annotate(
+        emp_name=Subquery(logins_match.values('emp_name')[:1]),
+        login_branch=Subquery(logins_match.values('branch')[:1]),
+    ).filter(
+        Exists(logins_match),
+        r_status='Visit',
+    ).exclude(
+        branch='Test',
+    )
+
+    if branch_id:
+        agents_qs = agents_qs.filter(branch=branch_id)
+
+    if search:
+        agents_qs = agents_qs.filter(
+            Q(agent_name__icontains=search) |
+            Q(agent_type__icontains=search) |
+            Q(category__icontains=search) |
+            Q(unique_id__icontains=search) |
+            Q(mobile__icontains=search)
+        )
+
+    order_field = SORTABLE_FIELDS.get(sort_field, 'sno')
+    if sort_dir == 'desc':
+        order_field = f'-{order_field}'
+
+    return agents_qs.order_by(order_field, 'sno')
+
+
+def _export_agents_xlsx(agents_qs):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'UCID Agents'
+
+    headers = ['#', 'UCID', 'Agent Name', 'Agent Type', 'Mobile', 'Category', 'Branch']
+    ws.append(headers)
+    for col_idx in range(1, len(headers) + 1):
+        ws.cell(row=1, column=col_idx).font = Font(bold=True)
+
+    for idx, agent in enumerate(agents_qs, start=1):
+        ws.append([
+            idx,
+            agent.unique_id or '',
+            agent.agent_name or '',
+            agent.agent_type or '',
+            agent.mobile or '',
+            agent.category or '',
+            agent.branch or '',
+        ])
+
+    for col_idx in range(1, len(headers) + 1):
+        ws.column_dimensions[get_column_letter(col_idx)].width = 20
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="ucid_agents.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required(login_url="/")
+def agent_update(request):
+    # ---------- Export (GET) — downloads ALL rows matching current filters ----------
+    if request.method == 'GET' and request.GET.get('export'):
+        branch_id = request.GET.get('branch', '').strip()
+        search = request.GET.get('search', '').strip()
+        sort_field = request.GET.get('sort', 'sno').strip()
+        sort_dir = request.GET.get('order', 'asc').strip()
+
+        agents_qs = _get_filtered_agents(branch_id, search, sort_field, sort_dir)
+        return _export_agents_xlsx(agents_qs)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # ---------- Save a single field update ----------
+        if action == 'update':
+            sno = request.POST.get('sno')
+            agent = get_object_or_404(DoctorAgentList, sno=sno)
+
+            new_values = {
+                'agent_type': request.POST.get('agent_type', '').strip(),
+                'agent_name': request.POST.get('agent_name', '').strip(),
+                'category': request.POST.get('category', '').strip().upper(),
+            }
+
+            if new_values['category'] and new_values['category'] not in ('A', 'B', 'C'):
+                return JsonResponse({'status': 'error', 'message': 'Category must be A, B or C'}, status=400)
+
+            logs_to_create = []
+            changed_fields = []
+
+            for field in TRACKED_FIELDS:
+                old_val = getattr(agent, field)
+                new_val = new_values[field]
+                if str(old_val or '') != str(new_val or ''):
+                    logs_to_create.append(
+                        DoctorAgentListLog(
+                            doctor_agent=agent,
+                            field_name=field,
+                            old_value=old_val,
+                            new_value=new_val,
+                            unique_id=agent.unique_id,
+                            updated_by=request.user.emp_id,
+                        )
+                    )
+                    setattr(agent, field, new_val)
+                    changed_fields.append(field)
+
+            if changed_fields:
+                agent.modified_by = request.user.emp_id
+                agent.modified_on = timezone.now()
+                agent.save(update_fields=changed_fields + ['modified_by', 'modified_on'])
+                DoctorAgentListLog.objects.bulk_create(logs_to_create)
+                message = f"Updated successfully ({', '.join(changed_fields)})"
+            else:
+                message = "No changes detected"
+
+            return JsonResponse({
+                'status': 'success',
+                'changed_fields': changed_fields,
+                'message': message,
+            })
+
+        # ---------- Filter / sort / paginate — returns pure JSON ----------
+        elif action == 'list':
+            branch_id = request.POST.get('branch', '').strip()
+            search = request.POST.get('search', '').strip()
+            sort_field = request.POST.get('sort', 'sno').strip()
+            sort_dir = request.POST.get('order', 'asc').strip()
+
+            try:
+                page_number = int(request.POST.get('page', 1))
+                if page_number < 1:
+                    page_number = 1
+            except (TypeError, ValueError):
+                page_number = 1
+
+            try:
+                page_size = int(request.POST.get('page_size', 10))
+                if page_size not in (10, 25, 50, 100):
+                    page_size = 10
+            except (TypeError, ValueError):
+                page_size = 10
+
+            agents_qs = _get_filtered_agents(branch_id, search, sort_field, sort_dir)
+
+            paginator = Paginator(agents_qs, page_size)
+
+            if page_number > paginator.num_pages:
+                page_number = paginator.num_pages if paginator.num_pages > 0 else 1
+
+            page_obj = paginator.get_page(page_number)
+
+            rows = [
+                {
+                    'sno': agent.sno,
+                    'unique_id': agent.unique_id,
+                    'agent_name': agent.agent_name,
+                    'agent_type': agent.agent_type,
+                    'mobile': agent.mobile,
+                    'category': agent.category,
+                    'branch': agent.branch,
+                }
+                for agent in page_obj
+            ]
+
+            meta = {
+                'current_page': page_obj.number,
+                'total_pages': paginator.num_pages,
+                'start_index': page_obj.start_index(),
+                'end_index': page_obj.end_index(),
+                'total_count': paginator.count,
+                'has_previous': page_obj.has_previous(),
+                'has_next': page_obj.has_next(),
+                'previous_page': page_obj.previous_page_number() if page_obj.has_previous() else None,
+                'next_page': page_obj.next_page_number() if page_obj.has_next() else None,
+                'sort': sort_field,
+                'order': sort_dir,
+                'page_size': page_size,
+                # helpful for debugging in the browser Network tab / console
+                'echo_search': search,
+            }
+
+            return JsonResponse({'status': 'success', 'rows': rows, 'meta': meta})
+
+        return JsonResponse({'status': 'error', 'message': 'Unknown action'}, status=400)
+
+    # ---------- Initial GET: just render the shell; JS loads data on ready ----------
+    context = {
+        'branches': BranchListDum.objects.filter(status=1).order_by('branch_name'),
+    }
+    return render(request, 'agent_update.html', context)
 
 
 @login_required(login_url="/")
