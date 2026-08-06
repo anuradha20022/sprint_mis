@@ -2053,8 +2053,7 @@ def _get_filtered_agents(branch_id, search, sort_field, sort_dir):
     same filters.
     """
     logins_match = Logins.objects.filter(
-        emp_id=OuterRef('emp_id'),
-        job_status='Active'
+        emp_id=OuterRef('emp_id')
     ).exclude(emp_id__in=EXCLUDED_EMP_IDS)
 
     agents_qs = DoctorAgentList.objects.annotate(
