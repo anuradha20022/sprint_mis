@@ -82,7 +82,8 @@ urlpatterns = [
 
 #call report
     path('call_report/', views.call_report, name='call_report'),
-    # path('call_reports/', views.call_reports, name='call_reports'),
+    path('call_report_data/', views.call_report_data, name='call_report_data'),
+path('call-report-export/', views.call_report_export, name='call_report_export'),
     path('call_search/', views.call_search, name='call_search'),
     path('save_transfer/', views.save_transfer, name='save_transfer'),
     path('call_report_csv/', views.call_report_csv, name='call_report_csv'),

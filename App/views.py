@@ -8,6 +8,7 @@ import logging
 import bcrypt
 import openpyxl
 import requests
+import urllib3
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -632,43 +633,139 @@ def doctor_agent_list_dt(request):
 
 @login_required(login_url="/")
 def call_report(request):
-    context = {
-        # 'report': CallReportMaster.objects.all(),
-    }
-    if request.method == "POST":
-        f_date = request.POST.get('date_d')
-
-        from_d, to_d = f_date.split(' - ')
-        from_d = datetime.strptime(str(from_d), '%m/%d/%Y').date()
-        to_d = datetime.strptime(str(to_d), '%m/%d/%Y').date()
-
-        call = connection.cursor()
-        if f_date:
-            call.execute(
-                """SELECT DISTINCT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
-                    call_report_master.ref_type,call_report_master.name, call_report_master.design,  call_report_master.contact, call_report_master.date,
-                     call_report_master.location, call_report_master.branch
-                FROM logins
-                INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
-                WHERE call_report_master.date BETWEEN '{fd}' AND '{td}' AND logins.Job_Status = 'Active' 
-                AND call_report_master.branch != 'Test'""".format(fd=from_d, td=to_d)
-            )
-        else:
-            call.execute(
-                """SELECT DISTINCT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,call_report_master.time,call_report_master.category,
-                    call_report_master.ref_type, call_report_master.name, call_report_master.design,  call_report_master.contact, call_report_master.date,
-                     call_report_master.location, call_report_master.branch
-                FROM logins
-                INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
-                WHERE  logins.Job_Status = 'Active' AND call_report_master.branch != 'Test'""")
-        desc = call.description
-        context['call_report'] = [
-            dict(zip([i[0] for i in desc], row)) for row in call.fetchall()
-        ]
-
+    context = {}
+    if request.method == "POST" and request.POST.get('date_d'):
+        # Keep this branch only to remember the filter dates for display;
+        # actual data now comes from call_report_data via AJAX.
+        context['date_d'] = request.POST.get('date_d')
     return render(request, 'call/call_report.html', context)
 
 
+@login_required(login_url="/")
+def call_report_data(request):
+    """
+    Server-side endpoint for DataTables. Expects DataTables' standard
+    params (draw, start, length) plus an optional date_d range filter.
+    """
+    draw = int(request.POST.get('draw', 1))
+    start = int(request.POST.get('start', 0))
+    length = int(request.POST.get('length', 10))
+
+    f_date = request.POST.get('date_d')
+    date_filter_sql = ""
+    params = []
+
+    if f_date and ' - ' in f_date:
+        from_d, to_d = f_date.split(' - ')
+        from_d = datetime.strptime(from_d.strip(), '%m/%d/%Y').date()
+        to_d = datetime.strptime(to_d.strip(), '%m/%d/%Y').date()
+        date_filter_sql = "AND call_report_master.date BETWEEN %s AND %s"
+        params.extend([from_d, to_d])
+
+    base_from = """
+        FROM logins
+        INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
+        WHERE logins.Job_Status = 'Active'
+          AND call_report_master.branch != 'Test'
+          {date_filter}
+    """.format(date_filter=date_filter_sql)
+
+    call = connection.cursor()
+
+    # total count (for DataTables pagination info)
+    call.execute("SELECT COUNT(DISTINCT call_report_master.sno) {base}".format(base=base_from), params)
+    total_records = call.fetchone()[0]
+
+    # page of data
+    call.execute(
+        """
+        SELECT DISTINCT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,
+               call_report_master.time, call_report_master.category, call_report_master.ref_type,
+               call_report_master.name, call_report_master.design, call_report_master.contact,
+               call_report_master.date, call_report_master.location, call_report_master.branch
+        {base}
+        ORDER BY call_report_master.date DESC
+        LIMIT %s OFFSET %s
+        """.format(base=base_from),
+        params + [length, start]
+    )
+    desc = call.description
+    rows = [dict(zip([c[0] for c in desc], row)) for row in call.fetchall()]
+
+    data = []
+    for i, r in enumerate(rows, start=start + 1):
+        data.append({
+            "sno": i,
+            "emp_id": r["emp_id"],
+            "name": r["emp_name"],
+            "unique_id": r["unique_id"],
+            "date": r["date"].strftime('%d-%m-%Y') if r["date"] else "",
+            "time": str(r["time"]) if r["time"] else "",
+            "category": r["category"],
+            "ref_type": r["ref_type"],
+            "ref_name": r["name"],
+            "design": r["design"],
+            "contact": r["contact"],
+            "location": r["location"],
+            "branch": r["branch"],
+        })
+
+    return JsonResponse({
+        "draw": draw,
+        "recordsTotal": total_records,
+        "recordsFiltered": total_records,
+        "data": data,
+    })
+
+
+@login_required(login_url="/")
+def call_report_export(request):
+    f_date = request.GET.get('date_d')
+    date_filter_sql = ""
+    params = []
+
+    if f_date and ' - ' in f_date:
+        from_d, to_d = f_date.split(' - ')
+        from_d = datetime.strptime(from_d.strip(), '%m/%d/%Y').date()
+        to_d = datetime.strptime(to_d.strip(), '%m/%d/%Y').date()
+        date_filter_sql = "AND call_report_master.date BETWEEN %s AND %s"
+        params.extend([from_d, to_d])
+
+    call = connection.cursor()
+    call.execute(
+        """
+        SELECT DISTINCT call_report_master.emp_id, logins.emp_name, call_report_master.unique_id,
+               call_report_master.time, call_report_master.category, call_report_master.ref_type,
+               call_report_master.name, call_report_master.design, call_report_master.contact,
+               call_report_master.date, call_report_master.location, call_report_master.branch
+        FROM logins
+        INNER JOIN call_report_master ON logins.emp_id = call_report_master.emp_id
+        WHERE logins.Job_Status = 'Active'
+          AND call_report_master.branch != 'Test'
+          {date_filter}
+        ORDER BY call_report_master.date DESC
+        """.format(date_filter=date_filter_sql),
+        params
+    )
+    rows = call.fetchall()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Call Report"
+    ws.append(["#", "Emp ID", "Emp Name", "Unique ID", "Category", "Referral Type",
+               "Referral Name", "Design", "Contact", "Date", "Location", "Branch"])
+
+    for i, row in enumerate(rows, start=1):
+        emp_id, emp_name, unique_id, time_, category, ref_type, name, design, contact, date_, location, branch = row
+        ws.append([i, emp_id, emp_name, unique_id, category, ref_type, name, design,
+                   contact, date_.strftime('%d-%m-%Y') if date_ else "", location, branch])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response['Content-Disposition'] = 'attachment; filename="call_report.xlsx"'
+    wb.save(response)
+    return response
 #
 # @csrf_exempt
 # @login_required(login_url="/")
@@ -1570,31 +1667,42 @@ def attendance_summary_report(request):
     active_branches = BranchListDum.objects.filter(status=1)
     return render(request, "Employee/attendance_summary_report.html", {"branches": active_branches})
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 @login_required(login_url="/")
 def employee_leave_list(request):
-    url = f'https://3.6.104.94/api/employee-leaves/?from_date={timezone.now().date()}&to_date={timezone.now().date()}'
-    print(url)
-    response = requests.get(url, verify=False)
+    # Default to today's date
+    today = timezone.now().date()
+    url = f'https://3.6.104.94/api/employee-leaves/?from_date={today}&to_date={today}'
 
-    response = json.loads(response.text)
+    try:
+        # Added timeout as a best practice so your app doesn't hang if the API is down
+        response = requests.get(url, verify=False, timeout=10)
+        data = response.json()
+    except requests.RequestException:
+        data = []  # Fallback if the API fails
 
     if request.method == 'POST':
         filter_date = request.POST.get('date')
 
-        fdate, tdate = filter_date.split(' - ')
-        fdate = datetime.strptime(str(fdate), '%m/%d/%Y').date()
-        tdate = datetime.strptime(str(tdate), '%m/%d/%Y').date()
+        if filter_date:
+            fdate_str, tdate_str = filter_date.split(' - ')
+            fdate = datetime.strptime(fdate_str, '%m/%d/%Y').date()
+            tdate = datetime.strptime(tdate_str, '%m/%d/%Y').date()
 
-        url = f'https://3.6.104.94/api/employee-leaves/?from_date={fdate}&to_date={tdate}'
-        response = requests.get(url, verify=False)
-        response = json.loads(response.text)
+            url = f'https://3.6.104.94/api/employee-leaves/?from_date={fdate}&to_date={tdate}'
+
+            try:
+                response = requests.get(url, verify=False, timeout=10)
+                data = response.json()
+            except requests.RequestException:
+                data = []
 
     context = {
-        'data': response,
+        'data': data,
     }
     return render(request, 'Employee/employee_leave_list.html', context)
-
 
 @login_required(login_url="/")
 def daily_call_report(request):

@@ -63,7 +63,7 @@
                                 <div class="form-group">
                                     <label class="col-form-label">Designation<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="designation" required>
-                                        <option value="--Select Designation--">--Select Designation--</option>
+                                        <option value="" disabled selected>--Select Designation--</option>
                                         <option value="Cluster head">Cluster head</option>
                                         <option value="Center Head">Center Head</option>
                                         <option value="Senior Manager">Senior Manager</option>
@@ -86,7 +86,7 @@
                                 <div class="form-group">
                                     <label class="col-form-label">Branch<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="branch" required>
-                                        <option value="">--Select Working Location--</option>
+                                        <option value="" disabled selected>--Select Branch--</option>
                                         {% for list in branch %}
                                             <option value="{{ list.branch_name }}">{{ list.branch_name }}</option>
 
@@ -98,7 +98,7 @@
                                 <div class="form-group">
                                     <label class="col-form-label">Department<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="department" required>
-                                        <option value="--Select Department--">--Select Department--</option>
+                                        <option value="" selected disabled>--Select Department--</option>
                                         <option value="Admin">Admin</option>
                                         <option value="Center Head">Center Head</option>
                                         <option value="Amb. Coordinator">Amb. Coordinator</option>
@@ -120,7 +120,7 @@
                                 <div class="form-group">
                                     <label class="col-form-label">Category<span class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" name="category" required>
-                                        <option value="--Select Type--">--Select Category Type--</option>
+                                        <option value="" selected disabled>--Select Category Type--</option>
                                         <option value="Admin">Admin</option>
                                         <option value="Center Head">Center Head</option>
                                         <option value="Amb. Coordinator">Amb. Coordinator</option>
