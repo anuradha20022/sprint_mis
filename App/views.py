@@ -766,53 +766,6 @@ def call_report_export(request):
     response['Content-Disposition'] = 'attachment; filename="call_report.xlsx"'
     wb.save(response)
     return response
-#
-# @csrf_exempt
-# @login_required(login_url="/")
-# def call_reports(request):
-#     # print(request.POST)
-#     draw = int(request.POST.get('draw'))
-#     length = int(request.POST.get('length'))
-#     start = int(request.POST.get('start'))
-#     search = request.POST.get('search[value]')
-#     colindex = request.POST.get("order[0][column]")
-#     records_total = CallReportMaster.objects.all().count()
-#     records_filtered = records_total
-#     call_data = CallReportMaster.objects.all().values()[start:length + start]
-#
-#     if search:
-#         call_data = CallReportMaster.objects.filter(Q(name__icontains=search)
-#                                                     ).values()[start:length + start]
-#         records_total = call_data.count()
-#         records_filtered = records_total
-#
-#     data = [
-#         {
-#             'sno': "",
-#             'input': '<input type="checkbox" class="" name="' + str(emp['emp_id']) + '" value="">',
-#             'emp_id': emp['emp_id'],
-#             'unique_id': emp['unique_id'],
-#             'name': emp['name'],
-#             'category': emp['category'],
-#             'ref_type': emp['ref_type'],
-#             'design': emp['design'],
-#             'contact': emp['contact'],
-#             'date': emp['date'],
-#             'time': emp['time'],
-#             'location': emp['location'],
-#             'area': emp['area'],
-#             'city': emp['city'],
-#             'state': emp['state'],
-#             'pincode': emp['pincode'],
-#             'station': emp['station'],
-#             'branch': emp['branch'],
-#             'type': emp['type'],
-#
-#         } for emp in call_data
-#     ]
-#     return JsonResponse(
-#         {"draw": draw, "iTotalRecords": records_total, 'recordsFiltered': records_filtered,
-#          "iTotalDisplayRecords": records_total, "aaData": data}, safe=False)
 
 
 @login_required(login_url="/")

@@ -22,8 +22,6 @@ from App.views import HomeSampleVisitsListAPIView
 from sprint_mis import settings
 
 urlpatterns = [
-    # path('__debug__/', include('debug_toolbar.urls')),
-    # path('accounts/', include('django.contrib.auth.urls')),
     path('admin/', admin.site.urls),
     path('', views.loginuser, name='loginuser'),
     path('dashboard/', views.dashboard, name='dashboard'),
