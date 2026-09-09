@@ -41,6 +41,7 @@ urlpatterns = [
     path('utr_update/', views.utr_update, name='utr_update'),
     path('agent_update/', views.agent_update, name='agent_update'),
     path('utr_csv/', views.utr_csv, name='utr_csv'),
+    path('bulk_inactive_master_format/', views.bulk_inactive_master_format, name='bulk_inactive_master_format'),
     # path('upload_utr_csv/', views.upload_utr_csv, name='upload_utr_csv'),
     path('pending_payment_csv/', views.pending_payment_csv, name='pending_payment_csv'),
     path('search_id/', views.search_id, name='search_id'),
@@ -74,6 +75,11 @@ urlpatterns = [
 #Employee Details
     path('register/', views.register, name='register'),
     path('inactive_emp/', views.inactive_emp, name='inactive_emp'),
+    path('bulk_inactive_master/', views.bulk_inactive_master, name='bulk_inactive_master'),
+    path('bulk_transfer/', views.bulk_transfer, name='bulk_transfer'),
+    path('bulk-transfer/format/', views.bulk_transfer_format, name='bulk_transfer_format'),
+    path('bulk-inactive-master/report/<str:report_type>/', views.bulk_inactive_master_report, name='bulk_inactive_master_report'),
+    # path('download-inactive-format/', views.download_inactive_format, name='download_inactive_format'),
     path('employee_list/', views.employee_list, name='employee_list'),
     path('attendance_list/', views.attendance_list, name='attendance_list'),
 

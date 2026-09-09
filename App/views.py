@@ -4,9 +4,11 @@ from datetime import date
 import ast
 import csv
 import os
+import  io
 import logging
 import bcrypt
 import openpyxl
+from django.http import HttpResponse, Http404
 import requests
 import urllib3
 from django.contrib import messages
@@ -2077,6 +2079,23 @@ def utr_csv(request):
     return res
 
 
+@login_required(login_url="/")
+def bulk_inactive_master_format(request):
+    res = HttpResponse(content_type='text/csv')
+    res['Content-Disposition'] = 'attachment; filename="bulk_inactive_master_format.csv"'
+
+    writer = csv.writer(res)
+
+    writer.writerow([
+        'Employee ID',
+        'Employee Name',
+        'Unique ID',
+        'Agent Name',
+        'Branch'
+    ])
+
+    return res
+
 def upload_utr_csv(request):
     res = HttpResponse(content_type='text/csv')
     res['Content-Disposition'] = 'attachment; filename="Utr_Updated_file.csv"'
@@ -3734,3 +3753,217 @@ def attendance_list(request):
         ]
 
     return render(request, 'Employee/attendance_list.html', context)
+
+
+
+@login_required(login_url="/")
+def bulk_inactive_master(request):
+    if request.method == 'POST':
+        csv_file = request.FILES.get('upload_csv_file')
+
+        if not csv_file:
+            messages.error(request, 'Please upload a CSV file.')
+            return redirect('bulk_inactive_master')
+
+        if not csv_file.name.lower().endswith('.csv'):
+            messages.error(request, 'Uploaded file is not a CSV file.')
+            return redirect('bulk_inactive_master')
+
+        try:
+            decoded_file = csv_file.read().decode('utf-8-sig')
+        except UnicodeDecodeError:
+            decoded_file = csv_file.read().decode('latin-1')
+
+        io_string = io.StringIO(decoded_file)
+        reader = csv.reader(io_string)
+
+        header = next(reader, None)  # skip header row
+
+        result_rows = []
+
+        for row in reader:
+            if not row or not any(cell.strip() for cell in row):
+                continue
+
+            row = row + [''] * (5 - len(row))  # pad short rows so indexing is safe
+
+            emp_id = row[0].strip()
+            emp_name = row[1].strip()
+            unique_id = row[2].strip()
+            agent_name = row[3].strip()
+            branch = row[4].strip()
+
+            if not emp_id:
+                result_rows.append([emp_id, emp_name, unique_id, agent_name, branch, 'Failed', 'Employee ID is required'])
+                continue
+
+            if not unique_id:
+                result_rows.append([emp_id, emp_name, unique_id, agent_name, branch, 'Failed', 'Unique ID is required'])
+                continue
+
+            agent_obj = DoctorAgentList.objects.filter(unique_id=unique_id, emp_id=emp_id).first()
+
+            if not agent_obj:
+                result_rows.append([emp_id, emp_name, unique_id, agent_name, branch, 'Failed', 'Unique ID is not mapped to this Employee ID'])
+                continue
+
+            try:
+                agent_obj.r_status = 'NotVisit'
+                agent_obj.modified_on = timezone.now()
+                agent_obj.modified_by = str(request.user.emp_id)
+                agent_obj.save(update_fields=['r_status', 'modified_on', 'modified_by'])
+                result_rows.append([emp_id, emp_name, unique_id, agent_name, branch, 'Success', 'Updated successfully'])
+            except Exception as e:
+                result_rows.append([emp_id, emp_name, unique_id, agent_name, branch, 'Failed', str(e)])
+
+        # Directly return the report as a file download - no session, no leftover button
+        res = HttpResponse(content_type='text/csv')
+        res['Content-Disposition'] = 'attachment; filename="bulk_inactive_master_report.csv"'
+
+        writer = csv.writer(res)
+        writer.writerow(['Employee ID', 'Employee Name', 'Unique ID', 'Agent Name', 'Branch', 'Status', 'Remarks'])
+        for row in result_rows:
+            writer.writerow(row)
+
+        return res
+
+    # GET request - just show the plain form
+    return render(request, 'Employee/bulk_inactive_master.html')
+
+
+@login_required(login_url="/")
+def bulk_inactive_master_report(request, report_type):
+    if report_type == 'success':
+        records = request.session.get('bulk_inactive_success', [])
+        filename = 'bulk_inactive_success_report.csv'
+        header_row = ['Employee ID', 'Employee Name', 'Unique ID', 'Agent Name', 'Branch', 'Remarks']
+    elif report_type == 'failed':
+        records = request.session.get('bulk_inactive_failed', [])
+        filename = 'bulk_inactive_failed_report.csv'
+        header_row = ['Employee ID', 'Employee Name', 'Unique ID', 'Agent Name', 'Branch', 'Reason']
+    else:
+        raise Http404()
+
+    res = HttpResponse(content_type='text/csv')
+    res['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(res)
+    writer.writerow(header_row)
+    for row in records:
+        writer.writerow(row)
+
+    return res
+
+
+@login_required(login_url="/")
+def bulk_transfer_format(request):
+    res = HttpResponse(content_type='text/csv')
+    res['Content-Disposition'] = 'attachment; filename="bulk_transfer_format.csv"'
+
+    writer = csv.writer(res)
+
+    writer.writerow([
+        'Employee ID',
+        'Unique ID',
+        'Agent Name',
+        'Branch'
+    ])
+
+    return res
+
+
+
+@login_required(login_url="/")
+def bulk_transfer(request):
+    if request.method == 'POST':
+        csv_file = request.FILES.get('upload_csv_file')
+
+        if not csv_file:
+            messages.error(request, 'Please upload a CSV file.')
+            return redirect('bulk_transfer')
+
+        if not csv_file.name.lower().endswith('.csv'):
+            messages.error(request, 'Uploaded file is not a CSV file.')
+            return redirect('bulk_transfer')
+
+        try:
+            decoded_file = csv_file.read().decode('utf-8-sig')
+        except UnicodeDecodeError:
+            decoded_file = csv_file.read().decode('latin-1')
+
+        io_string = io.StringIO(decoded_file)
+        reader = csv.reader(io_string)
+
+        header = next(reader, None)  # skip header row
+
+        result_rows = []
+        success_count = 0
+        failed_count = 0
+        already_mapped_count = 0
+
+        for row in reader:
+            if not row or not any(cell.strip() for cell in row):
+                continue
+
+            row = row + [''] * (4 - len(row))  # pad short rows so indexing is safe
+
+            emp_id = row[0].strip()
+            unique_id = row[1].strip()
+            agent_name = row[2].strip()
+            branch = row[3].strip()
+
+            if not emp_id:
+                result_rows.append([emp_id, unique_id, agent_name, branch, 'Failed', 'Employee ID is required'])
+                failed_count += 1
+                continue
+
+            if not unique_id:
+                result_rows.append([emp_id, unique_id, agent_name, branch, 'Failed', 'Unique ID is required'])
+                failed_count += 1
+                continue
+
+            agent_obj = DoctorAgentList.objects.filter(unique_id=unique_id, r_status='Visit').first()
+
+            if not agent_obj:
+                result_rows.append([emp_id, unique_id, agent_name, branch, 'Failed', 'Unique ID not found (or status is not Visit)'])
+                failed_count += 1
+                continue
+
+            if agent_obj.emp_id == emp_id:
+                result_rows.append([emp_id, unique_id, agent_name, branch, 'Already Mapped', 'Unique ID is already mapped to this Employee ID'])
+                already_mapped_count += 1
+                continue
+
+            try:
+                agent_obj.emp_id = emp_id
+                agent_obj.modified_by = request.user.emp_id
+                agent_obj.modified_on = timezone.now()
+                agent_obj.save(update_fields=['emp_id', 'modified_by', 'modified_on'])
+                result_rows.append([emp_id, unique_id, agent_name, branch, 'Success', 'Transferred successfully'])
+                success_count += 1
+            except Exception as e:
+                result_rows.append([emp_id, unique_id, agent_name, branch, 'Failed', str(e)])
+                failed_count += 1
+
+        # Success message will show once the page reloads after the download completes
+        messages.success(
+            request,
+            f'Processed {len(result_rows)} record(s): {success_count} transferred, '
+            f'{already_mapped_count} already mapped, {failed_count} failed. Report downloaded.'
+        )
+
+        res = HttpResponse(content_type='text/csv')
+        res['Content-Disposition'] = 'attachment; filename="bulk_transfer_report.csv"'
+
+        writer = csv.writer(res)
+        writer.writerow(['Employee ID', 'Unique ID', 'Agent Name', 'Branch', 'Status', 'Remarks'])
+        for row in result_rows:
+            writer.writerow(row)
+
+        # Marker cookie so the page can detect the download finished and reload itself
+        res.set_cookie('bulkTransferDownload', 'finished', max_age=30, path='/')
+
+        return res
+
+    # GET request - just show the plain form
+    return render(request, 'Employee/bulk_transfer.html')

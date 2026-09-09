@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content_heading %}Bulk Inactive Master {% endblock %}
+{% block content_subheading %}Bulk Inactive Master {% endblock %}
+{% block title %} Bulk Inactive Master {% endblock %}
+
+{% block body %}
+
+    <div class="card card-body">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{% url 'bulk_inactive_master' %}" method="POST" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="name" class="col-md-3 ">Upload CSV File only: </label>
+
+                <div class="row">
+                  <div class="col-md-3  ">
+                    <input type="file" class="btn-shadow" name="upload_csv_file" required id="csv_file" style="border: 1px solid blue; padding: 6px;" accept=".csv" />
+                  </div>
+                    <div class="col-md-4">
+                    <button type="Submit" name="Submit" class="btn btn-success mr-3" style="border: 1px solid blue; padding: 13px;">Upload Now</button>
+                   </div>
+                     <div class="col-md-2 float-right">
+                   <a href ="{% url 'bulk_inactive_master_format' %}" name="excel" class="btn btn-sm btn-primary" style="padding: 10px;">Download Excel Format</a>
+               </div>
+                </div>
+
+            </div>
+
+  </form>
+
+        <hr>
+        <div class="row">
+            <div class="col-lg-12 pt-4">
+                <ol class="text-gradient-info" style="padding-inline-start: 0px;!important;"><h3>Steps to follow uploading inputs</h3>
+                    <ol class="text-secondary">
+                        <li> Headings required.</li>
+                        <li> File should be in CSV format</li>
+                    </ol>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

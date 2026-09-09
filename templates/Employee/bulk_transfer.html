@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content_heading %}Bulk Master Transfer {% endblock %}
+{% block content_subheading %}Bulk Master Transfer {% endblock %}
+{% block title %} Bulk Master Transfer {% endblock %}
+
+{% block body %}
+
+    <div class="card card-body">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{% url 'bulk_transfer' %}" method="POST" enctype="multipart/form-data" target="report_frame" id="bulk_transfer_form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="name" class="col-md-3 ">Upload CSV File only: </label>
+
+                <div class="row">
+                  <div class="col-md-3  ">
+                    <input type="file" class="btn-shadow" name="upload_csv_file" required id="csv_file" style="border: 1px solid blue; padding: 6px;" accept=".csv" />
+                  </div>
+                    <div class="col-md-4">
+                    <button type="Submit" name="Submit" class="btn btn-success mr-3" style="border: 1px solid blue; padding: 13px;">Upload Now</button>
+                   </div>
+                     <div class="col-md-2 float-right">
+                   <a href ="{% url 'bulk_transfer_format' %}" name="excel" class="btn btn-sm btn-primary" style="padding: 10px;">Download Excel Format</a>
+               </div>
+                </div>
+
+            </div>
+
+  </form>
+
+  <iframe name="report_frame" id="report_frame" style="display:none;"></iframe>
+
+        <hr>
+        <div class="row">
+            <div class="col-lg-12 pt-4">
+                <ol class="text-gradient-info" style="padding-inline-start: 0px;!important;"><h3>Steps to follow uploading inputs</h3>
+                    <ol class="text-secondary">
+                        <li> Headings required.</li>
+                        <li> File should be in CSV format</li>
+                    </ol>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.getElementById('bulk_transfer_form');
+            var pollTimer = null;
+
+            function getCookie(name) {
+                var match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+                return match ? match.pop() : null;
+            }
+
+            function clearCookie(name) {
+                document.cookie = name + '=; Max-Age=0; path=/;';
+            }
+
+            form.addEventListener('submit', function () {
+                if (pollTimer) {
+                    clearInterval(pollTimer);
+                }
+                // Poll for the marker cookie the server sets alongside the CSV response
+                pollTimer = setInterval(function () {
+                    if (getCookie('bulkTransferDownload')) {
+                        clearInterval(pollTimer);
+                        clearCookie('bulkTransferDownload');
+                        window.location.reload();
+                    }
+                }, 500);
+            });
+        });
+    </script>
+
+{% endblock %}
