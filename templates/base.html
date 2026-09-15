@@ -229,14 +229,6 @@
     <div class="loader-wrapper">
         <div class="loader spinner-3">
             <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
-            <div class="bg-primary"></div>
         </div>
     </div>
 
@@ -256,51 +248,9 @@
                         <li id="dashboard_link">
                             <a href="{% url 'dashboard' %}"><i class="icon-home"></i><span>Dashboard</span></a>
                         </li>
-{#                        <li>#}
-{#                            <a href="{% url 'ref_dashboard' %}"><i class="icon-home"></i><span>Referral Dashboard</span></a>#}
-{#                        </li>#}
-{#                         <li>#}
-{#                            <a href="{% url 'processed_ref' %}"><i class="icon-list "></i><span>Processed Referrals</span></a>#}
-{#                        </li>#}
-{#                        <li>#}
-{#                            <a href="{% url 'pending_payment' %}"><i class="icon-paypal"></i><span>Pending For Payment</span></a>#}
-{#                        </li>#}
-{#                        <li>#}
-{#                            <a href="{% url 'coverage_report' %}"><i class="icon-paypal"></i><span>Coverage Report</span></a>#}
-{#                        </li>#}
-{#                        <li>#}
-{#                            <a href="{% url 'emp_map_data' %}"><i class="icon-paypal"></i><span>Map Report</span></a>#}
-{#                        </li>#}
-
-{#                        <li>#}
-{#                            <a href="{% url 'doctor_agent_list' %}"><i class="icon-credit-card"></i><span>Doctor Agent List</span></a>#}
-{#                        </li>#}
-{#                        <li>#}
-{#                            <a href="{% url 'cash_payment' %}"><i class="icon-credit-card"></i><span>Cash Payment</span></a>#}
-{#                        </li>#}
-{#                        <li class="has-sub ">#}
-{#                            <a><i class="icon-people"></i><span>Bills Details</span><i class="arrow rotate"></i></a>#}
-{#                            <ul class="sub-menu">#}
-{#                                <li>#}
-{#                                    <a href="{% url 'total_referral_list' %} "><span>  Total referral List </span></a>#}
-{#                                    <a href="{% url 'new_referral_list' %}"><span> New Referral List </span></a>#}
-{#                                    <a href="{% url 'recent_updates' %}"><span> Recently Updated </span></a>#}
-{#                                    <a href="{% url 'bifurcation_list' %}"><span> Bifurcation List </span></a>#}
-{#                                    <a href="{% url 'search_referral' %}"><span> Search Referral </span></a>#}
-{#                                    <a href="{% url 'patient_referral' %}"><span> Patient Referral </span></a>#}
-{#                                    <a href="{% url 'incomplete_referral' %}"><span> Incomplete Referral Data</span></a>#}
-{#                                    <a href="{% url 'abc_report' %}"><span> ABC Report </span></a>#}
-{#                                    <a href="{% url 'allowance_report' %}"><span> Allowance Report </span></a>#}
-{#                                    <a href="{% url 'inactive_allowance_report' %}"><span> Inactive Allowance </span></a>#}
-{#                                    <a href="{% url 'bill_list' %}"><span> Bills </span></a>#}
-{#                                    <a href="{% url 'functional_approval_list' %}"><span>Functional Approval List</span></a>#}
-{##}
-{#                                </li>#}
-{#                            </ul>#}
-{#                            </li>#}
                          <li class="has-sub ">
                             <a id="referral_link">
-                                <i class="icon-user"></i><span>Referral Details </span><i class="arrow rotate"></i></a>
+                                <i class="icon-refresh"></i><span>Referral Details </span><i class="arrow rotate"></i></a>
                                    <ul class="sub-menu" id="referral_submenu">
                                      <li id="allowance_link">
                                         <a href="{% url 'allowance_report' %}" ><span>Allowance Report</span></a>
@@ -350,35 +300,15 @@
                                   </ul>
                             </li>
                         <li class="has-sub ">
-                            <a id="camp_limk"><i class="icon-people"></i><span>Camp Reports</span><i class="arrow rotate"></i></a>
+                            <a id="camp_limk"><i class="icon-home"></i><span>Camp Reports</span><i class="arrow rotate"></i></a>
                             <ul class="sub-menu" id="camp_submenu">
                                 <li id="camp_data">
                                     <a href="{% url 'camp_report' %}"><span>Camp Report</span></a>
                                 </li>
                             </ul>
                         </li>
-{#                        <li class="has-sub ">#}
-{#                            <a><i class="icon-people"></i><span>Call Report Comparision</span><i class="arrow rotate"></i></a>#}
-{#                            <ul class="sub-menu">#}
-{#                                <li>#}
-{#                                    <a href="{% url 'dashboard' %}"><span>Enter Details</span></a>#}
-{#                                    <a href="{% url 'dashboard' %}"><span>Report</span></a>#}
-{#                                </li>#}
-{#                            </ul>#}
-{#                        </li>#}
-{#                        <li class="has-sub ">#}
-{#                            <a href="{% url 'bank_details' %}"><i class="icon-people"></i><span>Bank details</span><i class="arrow rotate"></i></a>#}
-{#                            <ul class="sub-menu">#}
-{#                                <li>#}
-{#                               <a href="{% url 'bank_details' %}"><span>Update Bank Details</span></a>#}
-{#                               </li>#}
-{#                                 <li>#}
-{#                                <a href="{% url 'wrong_bank_details' %}"><span>Wrong Bank Details</span></a>#}
-{#                                </li>#}
-{#                            </ul>#}
-{#                        </li>#}
- <li>
-                               <a href="{% url 'bank_details' %}"><i class="icon-arrow-down"></i><span>Update Bank Details</span></a>
+                         <li>
+                               <a href="{% url 'bank_details' %}"><i class="icon-magnifier-add"></i><span>Update Bank Details</span></a>
                                </li>
                          <li>
                             <a href="{% url 'agent_update' %}"><i class="fa fa-address-card"></i><span>Master List Update </span></a>
@@ -386,13 +316,6 @@
                          <li>
                             <a href="{% url 'bulk_transfer' %}"><i class="fa fa-user-plus"></i><span>Master List Bulk Transfer </span></a>
                         </li>
-{#                         <li>#}
-{#                            <a href="{% url 'ucid_creation' %}"><i class="fa fa-address-card"></i><span>UCID Creation</span></a>#}
-{#                        </li>#}
-
-{#                        <li>#}
-{#                            <a href="{% url 'dynamic_form' %}"><i class="fa fa-address-card"></i><span>Update</span></a>#}
-{#                        </li>#}
 
                     </ul>
                 </div>
@@ -432,19 +355,10 @@
                                     <div class="menu-dropdown-inner">
                                         <div class="menu-dropdown-head pb-3">
                                             <div class="tbl-cell">
-                                                <img src="{% static 'uploads/author-1.jpg' %}" alt="">
+                                                <img src="{% static 'profile .png' %}" alt="">
                                                 <!-- <i class="fa fa-user-circle"></i> -->
                                             </div>
-                                            <div class="tbl-cell pl-2 text-left">
-{#                                                <p class="m-0 font-18">{{ request.user.emp_name }}</p>#}
-{#                                                <p class="m-0 font-14">{{ request.user.designation }}</p>#}
-                                            </div>
-                                        </div>
-                                        <div class="menu-dropdown-body">
-                                            <ul class="menu-nav">
-                                                <li><a href="#"><i class="icon-user"></i><span>My Profile</span></a></li>
-{#                                                <li><a href="{% url 'change_pwd' %}"><i class="icon-globe-alt"></i><span>Change password</span></a></li>#}
-                                            </ul>
+
                                         </div>
                                         <div class="menu-dropdown-footer text-right">
                                             <a href="{% url 'logout' %}" class="btn btn-outline btn-primary btn-pill btn-outline-2x font-12 btn-sm">Logout</a>

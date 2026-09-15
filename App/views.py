@@ -1990,7 +1990,7 @@ def search_id(request):
             (Q(unique_id__istartswith=term) |
              Q(agent_name__istartswith=term) |
              Q(mobile__istartswith=term)),
-            r_Status='visit'
+            r_status='visit'
         )
         for emp in new:
             result.append(
