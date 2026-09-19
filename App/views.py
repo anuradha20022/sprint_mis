@@ -1940,8 +1940,14 @@ def wrong_bank_details(request):
 def bank_details(request):
     context = {}
     if 'search' in request.POST:
-        search = request.POST.get('search')
-        context["b_details"] = DoctorAgentList.objects.get(unique_id=search)
+        search = request.POST.get('search', '').strip()
+        if search:
+            b_details = DoctorAgentList.objects.filter(unique_id=search).first()
+            if b_details:
+                context["b_details"] = b_details
+            else:
+                messages.error(request, f"No record found for ID: {search}")
+                context["b_details"] = None
 
     elif request.method == "POST":
         unique_id = request.POST.get('unique_id')
@@ -1964,18 +1970,8 @@ def bank_details(request):
         else:
             messages.error(request, "Bank Details already Updated!")
 
-        # except DoctorAgentList.DoesNotExist:
-        #     messages.error(request, "Unique Id is Mandatory!")
 
-        # if unique_id:
-        #     doctor_agent = DoctorAgentList.objects.filter(unique_id=unique_id).update(
-        #                                                bank_branch_name=bank_branch_name, bank_ac=bank_ac, ifsc=ifsc, pancard=pancard)
-        #     if doctor_agent:
-        #         messages.success(request, "Updated Successfully!")
-        #     else:
-        #         messages.error(request, "Please check details!")
-        # else:
-        #     messages.error(request, "Unique Id is Mandatory!")
+
         return redirect('bank_details')
 
     return render(request, 'bank_details.html', context)
