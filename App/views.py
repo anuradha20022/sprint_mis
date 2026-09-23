@@ -1949,28 +1949,54 @@ def bank_details(request):
                 messages.error(request, f"No record found for ID: {search}")
                 context["b_details"] = None
 
+
     elif request.method == "POST":
         unique_id = request.POST.get('unique_id')
+
         agent_name = request.POST.get('agent_name')
+
         mobile = request.POST.get('mobile')
+
         pancard = request.POST.get('pancard')
+
         bank_branch_name = request.POST.get('bank_branch_name')
+
         bank_ac = request.POST.get('bank_ac')
-        ifsc = request.POST.get('ifsc')
 
-        # try:
-        doctor_agent = DoctorAgentList.objects.get(unique_id=unique_id)
+        ifsc = request.POST.get('ifsc', '').strip().upper()
+
+        if not unique_id:
+            messages.error(request, "Please search and select a record first.")
+
+            return redirect('bank_details')
+
+        try:
+
+            doctor_agent = DoctorAgentList.objects.get(unique_id=unique_id)
+
+        except DoctorAgentList.DoesNotExist:
+
+            messages.error(request, f"No record found for ID: {unique_id}")
+
+            return redirect('bank_details')
+
         if doctor_agent.bank_ac == "No Update" or doctor_agent.bank_ac == "":
+
             doctor_agent.bank_branch_name = bank_branch_name
+
             doctor_agent.bank_ac = bank_ac
+
             doctor_agent.ifsc = ifsc
+
             doctor_agent.pancard = pancard
+
             doctor_agent.save()
+
             messages.success(request, "Updated Successfully!")
+
         else:
+
             messages.error(request, "Bank Details already Updated!")
-
-
 
         return redirect('bank_details')
 
